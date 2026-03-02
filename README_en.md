@@ -139,17 +139,17 @@ When safety conditions are NOT met, Binding **stops execution immediately**. It 
 
 The veil is composed of 9 "organs" that work together to provide autonomous, safe operation:
 
-| Organ     | Name              | Role                                                   |
-| --------- | ----------------- | ------------------------------------------------------ |
-| 🫀 Heart  | Permission Engine | Auto-approves safe ops, auto-blocks dangerous ops      |
-| 👁️ Eye    | Observer          | Records all operations as evidence                     |
-| 👄 Mouth  | Communicator      | Contextual permission dialogs, GitHub PR notifications |
-| 🛡️ Shield | Boundary Guard    | Detects secret leaks, blocks boundary violations       |
-| ✋ Hand   | Git Automation    | Automates commit, push, PR, merge                      |
-| 🦿 Leg    | Self-Healer       | Auto-fixes test failures (up to 3 retries)             |
-| 🧠 Memory | State Keeper      | Preserves context across sessions                      |
-| 👛 Wallet | Cost Controller   | Monitors token usage, warns on budget limits           |
-| 🦠 Immune | Dependency Guard  | Detects unauthorized packages, scope violations        |
+| Organ     | Name              | Hook File                                              | Role                                                   |
+| --------- | ----------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| 🫀 Heart  | Permission Engine | `tobari-gate.py`                                       | Auto-approves safe ops, auto-blocks dangerous ops      |
+| 👁️ Eye    | Observer          | `tobari-evidence.py`, `tobari-evidence-failure.py`     | Records all operations as evidence                     |
+| 👄 Mouth  | Communicator      | `tobari-permission.py`                                 | Contextual permission dialogs, GitHub PR notifications |
+| 🛡️ Shield | Boundary Guard    | `tobari-gate.py` (boundary)                            | Detects secret leaks, blocks boundary violations       |
+| ✋ Hand   | Git Automation    | `tobari_stage.py`                                      | Automates commit, push, PR, merge                      |
+| 🦿 Leg    | Self-Healer       | `tobari-stop.py`                                       | Auto-fixes test failures (up to 3 retries)             |
+| 🧠 Memory | State Keeper      | `tobari-session-start.py`, `tobari-precompact.py`      | Preserves context across sessions                      |
+| 👛 Wallet | Cost Controller   | `tobari-cost.py`                                       | Monitors token usage, warns on budget limits           |
+| 🦠 Immune | Dependency Guard  | `tobari-gate.py` (scope)                               | Detects unauthorized packages, scope violations        |
 
 In addition, **git-guard** (pre-commit/pre-push hooks) provides secret scanning as a final boundary defense.
 
