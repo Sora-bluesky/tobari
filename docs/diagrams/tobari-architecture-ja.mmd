@@ -1,83 +1,48 @@
 %%{init: {'theme': 'dark'}}%%
-graph TB
+graph TD
+    %% ---- User Entry ----
+    User(["👤 ユーザー"])
+
     %% ---- Orchestra Layer ----
-    subgraph Orchestra["Orchestra レイヤー"]
-        User["ユーザー"]
+    subgraph Orchestra["🎼 Orchestra レイヤー"]
         CC["Claude Code<br/>全体統括"]
-
-        subgraph Subagents["サブエージェント"]
-            PlanA["Plan<br/>設計・計画"]
-            ExploreA["Explore<br/>コード探索"]
-            GPA["general-purpose<br/>実装・委譲"]
-        end
-
-        subgraph AgentTeams["Agent Teams"]
-            TM1["チームメイト A"]
-            TM2["チームメイト B"]
-            TM3["チームメイト C"]
-        end
-
-        User -->|指示| CC
-        CC -->|委託| PlanA
-        CC -->|委託| ExploreA
-        CC -->|委託| GPA
-        CC -->|並列指示| TM1
-        CC -->|並列指示| TM2
-        CC -->|並列指示| TM3
+        SA["サブエージェント<br/>Plan · Explore · general-purpose"]
+        AT["Agent Teams<br/>チームメイト（並列協調）"]
+        CC -->|委託| SA
+        CC -->|並列指示| AT
     end
 
-    %% ---- Data Flow ----
-    subgraph Data["データフロー"]
-        Backlog["backlog.yaml<br/>タスク状態（SoT）"]
-        Session["tobari-session.json<br/>セッション状態"]
-        Evidence["Evidence Ledger<br/>監査証跡（JSONL）"]
+    %% ---- State / Data ----
+    subgraph Data["📊 状態・証跡"]
+        BL["backlog.yaml<br/>タスク状態（SoT）"]
+        SJ["tobari-session.json<br/>セッション状態"]
+        EV["Evidence Ledger<br/>監査証跡（JSONL）"]
     end
-
-    CC --> Backlog
-    CC --> Session
-    CC --> Evidence
 
     %% ---- Binding Layer ----
-    subgraph BindingLayer["Binding レイヤー"]
-        subgraph GateEngine["ゲートエンジン（PreToolUse）"]
-            Allow["allow<br/>自動承認"]
-            Deny["deny<br/>自動ブロック"]
-            Ask["ask<br/>ユーザー確認"]
-        end
-
-        subgraph StageCtrl["ステージコントローラー"]
-            STG0["STG0 要件"] --> STG1["STG1 設計"]
-            STG1 --> STG2["STG2 実装"]
-            STG2 --> STG3["STG3 検証"]
-            STG3 --> STG4["STG4 自動化"]
-            STG4 --> STG5["STG5 コミット"]
-            STG5 --> STG6["STG6 PR/マージ"]
-        end
-
-        AutoAdv["auto-advance<br/>条件達成で自動進行"]
+    subgraph Binding["🔒 Binding レイヤー（Claude Code Hooks）"]
+        GE["ゲートエンジン<br/>allow / deny / ask<br/>PreToolUse Hook"]
+        SC["ステージコントローラー<br/>STG0 → STG1 → STG2 → STG3 → STG4 → STG5 → STG6"]
     end
 
-    %% ---- Layer Connections ----
-    Backlog ---|状態参照| StageCtrl
-    Evidence ---|記録| GateEngine
-    Session ---|セッション管理| CC
-    GateEngine ---|判定結果| CC
-    AutoAdv ---|ゲート通過| StageCtrl
+    %% ---- Vertical flow (no cycles) ----
+    User -->|指示| CC
+    CC -->|読み書き| BL
+    CC -->|管理| SJ
+    CC -->|記録| EV
+    BL -->|状態参照| SC
+    EV -->|ログ| GE
 
     %% ---- Styles ----
     style Orchestra fill:#1a2a4a,stroke:#3498db,stroke-width:2px,color:#fff
-    style BindingLayer fill:#2a1a1a,stroke:#e74c3c,stroke-width:2px,color:#fff
     style Data fill:#1a3a2a,stroke:#2ecc71,stroke-width:2px,color:#fff
-    style Subagents fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
-    style AgentTeams fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
-    style GateEngine fill:#3a2a2a,stroke:#e67e22,stroke-width:1px,color:#fff
-    style StageCtrl fill:#3a2a2a,stroke:#e67e22,stroke-width:1px,color:#fff
+    style Binding fill:#2a1a1a,stroke:#e74c3c,stroke-width:2px,color:#fff
     style User fill:#8e44ad,stroke:#9b59b6,stroke-width:2px,color:#fff
     style CC fill:#2c3e50,stroke:#1abc9c,stroke-width:2px,color:#fff
-    style Allow fill:#27ae60,stroke:#2ecc71,stroke-width:1px,color:#fff
-    style Deny fill:#c0392b,stroke:#e74c3c,stroke-width:1px,color:#fff
-    style Ask fill:#d4ac0d,stroke:#f1c40f,stroke-width:1px,color:#000
-    style Backlog fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
-    style Session fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
-    style Evidence fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
-    style AutoAdv fill:#922b21,stroke:#e74c3c,stroke-width:1px,color:#fff
+    style SA fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
+    style AT fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
+    style BL fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
+    style SJ fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
+    style EV fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
+    style GE fill:#922b21,stroke:#e74c3c,stroke-width:1px,color:#fff
+    style SC fill:#3a2a2a,stroke:#e67e22,stroke-width:1px,color:#fff
