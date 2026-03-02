@@ -1,5 +1,7 @@
 # tobari
 
+> 🌐 [日本語](README.md)
+
 ![tobari](docs/diagrams/tobari-hero-en.png)
 
 > Lower the veil. Unleash.
@@ -126,7 +128,6 @@ When safety conditions are NOT met, Binding **stops execution immediately**. It 
 | Skill                   | Command           | Description                              |
 | ----------------------- | ----------------- | ---------------------------------------- |
 | Lower the Veil          | `/tobari`         | Lower the veil and start a project       |
-| Lower the Veil (alias)  | `/orose`          | World-lore alias for /tobari             |
 | Parallel Implementation | `/team-implement` | Parallel implementation with Agent Teams |
 | Parallel Review         | `/team-review`    | Parallel review with Agent Teams         |
 | Design Planning         | `/plan`           | Create an implementation plan            |

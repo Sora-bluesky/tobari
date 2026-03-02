@@ -1,5 +1,7 @@
 # tobari
 
+> 🌐 [English](README_en.md)
+
 ![tobari](docs/diagrams/tobari-hero-ja.png)
 
 > 帳をおろして、解き放て。
@@ -150,7 +152,6 @@ Binding はガバナンス統制レイヤです。ルール・ゲート・契約
 | Skill                    | Command           | Description                    |
 | ------------------------ | ----------------- | ------------------------------ |
 | 帳をおろす               | `/tobari`         | 帳をおろしてプロジェクト開始   |
-| 帳をおろす（エイリアス） | `/orose`          | /tobari の世界観エイリアス     |
 | 並列実装                 | `/team-implement` | Agent Teams で並列実装         |
 | 並列レビュー             | `/team-review`    | Agent Teams で並列レビュー     |
 | 計画策定                 | `/plan`           | 設計計画を策定                 |
