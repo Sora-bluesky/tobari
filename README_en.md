@@ -2,7 +2,7 @@
 
 > 🌐 [日本語](README.md)
 
-![tobari](docs/diagrams/tobari-hero-en.png)
+![tobari](docs/diagrams/tobari-hero-en.jpg)
 
 > Lower the veil. Unleash.
 

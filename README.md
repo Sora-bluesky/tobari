@@ -2,7 +2,7 @@
 
 > 🌐 [English](README_en.md)
 
-![tobari](docs/diagrams/tobari-hero-ja.png)
+![tobari](docs/diagrams/tobari-hero-ja.jpg)
 
 > 帳をおろして、解き放て。
 
