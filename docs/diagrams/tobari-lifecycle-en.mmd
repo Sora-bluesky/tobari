@@ -1,0 +1,25 @@
+%%{init: {'theme': 'dark'}}%%
+graph LR
+    STG0["<b>STG0: Requirements</b><br/>Contract generation<br/>tobari-session.json"]
+    STG1["<b>STG1: Design</b><br/>Approach decision<br/>Impact analysis"]
+    STG2["<b>STG2: Implementation</b><br/>Code written<br/>Self-review"]
+    STG3["<b>STG3: Verification</b><br/>Tests + lint<br/>DoD check"]
+    STG4["<b>STG4: Automation</b><br/>CI/CD checks"]
+    STG5["<b>STG5: Commit/Push</b><br/>git-guard scan"]
+    STG6["<b>STG6: PR/Merge</b><br/>PR created + merged"]
+
+    STG0 --> STG1 --> STG2 --> STG3 --> STG4 --> STG5 --> STG6
+
+    %% ---- Annotation ----
+    NOTE["STG0 = Only human touchpoint. Auto-advance thereafter."]
+
+    STG0 -.-> NOTE
+
+    %% ---- Styles ----
+    classDef human fill:#6366f1,color:#fff,stroke:#818cf8,stroke-width:3px
+    classDef auto fill:#1e293b,color:#e2e8f0,stroke:#475569,stroke-width:2px
+    classDef annotation fill:#0f172a,color:#94a3b8,stroke:#334155,stroke-dasharray:5 5
+
+    class STG0 human
+    class STG1,STG2,STG3,STG4,STG5,STG6 auto
+    class NOTE annotation

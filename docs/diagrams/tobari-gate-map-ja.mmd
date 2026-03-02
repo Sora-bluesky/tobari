@@ -1,0 +1,44 @@
+%%{init: {'theme': 'dark'}}%%
+graph TD
+    START["タスク実行"]
+    DECISION{"Binding 判定"}
+    ALLOW["allow"]
+    STOP["stop"]
+    ADVANCE["次の STG へ進行"]
+    OUTPUT["failed_steps +<br/>required_actions 出力"]
+    FIX["修正"]
+
+    START --> DECISION
+    DECISION -->|"安全条件を充足"| ALLOW
+    DECISION -->|"安全条件に未達"| STOP
+    ALLOW --> ADVANCE
+    STOP --> OUTPUT
+    OUTPUT --> FIX
+    FIX -->|"再判定"| DECISION
+
+    %% ---- Profile Density ----
+    subgraph PROFILES["Operating Profile 別ゲート密度"]
+        LITE["Lite<br/>STG0 + STG6 のみ"]
+        STANDARD["Standard<br/>全 STG ゲート"]
+        STRICT["Strict<br/>全 STG + 必須レビュー"]
+    end
+
+    ADVANCE -.->|"適用プロファイル"| PROFILES
+
+    %% ---- Styles ----
+    classDef allowPath fill:#22c55e,color:#fff,stroke:#16a34a,stroke-width:2px
+    classDef stopPath fill:#ef4444,color:#fff,stroke:#dc2626,stroke-width:2px
+    classDef decision fill:#f59e0b,color:#000,stroke:#d97706,stroke-width:2px
+    classDef neutral fill:#1e293b,color:#e2e8f0,stroke:#475569
+    classDef profile fill:#334155,color:#e2e8f0,stroke:#64748b
+
+    class ALLOW allowPath
+    class ADVANCE allowPath
+    class STOP stopPath
+    class OUTPUT stopPath
+    class FIX stopPath
+    class DECISION decision
+    class START neutral
+    class LITE,STANDARD,STRICT profile
+
+    style PROFILES fill:#0f172a,stroke:#334155,stroke-width:2px,color:#e2e8f0

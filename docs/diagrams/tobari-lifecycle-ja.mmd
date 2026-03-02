@@ -1,0 +1,25 @@
+%%{init: {'theme': 'dark'}}%%
+graph LR
+    STG0["<b>STG0: 要件定義</b><br/>契約生成<br/>tobari-session.json"]
+    STG1["<b>STG1: 設計</b><br/>アプローチ決定<br/>影響分析"]
+    STG2["<b>STG2: 実装</b><br/>コード作成<br/>自己レビュー"]
+    STG3["<b>STG3: 検証</b><br/>テスト + lint<br/>DoD チェック"]
+    STG4["<b>STG4: 自動化</b><br/>CI/CD チェック"]
+    STG5["<b>STG5: コミット</b><br/>git-guard スキャン"]
+    STG6["<b>STG6: PR・マージ</b><br/>PR 作成 + マージ"]
+
+    STG0 --> STG1 --> STG2 --> STG3 --> STG4 --> STG5 --> STG6
+
+    %% ---- Annotation ----
+    NOTE["STG0 = 唯一の人間タッチポイント。以降は自動で前進。"]
+
+    STG0 -.-> NOTE
+
+    %% ---- Styles ----
+    classDef human fill:#6366f1,color:#fff,stroke:#818cf8,stroke-width:3px
+    classDef auto fill:#1e293b,color:#e2e8f0,stroke:#475569,stroke-width:2px
+    classDef annotation fill:#0f172a,color:#94a3b8,stroke:#334155,stroke-dasharray:5 5
+
+    class STG0 human
+    class STG1,STG2,STG3,STG4,STG5,STG6 auto
+    class NOTE annotation

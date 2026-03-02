@@ -1,0 +1,44 @@
+%%{init: {'theme': 'dark'}}%%
+graph TD
+    START["Task Execution"]
+    DECISION{"Binding Decision"}
+    ALLOW["allow"]
+    STOP["stop"]
+    ADVANCE["Advance to next STG"]
+    OUTPUT["Output failed_steps +<br/>required_actions"]
+    FIX["Fix"]
+
+    START --> DECISION
+    DECISION -->|"Safety conditions met"| ALLOW
+    DECISION -->|"Safety conditions NOT met"| STOP
+    ALLOW --> ADVANCE
+    STOP --> OUTPUT
+    OUTPUT --> FIX
+    FIX -->|"Retry"| DECISION
+
+    %% ---- Profile Density ----
+    subgraph PROFILES["Gate Density by Operating Profile"]
+        LITE["Lite<br/>STG0 + STG6 only"]
+        STANDARD["Standard<br/>All STG gates"]
+        STRICT["Strict<br/>All STG + mandatory review"]
+    end
+
+    ADVANCE -.->|"Applied profile"| PROFILES
+
+    %% ---- Styles ----
+    classDef allowPath fill:#22c55e,color:#fff,stroke:#16a34a,stroke-width:2px
+    classDef stopPath fill:#ef4444,color:#fff,stroke:#dc2626,stroke-width:2px
+    classDef decision fill:#f59e0b,color:#000,stroke:#d97706,stroke-width:2px
+    classDef neutral fill:#1e293b,color:#e2e8f0,stroke:#475569
+    classDef profile fill:#334155,color:#e2e8f0,stroke:#64748b
+
+    class ALLOW allowPath
+    class ADVANCE allowPath
+    class STOP stopPath
+    class OUTPUT stopPath
+    class FIX stopPath
+    class DECISION decision
+    class START neutral
+    class LITE,STANDARD,STRICT profile
+
+    style PROFILES fill:#0f172a,stroke:#334155,stroke-width:2px,color:#e2e8f0

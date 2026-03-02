@@ -1,0 +1,55 @@
+%%{init: {'theme': 'dark'}}%%
+graph TD
+    %% ---- Start ----
+    Start(["Task Received"])
+
+    %% ---- Decision 1: Planning/Design ----
+    D1{"Planning/Design needed?"}
+    Start --> D1
+    D1 -->|Yes| PlanAgent["Plan Subagent<br/>Create design & plan"]
+    PlanNote["Trigger conditions:<br/>- Architecture design<br/>- Implementation strategy<br/>- Module structure review"]
+
+    %% ---- Decision 2: Codebase Exploration ----
+    D2{"Codebase exploration needed?"}
+    D1 -->|No| D2
+    PlanAgent --> D2
+    D2 -->|Yes| ExploreAgent["Explore Subagent<br/>File search & code understanding"]
+    ExploreNote["Trigger conditions:<br/>- Existing code structure analysis<br/>- Dependency investigation<br/>- Pattern & convention discovery"]
+
+    %% ---- Decision 3: Parallel Implementation ----
+    D3{"Parallel implementation needed?"}
+    D2 -->|No| D3
+    ExploreAgent --> D3
+    D3 -->|Yes| AgentTeams["Agent Teams<br/>general-purpose teammates<br/>Parallel multi-module implementation"]
+    TeamsNote["Trigger conditions:<br/>- Multiple modules simultaneously<br/>- Parallel review (quality & security)<br/>- Independent file group editing"]
+
+    %% ---- Default: Normal Implementation ----
+    D3 -->|No| Default{"Direct execution?"}
+    Default -->|Yes| Direct["Claude Code executes directly<br/>Simple edits & fixes"]
+    Default -->|No| GPAgent["general-purpose Subagent<br/>Delegated to save context"]
+    AgentTeams --> Done
+    Direct --> Done
+    GPAgent --> Done
+
+    Done(["Complete"])
+
+    %% ---- Annotation connections (dotted) ----
+    PlanNote -.-> PlanAgent
+    ExploreNote -.-> ExploreAgent
+    TeamsNote -.-> AgentTeams
+
+    %% ---- Styles ----
+    style Start fill:#8e44ad,stroke:#9b59b6,stroke-width:2px,color:#fff
+    style Done fill:#8e44ad,stroke:#9b59b6,stroke-width:2px,color:#fff
+    style D1 fill:#d4ac0d,stroke:#f1c40f,stroke-width:2px,color:#000
+    style D2 fill:#d4ac0d,stroke:#f1c40f,stroke-width:2px,color:#000
+    style D3 fill:#d4ac0d,stroke:#f1c40f,stroke-width:2px,color:#000
+    style Default fill:#d4ac0d,stroke:#f1c40f,stroke-width:2px,color:#000
+    style PlanAgent fill:#2c3e50,stroke:#1abc9c,stroke-width:2px,color:#fff
+    style ExploreAgent fill:#2c3e50,stroke:#5dade2,stroke-width:2px,color:#fff
+    style AgentTeams fill:#2c3e50,stroke:#e67e22,stroke-width:2px,color:#fff
+    style Direct fill:#27ae60,stroke:#2ecc71,stroke-width:2px,color:#fff
+    style GPAgent fill:#2c3e50,stroke:#1abc9c,stroke-width:2px,color:#fff
+    style PlanNote fill:#1a2a3a,stroke:#5dade2,stroke-width:1px,color:#aaa
+    style ExploreNote fill:#1a2a3a,stroke:#5dade2,stroke-width:1px,color:#aaa
+    style TeamsNote fill:#1a2a3a,stroke:#5dade2,stroke-width:1px,color:#aaa

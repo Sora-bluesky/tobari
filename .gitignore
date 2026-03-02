@@ -1,0 +1,8 @@
+# Claude Code local settings (personal permissions, not for sharing)
+.claude/settings.local.json
+
+# Tobari session files (runtime state, not for version control)
+.claude/tobari-session.json
+
+# Evidence ledger (runtime logs)
+.claude/logs/

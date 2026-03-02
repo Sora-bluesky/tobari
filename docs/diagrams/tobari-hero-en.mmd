@@ -1,0 +1,62 @@
+%%{init: {'theme': 'dark'}}%%
+graph TB
+    %% ---- Tagline ----
+    Tagline["<b>Lower the veil. Unleash.</b>"]
+
+    %% ---- Veil (Barrier) ----
+    subgraph Veil["Veil (Barrier)"]
+        CC["Claude Code<br/>Execution Engine"]
+        subgraph Sub["Subagents"]
+            Plan["Plan<br/>Design & Planning"]
+            Explore["Explore<br/>Codebase Search"]
+        end
+        subgraph Teams["Agent Teams"]
+            T1["Teammate A<br/>Parallel Execution"]
+            T2["Teammate B<br/>Parallel Execution"]
+        end
+        CC -->|delegate| Plan
+        CC -->|delegate| Explore
+        CC -->|parallel dispatch| T1
+        CC -->|parallel dispatch| T2
+    end
+
+    %% ---- Binding (Governance) ----
+    subgraph Binding["Binding (Governance)"]
+        subgraph Pipeline["STG Gate Pipeline"]
+            STG0["STG0<br/>Requirements"] --> STG1["STG1<br/>Design"]
+            STG1 --> STG2["STG2<br/>Implementation"]
+            STG2 --> STG3["STG3<br/>Verification"]
+            STG3 --> STG4["STG4<br/>Automation"]
+            STG4 --> STG5["STG5<br/>Commit/Push"]
+            STG5 --> STG6["STG6<br/>PR/Merge"]
+        end
+        FailClose["fail-close<br/>Stops on unmet safety conditions"]
+        Ledger["Evidence Ledger<br/>All operations logged as JSONL"]
+    end
+
+    %% ---- Connections ----
+    Tagline --- Veil
+    Veil --- Binding
+
+    %% ---- 3 Pillars ----
+    P1["🔒 Block<br/>fail-close"]
+    P2["✅ Advance<br/>auto-advance"]
+    P3["📋 Record<br/>evidence trail"]
+
+    Binding --- P1
+    Binding --- P2
+    Binding --- P3
+
+    %% ---- Styles ----
+    style Tagline fill:#4a1a6b,stroke:#9b59b6,stroke-width:3px,color:#fff,font-size:18px
+    style Veil fill:#1a2a4a,stroke:#3498db,stroke-width:2px,color:#fff
+    style Binding fill:#2a1a1a,stroke:#e74c3c,stroke-width:2px,color:#fff
+    style Pipeline fill:#3a2a2a,stroke:#e67e22,stroke-width:1px,color:#fff
+    style Sub fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
+    style Teams fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
+    style CC fill:#2c3e50,stroke:#1abc9c,stroke-width:2px,color:#fff
+    style P1 fill:#c0392b,stroke:#e74c3c,stroke-width:2px,color:#fff
+    style P2 fill:#27ae60,stroke:#2ecc71,stroke-width:2px,color:#fff
+    style P3 fill:#2980b9,stroke:#3498db,stroke-width:2px,color:#fff
+    style FailClose fill:#922b21,stroke:#e74c3c,stroke-width:1px,color:#fff
+    style Ledger fill:#1a5276,stroke:#3498db,stroke-width:1px,color:#fff

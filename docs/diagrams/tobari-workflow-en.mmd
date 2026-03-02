@@ -1,0 +1,57 @@
+%%{init: {'theme': 'dark'}}%%
+graph LR
+    %% ---- Phase 1: Lower the Veil ----
+    subgraph P1["Lower the Veil"]
+        CMD["/tobari feature-name"]
+        STG0["STG0: Requirements<br/>Contract generation + user approval"]
+        CMD --> STG0
+    end
+
+    %% ---- Phase 2: Design & Implement ----
+    subgraph P2["Design & Implement"]
+        STG1["STG1: Design<br/>Auto approach decision"]
+        STG2["STG2: Implementation<br/>Auto + scope monitoring"]
+        STG1 --> STG2
+    end
+
+    %% ---- Phase 3: Parallel Execution ----
+    subgraph P3["Parallel Execution"]
+        TI["/team-implement<br/>Agent Teams parallel impl"]
+        TR["/team-review<br/>Parallel review<br/>Security, Quality, Tests"]
+        TI --> TR
+    end
+
+    %% ---- Phase 4: Auto-Complete ----
+    subgraph P4["Auto-Complete"]
+        STG3["STG3: Verification<br/>Tests + lint"]
+        STG4["STG4: Automation<br/>CI/CD checks"]
+        STG5["STG5: Commit/Push<br/>Auto via git-guard"]
+        STG6["STG6: PR/Merge"]
+        STG3 --> STG4 --> STG5 --> STG6
+    end
+
+    %% ---- Final ----
+    LIFT["Lift the Veil<br/>tobari-session.json deleted"]
+
+    %% ---- Phase Connections ----
+    P1 --> P2 --> P3 --> P4
+    STG6 --> LIFT
+
+    %% ---- Styles ----
+    classDef phase fill:#1e293b,color:#e2e8f0,stroke:#475569
+    classDef human fill:#6366f1,color:#fff,stroke:#818cf8,stroke-width:2px
+    classDef auto fill:#1e293b,color:#e2e8f0,stroke:#475569
+    classDef parallel fill:#7c3aed,color:#fff,stroke:#a78bfa
+    classDef final fill:#059669,color:#fff,stroke:#34d399,stroke-width:2px
+
+    class CMD human
+    class STG0 human
+    class STG1,STG2 auto
+    class TI,TR parallel
+    class STG3,STG4,STG5,STG6 auto
+    class LIFT final
+
+    style P1 fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#e2e8f0
+    style P2 fill:#1e293b,stroke:#475569,stroke-width:2px,color:#e2e8f0
+    style P3 fill:#4c1d95,stroke:#7c3aed,stroke-width:2px,color:#e2e8f0
+    style P4 fill:#1e293b,stroke:#475569,stroke-width:2px,color:#e2e8f0

@@ -1,0 +1,62 @@
+%%{init: {'theme': 'dark'}}%%
+graph TB
+    %% ---- Tagline ----
+    Tagline["<b>帳をおろして、解き放て。</b>"]
+
+    %% ---- Veil (Barrier) ----
+    subgraph Veil["帳（結界）"]
+        CC["Claude Code<br/>実行エンジン"]
+        subgraph Sub["サブエージェント"]
+            Plan["Plan<br/>設計・計画"]
+            Explore["Explore<br/>コード探索"]
+        end
+        subgraph Teams["Agent Teams"]
+            T1["チームメイト A<br/>並列実行"]
+            T2["チームメイト B<br/>並列実行"]
+        end
+        CC -->|委託| Plan
+        CC -->|委託| Explore
+        CC -->|並列指示| T1
+        CC -->|並列指示| T2
+    end
+
+    %% ---- Binding (Governance) ----
+    subgraph Binding["Binding（ガバナンス）"]
+        subgraph Pipeline["STG ゲートパイプライン"]
+            STG0["STG0<br/>要件確認"] --> STG1["STG1<br/>設計"]
+            STG1 --> STG2["STG2<br/>実装"]
+            STG2 --> STG3["STG3<br/>検証"]
+            STG3 --> STG4["STG4<br/>自動化"]
+            STG4 --> STG5["STG5<br/>コミット"]
+            STG5 --> STG6["STG6<br/>PR/マージ"]
+        end
+        FailClose["fail-close<br/>安全条件未達で停止"]
+        Ledger["Evidence Ledger<br/>全操作を JSONL 記録"]
+    end
+
+    %% ---- Connections ----
+    Tagline --- Veil
+    Veil --- Binding
+
+    %% ---- 3 Pillars ----
+    P1["🔒 止める<br/>fail-close"]
+    P2["✅ 進む<br/>auto-advance"]
+    P3["📋 残す<br/>evidence trail"]
+
+    Binding --- P1
+    Binding --- P2
+    Binding --- P3
+
+    %% ---- Styles ----
+    style Tagline fill:#4a1a6b,stroke:#9b59b6,stroke-width:3px,color:#fff,font-size:18px
+    style Veil fill:#1a2a4a,stroke:#3498db,stroke-width:2px,color:#fff
+    style Binding fill:#2a1a1a,stroke:#e74c3c,stroke-width:2px,color:#fff
+    style Pipeline fill:#3a2a2a,stroke:#e67e22,stroke-width:1px,color:#fff
+    style Sub fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
+    style Teams fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
+    style CC fill:#2c3e50,stroke:#1abc9c,stroke-width:2px,color:#fff
+    style P1 fill:#c0392b,stroke:#e74c3c,stroke-width:2px,color:#fff
+    style P2 fill:#27ae60,stroke:#2ecc71,stroke-width:2px,color:#fff
+    style P3 fill:#2980b9,stroke:#3498db,stroke-width:2px,color:#fff
+    style FailClose fill:#922b21,stroke:#e74c3c,stroke-width:1px,color:#fff
+    style Ledger fill:#1a5276,stroke:#3498db,stroke-width:1px,color:#fff

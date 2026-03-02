@@ -1,0 +1,83 @@
+%%{init: {'theme': 'dark'}}%%
+graph TB
+    %% ---- Orchestra Layer ----
+    subgraph Orchestra["Orchestra Layer"]
+        User["User"]
+        CC["Claude Code<br/>Orchestrator"]
+
+        subgraph Subagents["Subagents"]
+            PlanA["Plan<br/>Design & Planning"]
+            ExploreA["Explore<br/>Codebase Search"]
+            GPA["general-purpose<br/>Implementation"]
+        end
+
+        subgraph AgentTeams["Agent Teams"]
+            TM1["Teammate A"]
+            TM2["Teammate B"]
+            TM3["Teammate C"]
+        end
+
+        User -->|instruct| CC
+        CC -->|delegate| PlanA
+        CC -->|delegate| ExploreA
+        CC -->|delegate| GPA
+        CC -->|parallel dispatch| TM1
+        CC -->|parallel dispatch| TM2
+        CC -->|parallel dispatch| TM3
+    end
+
+    %% ---- Data Flow ----
+    subgraph Data["Data Flow"]
+        Backlog["backlog.yaml<br/>Task State (SoT)"]
+        Session["tobari-session.json<br/>Session State"]
+        Evidence["Evidence Ledger<br/>Audit Trail (JSONL)"]
+    end
+
+    CC --> Backlog
+    CC --> Session
+    CC --> Evidence
+
+    %% ---- Binding Layer ----
+    subgraph BindingLayer["Binding Layer"]
+        subgraph GateEngine["Gate Engine (PreToolUse)"]
+            Allow["allow<br/>Auto-approve"]
+            Deny["deny<br/>Auto-block"]
+            Ask["ask<br/>User confirmation"]
+        end
+
+        subgraph StageCtrl["Stage Controller"]
+            STG0["STG0 Requirements"] --> STG1["STG1 Design"]
+            STG1 --> STG2["STG2 Implementation"]
+            STG2 --> STG3["STG3 Verification"]
+            STG3 --> STG4["STG4 Automation"]
+            STG4 --> STG5["STG5 Commit/Push"]
+            STG5 --> STG6["STG6 PR/Merge"]
+        end
+
+        AutoAdv["auto-advance<br/>Proceeds on conditions met"]
+    end
+
+    %% ---- Layer Connections ----
+    Backlog ---|state reference| StageCtrl
+    Evidence ---|record| GateEngine
+    Session ---|session mgmt| CC
+    GateEngine ---|decision| CC
+    AutoAdv ---|gate pass| StageCtrl
+
+    %% ---- Styles ----
+    style Orchestra fill:#1a2a4a,stroke:#3498db,stroke-width:2px,color:#fff
+    style BindingLayer fill:#2a1a1a,stroke:#e74c3c,stroke-width:2px,color:#fff
+    style Data fill:#1a3a2a,stroke:#2ecc71,stroke-width:2px,color:#fff
+    style Subagents fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
+    style AgentTeams fill:#2a3a5a,stroke:#5dade2,stroke-width:1px,color:#fff
+    style GateEngine fill:#3a2a2a,stroke:#e67e22,stroke-width:1px,color:#fff
+    style StageCtrl fill:#3a2a2a,stroke:#e67e22,stroke-width:1px,color:#fff
+    style User fill:#8e44ad,stroke:#9b59b6,stroke-width:2px,color:#fff
+    style CC fill:#2c3e50,stroke:#1abc9c,stroke-width:2px,color:#fff
+    style Allow fill:#27ae60,stroke:#2ecc71,stroke-width:1px,color:#fff
+    style Deny fill:#c0392b,stroke:#e74c3c,stroke-width:1px,color:#fff
+    style Ask fill:#d4ac0d,stroke:#f1c40f,stroke-width:1px,color:#000
+    style Backlog fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
+    style Session fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
+    style Evidence fill:#1e8449,stroke:#2ecc71,stroke-width:1px,color:#fff
+    style AutoAdv fill:#922b21,stroke:#e74c3c,stroke-width:1px,color:#fff

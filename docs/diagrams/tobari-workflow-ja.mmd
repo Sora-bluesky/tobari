@@ -1,0 +1,57 @@
+%%{init: {'theme': 'dark'}}%%
+graph LR
+    %% ---- Phase 1: Lower the Veil ----
+    subgraph P1["帳をおろす"]
+        CMD["/tobari feature-name"]
+        STG0["STG0: 要件定義<br/>契約生成 + ユーザー承認"]
+        CMD --> STG0
+    end
+
+    %% ---- Phase 2: Design & Implement ----
+    subgraph P2["設計・実装"]
+        STG1["STG1: 設計<br/>自動アプローチ決定"]
+        STG2["STG2: 実装<br/>自動 + スコープ監視"]
+        STG1 --> STG2
+    end
+
+    %% ---- Phase 3: Parallel Execution ----
+    subgraph P3["並列実行"]
+        TI["/team-implement<br/>Agent Teams 並列実装"]
+        TR["/team-review<br/>並列レビュー<br/>セキュリティ・品質・テスト"]
+        TI --> TR
+    end
+
+    %% ---- Phase 4: Auto-Complete ----
+    subgraph P4["自動完了"]
+        STG3["STG3: 検証<br/>テスト + lint"]
+        STG4["STG4: 自動化<br/>CI/CD チェック"]
+        STG5["STG5: コミット<br/>git-guard 経由で自動"]
+        STG6["STG6: PR・マージ"]
+        STG3 --> STG4 --> STG5 --> STG6
+    end
+
+    %% ---- Final ----
+    LIFT["帳を解く<br/>tobari-session.json 削除"]
+
+    %% ---- Phase Connections ----
+    P1 --> P2 --> P3 --> P4
+    STG6 --> LIFT
+
+    %% ---- Styles ----
+    classDef phase fill:#1e293b,color:#e2e8f0,stroke:#475569
+    classDef human fill:#6366f1,color:#fff,stroke:#818cf8,stroke-width:2px
+    classDef auto fill:#1e293b,color:#e2e8f0,stroke:#475569
+    classDef parallel fill:#7c3aed,color:#fff,stroke:#a78bfa
+    classDef final fill:#059669,color:#fff,stroke:#34d399,stroke-width:2px
+
+    class CMD human
+    class STG0 human
+    class STG1,STG2 auto
+    class TI,TR parallel
+    class STG3,STG4,STG5,STG6 auto
+    class LIFT final
+
+    style P1 fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#e2e8f0
+    style P2 fill:#1e293b,stroke:#475569,stroke-width:2px,color:#e2e8f0
+    style P3 fill:#4c1d95,stroke:#7c3aed,stroke-width:2px,color:#e2e8f0
+    style P4 fill:#1e293b,stroke:#475569,stroke-width:2px,color:#e2e8f0
