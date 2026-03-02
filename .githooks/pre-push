@@ -1,0 +1,92 @@
+#!/bin/bash
+# NOTE:
+# Avoid /usr/bin/env on some restricted Windows environments.
+# Directly invoking /bin/bash prevents env.exe signal-pipe failures.
+set -euo pipefail
+
+resolve_path_for_shell() {
+  local raw_path="$1"
+  if [[ -z "$raw_path" ]]; then
+    echo ""
+    return
+  fi
+  if command -v cygpath >/dev/null 2>&1; then
+    local converted
+    converted="$(cygpath -u "$raw_path" 2>/dev/null || true)"
+    if [[ -n "$converted" ]]; then
+      echo "$converted"
+      return
+    fi
+  fi
+  case "$raw_path" in
+    /*)
+      echo "$raw_path"
+      ;;
+    [A-Za-z]:[\\/]*)
+      echo "$raw_path"
+      ;;
+    *)
+      echo "$HOME/$raw_path"
+      ;;
+  esac
+}
+
+strip_ansi() {
+  if command -v sed >/dev/null 2>&1; then
+    sed 's/\x1b\[[0-9;]*[mK]//g'
+  else
+    cat
+  fi
+}
+
+run_legacy_hook_if_available() {
+  local hook_name="$1"
+  shift || true
+
+  local global_hooks_raw
+  global_hooks_raw="$(git config --global --get core.hooksPath 2>/dev/null || true)"
+  if [[ -z "$global_hooks_raw" ]]; then
+    return 0
+  fi
+
+  local global_hooks_path
+  global_hooks_path="$(resolve_path_for_shell "$global_hooks_raw")"
+  if [[ -z "$global_hooks_path" ]]; then
+    return 0
+  fi
+
+  local legacy_hook="$global_hooks_path/$hook_name"
+  local self_hook="$REPO_ROOT/.githooks/$hook_name"
+  if [[ -f "$legacy_hook" && "$legacy_hook" != "$self_hook" ]]; then
+    bash "$legacy_hook" "$@" > >(strip_ansi) 2> >(strip_ansi >&2)
+  fi
+}
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+if ! run_legacy_hook_if_available "pre-push" "$@"; then
+  echo "[BLOCK][危険度:BLOCKING][git-guard] 既存ガードで検知があったため push を停止しました。" >&2
+  echo "[承認フロー] 自動修正で迂回せず、検知箇所を手動で修正して再度 push してください（--no-verify 禁止）。" >&2
+  exit 1
+fi
+
+PUSH_RANGE=""
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [[ -z "${local_sha:-}" ]] && continue
+  if [[ "$local_sha" =~ ^0+$ ]]; then
+    continue
+  fi
+  if [[ "$remote_sha" =~ ^0+$ ]]; then
+    PUSH_RANGE="$local_sha"
+  else
+    PUSH_RANGE="${remote_sha}...${local_sha}"
+  fi
+  break
+done
+
+if ! bash "$REPO_ROOT/scripts/git-guard-scan.sh" pre-push "$PUSH_RANGE"; then
+  exit 1
+fi
+
+exit 0
