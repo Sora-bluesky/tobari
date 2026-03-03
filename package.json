@@ -1,0 +1,41 @@
+{
+  "name": "tobari",
+  "version": "0.2.0",
+  "description": "Claude Code governance framework - Lower the veil. Unleash.",
+  "keywords": [
+    "claude-code",
+    "governance",
+    "hooks",
+    "ai-safety",
+    "security",
+    "automation",
+    "multi-agent",
+    "developer-tools"
+  ],
+  "author": "Sora-bluesky",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sora-bluesky/tobari.git"
+  },
+  "homepage": "https://github.com/Sora-bluesky/tobari",
+  "bugs": {
+    "url": "https://github.com/Sora-bluesky/tobari/issues"
+  },
+  "bin": {
+    "tobari": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "templates/"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "type": "commonjs"
+}
