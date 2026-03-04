@@ -236,6 +236,13 @@ def is_path_in_scope(file_path: str) -> bool | None:
     # Normalize path for cross-platform comparison
     normalized = file_path.replace("\\", "/").rstrip("/")
 
+    # Strip project root prefix to convert absolute paths to relative
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if project_dir:
+        project_prefix = project_dir.replace("\\", "/").rstrip("/") + "/"
+        if normalized.startswith(project_prefix):
+            normalized = normalized[len(project_prefix):]
+
     # Check excludes first (deny takes precedence)
     for pattern in excludes:
         norm_pattern = pattern.replace("\\", "/").rstrip("/")
