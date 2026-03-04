@@ -22,7 +22,7 @@ Design:
 - Non-blocking: PostToolUse hooks run after tool completion
 - Async: estimation + update is fast (no network, minimal I/O)
 
-Implements the 財布 (wallet) design pattern.
+Unified hook for permission decisions.
 """
 
 import json
@@ -39,7 +39,6 @@ CHARS_PER_TOKEN = 4
 THRESHOLD_LOG = 0.50   # 50%: log to evidence only
 THRESHOLD_WARN = 0.80  # 80%: display warning
 THRESHOLD_STOP = 1.00  # 100%: strong warning + evidence flag
-
 
 def estimate_tokens(
     tool_input: dict,
@@ -81,7 +80,6 @@ def estimate_tokens(
     output_tokens = max(1, len(output_text) // CHARS_PER_TOKEN)
     return input_tokens, output_tokens
 
-
 def calc_percent(usage: dict) -> float:
     """Calculate budget usage as a fraction (0.0 – N.N).
 
@@ -92,7 +90,6 @@ def calc_percent(usage: dict) -> float:
     if budget <= 0:
         return 0.0
     return total / budget
-
 
 def build_warning_message(percent: float, usage: dict) -> str:
     """Build Japanese warning message for budget threshold."""
@@ -112,7 +109,6 @@ def build_warning_message(percent: float, usage: dict) -> str:
             f"残り約 {remaining:,} トークン（予算: {budget:,} トークン）\n"
             f"作業をなるべく効率的に進めてください。"
         )
-
 
 def run_hook() -> None:
     """PostToolUse hook: track token usage and check budget thresholds."""
@@ -182,11 +178,9 @@ def run_hook() -> None:
     # Below 50%: no action needed
     sys.exit(0)
 
-
 def main() -> None:
     """PostToolUse hook entry point."""
     run_hook()
-
 
 if __name__ == "__main__":
     main()

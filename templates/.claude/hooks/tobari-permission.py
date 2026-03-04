@@ -12,7 +12,7 @@ When the veil is active:
 When the veil is inactive:
 - exit 0 (no interference, advisory mode only)
 
-Implements the 口 (notification channel) pattern.
+Unified hook for permission decisions.
 Learning via updatedPermissions: approved patterns are added to Claude Code's allow list.
 """
 
@@ -25,12 +25,33 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import tobari_session
 
-
 # --- Safe Bash Patterns (auto-allow + learn) ---
 
 SAFE_BASH_PATTERNS: list[tuple[str, str]] = [
-    # git commands (read/write)
-    (r"^git\s+", "git コマンド"),
+    # git commands — safe read-only operations
+    (r"^git\s+(status|log|diff|show|tag|remote|config|rev-parse|ls-files|ls-tree|"
+     r"cat-file|describe|shortlog|blame|bisect|grep|count-objects|fsck|for-each-ref)\b",
+     "git 読み取りコマンド"),
+    # git commands — safe write operations
+    (r"^git\s+(add|commit|fetch|pull|merge|rebase(?!\s+--exec))\b",
+     "git 変更コマンド（安全）"),
+    # git branch — safe (no -D flag)
+    (r"^git\s+branch(?!\s+.*-[dD]\b)\b", "git branch（安全）"),
+    # git push — safe (no --force, --delete, or :ref deletion)
+    (r"^git\s+push(?!\s+.*(-f\b|--force(?!-with-lease)|--delete|--no-verify))\b",
+     "git push（安全）"),
+    # git checkout — safe (not `checkout -- .`)
+    (r"^git\s+checkout(?!\s+--\s+\.)\b", "git checkout（安全）"),
+    # git restore — safe (not `restore --worktree .`)
+    (r"^git\s+restore(?!\s+.*--worktree\s+\.)\b", "git restore（安全）"),
+    # git stash — safe (not drop/clear)
+    (r"^git\s+stash(?!\s+(drop|clear))\b", "git stash（安全）"),
+    # git stash list — explicitly safe (read-only)
+    (r"^git\s+stash\s+list\b", "git stash list"),
+    # git reflog show — safe read-only
+    (r"^git\s+reflog(\s+show)?\b(?!\s+(delete|expire))", "git reflog（読み取り）"),
+    # git switch/clone/init/worktree
+    (r"^git\s+(switch|clone|init|worktree)\b", "git コマンド（安全）"),
     # pwsh/powershell scripts
     (r"^pwsh\b", "PowerShell スクリプト"),
     (r"^powershell\b", "PowerShell スクリプト"),
@@ -59,7 +80,6 @@ SAFE_BASH_PATTERNS: list[tuple[str, str]] = [
     (r"^(test|true|false|\[)\b", "条件確認"),
 ]
 
-
 def is_safe_bash(command: str) -> tuple[bool, str]:
     """Check if a Bash command matches known-safe patterns.
 
@@ -73,7 +93,6 @@ def is_safe_bash(command: str) -> tuple[bool, str]:
         if re.match(pattern, cmd, re.IGNORECASE):
             return True, label
     return False, ""
-
 
 def describe_operation(tool_name: str, tool_input: dict) -> str:
     """Generate a brief Japanese description of the tool operation."""
@@ -97,7 +116,6 @@ def describe_operation(tool_name: str, tool_input: dict) -> str:
     elif tool_name == "Task":
         return f"サブエージェントを起動: {tool_input.get('description', '')[:60]}"
     return f"{tool_name} を実行"
-
 
 def classify_operation(tool_name: str, tool_input: dict) -> tuple[str, str]:
     """Classify the operation as 'safe' or 'unknown'.
@@ -140,7 +158,6 @@ def classify_operation(tool_name: str, tool_input: dict) -> tuple[str, str]:
     # Other tools: unknown (let user decide)
     return "unknown", f"{tool_name} の操作"
 
-
 def make_system_message(
     tool_name: str,
     tool_input: dict,
@@ -155,7 +172,6 @@ def make_system_message(
         f"プロファイル: {profile}　理由: {reason}\n"
         f"承認する場合は「常に許可」を選択すると次回から自動承認されます。"
     )
-
 
 def main() -> None:
     try:
@@ -219,7 +235,6 @@ def main() -> None:
         # Fail-open: never block on hook errors
         print(f"Hook error: {e}", file=sys.stderr)
         sys.exit(0)
-
 
 if __name__ == "__main__":
     main()
