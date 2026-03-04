@@ -21,7 +21,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import tobari_session
 
-
 def main():
     context_parts = [
         "Session started. Key project references: "
@@ -55,7 +54,6 @@ def main():
     }
     print(json.dumps(output))
     sys.exit(0)
-
 
 if __name__ == "__main__":
     main()

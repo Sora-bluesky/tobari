@@ -13,7 +13,7 @@ When the veil is active and test failure is detected:
 When the veil is inactive or no test failure detected:
 - exit 0 (no interference)
 
-Implements the 脚 (leg) design pattern.
+Unified hook for permission decisions.
 """
 
 import json
@@ -54,7 +54,6 @@ SUCCESS_PATTERNS: list[str] = [
     r"✓\s+\d+",
 ]
 
-
 def _extract_text(content: object) -> str:
     """Extract plain text from various content shapes."""
     if isinstance(content, str):
@@ -72,11 +71,9 @@ def _extract_text(content: object) -> str:
         return "\n".join(parts)
     return ""
 
-
 def _message_text(message: dict) -> str:
     """Get text from a single transcript message."""
     return _extract_text(message.get("content", ""))
-
 
 def detect_test_failure(transcript: list) -> tuple[bool, str]:
     """Detect test failure in recent transcript entries.
@@ -136,7 +133,6 @@ def detect_test_failure(transcript: list) -> tuple[bool, str]:
 
     return False, ""
 
-
 def _load_transcript(data: dict) -> list:
     """Load transcript from hook input data.
 
@@ -160,7 +156,6 @@ def _load_transcript(data: dict) -> list:
 
     return []
 
-
 def _make_repair_instruction(retry_count: int, failure_summary: str, task: str) -> str:
     """Build Japanese repair instruction injected into Claude."""
     attempt = retry_count + 1
@@ -173,7 +168,6 @@ def _make_repair_instruction(retry_count: int, failure_summary: str, task: str) 
         f"3. テストを再実行して成功を確認"
     )
 
-
 def _make_circuit_breaker_message(failure_summary: str, task: str) -> str:
     """Build Japanese Circuit Breaker escalation message."""
     return (
@@ -185,7 +179,6 @@ def _make_circuit_breaker_message(failure_summary: str, task: str) -> str:
         f"2. テストファイルを直接確認して問題を特定\n"
         f"3. 修正後に作業を再開してください"
     )
-
 
 def main() -> None:
     try:
@@ -256,7 +249,6 @@ def main() -> None:
         # Fail-open: hook errors must never block Claude
         print(f"tobari-stop error: {e}", file=sys.stderr)
         sys.exit(0)
-
 
 if __name__ == "__main__":
     main()

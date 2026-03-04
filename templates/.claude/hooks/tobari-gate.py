@@ -8,7 +8,7 @@ When the veil is active, this hook enforces safety rules:
 
 When the veil is inactive, provides design-change advisory (no blocking).
 
-Unified PreToolUse hook for permission decisions.
+Unified hook for permission decisions.
 
 Profile behavior:
 - Lite: destructive Bash deny only (minimal gate density)
@@ -17,6 +17,8 @@ Profile behavior:
 """
 
 import json
+import os
+import platform
 import re
 import sys
 from pathlib import Path
@@ -27,9 +29,22 @@ import tobari_session
 
 # --- Constants ---
 
+_IS_WINDOWS = platform.system() == "Windows"
+
 MAX_PATH_LENGTH = 4096
 MAX_CONTENT_LENGTH = 1_000_000
 COMMAND_TRUNCATE_LENGTH = 120
+
+def _get_project_root() -> Path | None:
+    """Get project root from CLAUDE_PROJECT_DIR or fallback."""
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if project_dir:
+        return Path(os.path.realpath(project_dir))
+    # Fallback: hooks dir is {project}/.claude/hooks/
+    try:
+        return Path(__file__).resolve().parent.parent.parent
+    except Exception:
+        return None
 
 # --- Destructive Bash Patterns (all profiles) ---
 
@@ -43,11 +58,18 @@ DESTRUCTIVE_BASH_PATTERNS: list[tuple[str, str]] = [
 
     # Git destructive operations
     (r"git\s+push\s+.*--force(?!-with-lease)\b", "git push --force（リモート履歴の強制上書き）"),
-    (r"git\s+push\s+.*\s-f\b", "git push -f（リモート履歴の強制上書き）"),
+    (r"git\s+push\s+(?:.*\s)?-f\b", "git push -f（リモート履歴の強制上書き）"),
     (r"git\s+reset\s+--hard", "git reset --hard（未コミット変更の全破棄）"),
     (r"git\s+clean\s+.*-[a-zA-Z]*f", "git clean -f（未追跡ファイルの強制削除）"),
     (r"git\s+checkout\s+--\s+\.", "git checkout -- .（全変更の破棄）"),
     (r"git\s+restore\s+.*--worktree\s+\.", "git restore --worktree .（全変更の復元）"),
+    # Refined git destructive patterns
+    (r"git\s+branch\s+(?:-[a-zA-Z]*(?-i:D)|-d\s+--force)\b", "git branch -D（ブランチの強制削除）"),
+    (r"git\s+push\s+.*--delete\b", "git push --delete（リモートブランチ削除）"),
+    (r"git\s+push\s+\S+\s+:\S+", "git push origin :branch（リモートブランチ削除）"),
+    (r"git\s+stash\s+(drop|clear)\b", "git stash drop/clear（stash の削除）"),
+    (r"git\s+reflog\s+(delete|expire)\b", "git reflog delete/expire（reflog の削除）"),
+    (r"git\s+filter-branch\b", "git filter-branch（履歴の書き換え）"),
 
     # Database destruction
     (r"drop\s+table", "DROP TABLE（テーブル削除）"),
@@ -76,25 +98,51 @@ STRICT_SUSPICIOUS_PATTERNS: list[tuple[str, str]] = [
 
 # --- Secret Detection Patterns ---
 
-SECRET_PATTERNS: list[tuple[str, str]] = [
-    # API keys with assignment
+# Hardcoded fallback (used when YAML is unavailable)
+_FALLBACK_SECRET_PATTERNS: list[tuple[str, str]] = [
     (r"""(?:api[_-]?key|apikey)\s*[=:]\s*["']([A-Za-z0-9_\-]{20,})["']""",
      "API キー"),
-    # AWS access keys
     (r"AKIA[0-9A-Z]{16}",
      "AWS アクセスキー"),
-    # Generic password/secret assignment
     (r"""(?:password|passwd|pwd|secret)\s*[=:]\s*["']([^"']{8,})["']""",
      "パスワード/シークレット"),
-    # Private keys
     (r"-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----",
      "秘密鍵"),
-    # Connection strings with embedded passwords
     (r"(?:mongodb|postgres|mysql|redis)://[^:]+:[^@]+@",
      "接続文字列（パスワード含む）"),
 ]
 
-# --- Advisory Mode Patterns (veil-off) ---
+def _load_secret_patterns() -> list[tuple[str, str]]:
+    """Load secret patterns from shared YAML definition.
+
+    Falls back to hardcoded patterns if YAML is unavailable.
+    """
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if project_dir:
+        yaml_path = Path(project_dir) / "integration" / "secret-patterns.yaml"
+    else:
+        yaml_path = Path(__file__).resolve().parent.parent.parent / "integration" / "secret-patterns.yaml"
+
+    if yaml_path.exists():
+        try:
+            import yaml
+            with open(yaml_path, encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            patterns = []
+            for entry in data.get("patterns", []):
+                regex = entry.get("regex", "")
+                label = entry.get("label_ja", entry.get("id", ""))
+                if regex:
+                    patterns.append((regex, label))
+            if patterns:
+                return patterns
+        except Exception:
+            pass  # Fall through to hardcoded
+    return _FALLBACK_SECRET_PATTERNS
+
+SECRET_PATTERNS = _load_secret_patterns()
+
+# --- Advisory Mode Patterns (veil-off, from ) ---
 
 DESIGN_INDICATORS = [
     "DESIGN.md", "ARCHITECTURE.md", "architecture", "design",
@@ -112,9 +160,7 @@ SIMPLE_EDIT_PATTERNS = [
     "backlog.yaml",
 ]
 
-
 # --- Input Validation ---
-
 
 def validate_input(file_path: str, content: str) -> str | None:
     """Validate input for security.
@@ -122,6 +168,14 @@ def validate_input(file_path: str, content: str) -> str | None:
     Returns:
         None if input is valid.
         A failure reason string if input is invalid (fail-close).
+
+    Path traversal checks:
+    1. Null byte (poison byte — truncation attack)
+    2. UNC paths (\\\\server\\share or //server/share)
+    3. NT prefixes (\\\\?\\, \\\\.\\)
+    4. Windows ADS (Alternate Data Streams) — colon after drive letter
+    5. os.path.realpath() normalization — resolves symlinks and ..
+    6. Fallback: component-level ".." check (when project root unavailable)
     """
     if not file_path:
         return "ファイルパスが空です"
@@ -129,10 +183,49 @@ def validate_input(file_path: str, content: str) -> str | None:
         return f"ファイルパスが長すぎます（{len(file_path)} > {MAX_PATH_LENGTH}）"
     if len(content) > MAX_CONTENT_LENGTH:
         return f"コンテンツが大きすぎます（{len(content)} > {MAX_CONTENT_LENGTH}）"
-    if ".." in file_path:
-        return f"パストラバーサルを検出（'..' を含むパス: {file_path}）"
-    return None
 
+    # Null byte check (poison byte — truncation attack)
+    if "\x00" in file_path:
+        return f"ヌルバイトを検出: {file_path!r}"
+
+    # UNC path check — must come BEFORE ADS check (\\?\C:\... has colon)
+    if file_path.startswith("\\\\") or file_path.startswith("//"):
+        return f"UNC パスを検出: {file_path}"
+
+    # NT prefix check
+    if file_path.startswith("\\\\?\\") or file_path.startswith("\\\\.\\"):
+        return f"NT プレフィックスを検出: {file_path}"
+
+    # Windows ADS check: colon only valid at drive letter position (index 1)
+    if _IS_WINDOWS:
+        path_after_drive = file_path[2:] if len(file_path) > 2 and file_path[1] == ":" else file_path
+        if ":" in path_after_drive:
+            return f"Windows ADS（代替データストリーム）を検出: {file_path}"
+
+    # Path traversal via realpath normalization
+    project_root = _get_project_root()
+    if project_root:
+        try:
+            # Resolve against project root for relative paths
+            if os.path.isabs(file_path):
+                resolved = os.path.realpath(file_path)
+            else:
+                resolved = os.path.realpath(
+                    os.path.join(str(project_root), file_path)
+                )
+            root_str = str(project_root)
+            if not (resolved.startswith(root_str + os.sep) or resolved == root_str):
+                return f"パストラバーサルを検出（プロジェクトルート外: {file_path}）"
+        except (OSError, ValueError):
+            return f"パス解決に失敗: {file_path}"
+    else:
+        # Fallback: component-level ".." check (more precise than "in")
+        normalized = file_path.replace("\\", "/")
+        parts = normalized.split("/")
+        if ".." in parts:
+            return f"パストラバーサルを検出（'..' コンポーネント: {file_path}）"
+
+    return None
 
 def truncate_command(command: str) -> str:
     """Truncate command for display in messages."""
@@ -140,9 +233,7 @@ def truncate_command(command: str) -> str:
         return command
     return command[:COMMAND_TRUNCATE_LENGTH] + "..."
 
-
 # --- Deny Response Builder ---
-
 
 def make_deny_response(reason: str, detail: str, recovery: str,
                        tool_name: str = "", tool_input: dict | None = None) -> dict:
@@ -193,9 +284,7 @@ def make_deny_response(reason: str, detail: str, recovery: str,
         }
     }
 
-
 # --- Gate Checks: Bash ---
-
 
 def check_destructive_bash(command: str, profile: str) -> dict | None:
     """Check Bash command against destructive patterns.
@@ -226,7 +315,6 @@ def check_destructive_bash(command: str, profile: str) -> dict | None:
 
     return None
 
-
 def check_secret_in_bash(command: str) -> dict | None:
     """Detect secrets leaked via Bash commands (e.g., echo with API keys)."""
     for pattern, label in SECRET_PATTERNS:
@@ -240,9 +328,7 @@ def check_secret_in_bash(command: str) -> dict | None:
             )
     return None
 
-
 # --- Gate Checks: Edit/Write ---
-
 
 def check_scope(file_path: str, tool_name: str) -> dict | None:
     """Check file path against contract scope."""
@@ -265,7 +351,6 @@ def check_scope(file_path: str, tool_name: str) -> dict | None:
         )
 
     return None
-
 
 def check_boundary_classification(file_path: str, tool_name: str) -> dict | None:
     """Check if file violates boundary classification rules.
@@ -291,7 +376,6 @@ def check_boundary_classification(file_path: str, tool_name: str) -> dict | None
         tool_name=tool_name,
     )
 
-
 def check_secret_in_content(content: str, tool_name: str) -> dict | None:
     """Detect hardcoded secrets in file content being written."""
     if not content:
@@ -309,9 +393,7 @@ def check_secret_in_content(content: str, tool_name: str) -> dict | None:
 
     return None
 
-
 # --- Advisory Mode (veil-off, backward compatible) ---
-
 
 def check_design_advisory(file_path: str, content: str) -> dict | None:
     """Advisory mode: flag design-related changes (no blocking)."""
@@ -343,16 +425,14 @@ def check_design_advisory(file_path: str, content: str) -> dict | None:
                     "[Review Suggestion] Creating new file with significant content. "
                     "Consider reviewing this plan for potential improvements. "
                     "**Recommended**: Use Task tool with subagent_type='general-purpose' "
-                    "for deeper analysis and to preserve main context."
+                    "to consult external review and preserve main context."
                 ),
             }
         }
 
     return None
 
-
 # --- Main Entry Point ---
-
 
 def main():
     try:
@@ -468,7 +548,6 @@ def main():
         # Fail-open: don't block on hook errors
         print(f"Hook error: {e}", file=sys.stderr)
         sys.exit(0)
-
 
 if __name__ == "__main__":
     main()

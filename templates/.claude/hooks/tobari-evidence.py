@@ -30,9 +30,7 @@ import tobari_session
 MAX_SUMMARY_LENGTH = 200
 MAX_RESPONSE_LENGTH = 500
 
-
 # --- Input Summarizers ---
-
 
 def _summarize_bash(tool_input: dict) -> dict:
     """Summarize Bash tool input."""
@@ -40,7 +38,6 @@ def _summarize_bash(tool_input: dict) -> dict:
     return {
         "command": command[:MAX_SUMMARY_LENGTH] + ("..." if len(command) > MAX_SUMMARY_LENGTH else ""),
     }
-
 
 def _summarize_edit(tool_input: dict) -> dict:
     """Summarize Edit tool input."""
@@ -54,14 +51,12 @@ def _summarize_edit(tool_input: dict) -> dict:
         "replace_all": tool_input.get("replace_all", False),
     }
 
-
 def _summarize_write(tool_input: dict) -> dict:
     """Summarize Write tool input."""
     return {
         "file_path": tool_input.get("file_path", ""),
         "content_size": len(tool_input.get("content", "")),
     }
-
 
 def _summarize_read(tool_input: dict) -> dict:
     """Summarize Read tool input."""
@@ -72,7 +67,6 @@ def _summarize_read(tool_input: dict) -> dict:
         summary["limit"] = tool_input["limit"]
     return summary
 
-
 def _summarize_grep(tool_input: dict) -> dict:
     """Summarize Grep tool input."""
     return {
@@ -81,14 +75,12 @@ def _summarize_grep(tool_input: dict) -> dict:
         "glob": tool_input.get("glob", ""),
     }
 
-
 def _summarize_glob(tool_input: dict) -> dict:
     """Summarize Glob tool input."""
     return {
         "pattern": tool_input.get("pattern", ""),
         "path": tool_input.get("path", ""),
     }
-
 
 def _summarize_web(tool_input: dict) -> dict:
     """Summarize WebFetch/WebSearch tool input."""
@@ -98,7 +90,6 @@ def _summarize_web(tool_input: dict) -> dict:
         "prompt": (tool_input.get("prompt", "") or "")[:MAX_SUMMARY_LENGTH],
     }
 
-
 def _summarize_task(tool_input: dict) -> dict:
     """Summarize Task tool input."""
     return {
@@ -106,14 +97,12 @@ def _summarize_task(tool_input: dict) -> dict:
         "subagent_type": tool_input.get("subagent_type", ""),
     }
 
-
 def _summarize_generic(tool_input: dict) -> dict:
     """Summarize unknown tool input (truncated JSON)."""
     raw = json.dumps(tool_input, ensure_ascii=False)
     return {
         "raw": raw[:MAX_SUMMARY_LENGTH] + ("..." if len(raw) > MAX_SUMMARY_LENGTH else ""),
     }
-
 
 _SUMMARIZERS = {
     "Bash": _summarize_bash,
@@ -127,12 +116,10 @@ _SUMMARIZERS = {
     "Task": _summarize_task,
 }
 
-
 def summarize_tool_input(tool_name: str, tool_input: dict) -> dict:
     """Create a compact summary of tool input."""
     summarizer = _SUMMARIZERS.get(tool_name, _summarize_generic)
     return summarizer(tool_input)
-
 
 def summarize_tool_response(tool_response: dict) -> dict:
     """Create a compact summary of tool response."""
@@ -152,9 +139,7 @@ def summarize_tool_response(tool_response: dict) -> dict:
 
     return summary
 
-
 # --- Hook Entry Point ---
-
 
 def run_hook() -> None:
     """PostToolUse hook: record tool completion to evidence ledger."""
@@ -188,7 +173,6 @@ def run_hook() -> None:
     # No hookSpecificOutput needed — silent recording
     sys.exit(0)
 
-
 def _get_current_gate(session: dict) -> str:
     """Determine the current gate from session gates_passed."""
     gates_passed = session.get("gates_passed", [])
@@ -198,22 +182,18 @@ def _get_current_gate(session: dict) -> str:
             return gate
     return "complete"
 
-
 # --- CLI Entry Point ---
-
 
 def cli_summary() -> None:
     """Print evidence ledger summary."""
     summary = tobari_session.summarize_evidence()
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 
-
 def cli_quality_gates() -> None:
     """Print quality_gate_counts from evidence ledger."""
     summary = tobari_session.summarize_evidence()
     counts = summary.get("quality_gate_counts", {})
     print(json.dumps(counts, ensure_ascii=False, indent=2))
-
 
 def main() -> None:
     """CLI or hook entry point."""
@@ -231,7 +211,6 @@ def main() -> None:
     else:
         # Called as PostToolUse hook (stdin JSON)
         run_hook()
-
 
 if __name__ == "__main__":
     main()

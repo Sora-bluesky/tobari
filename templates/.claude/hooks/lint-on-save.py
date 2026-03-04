@@ -18,7 +18,6 @@ import sys
 # Input validation constants
 MAX_PATH_LENGTH = 4096
 
-
 def validate_path(file_path: str) -> bool:
     """Validate file path for security."""
     if not file_path or len(file_path) > MAX_PATH_LENGTH:
@@ -26,7 +25,6 @@ def validate_path(file_path: str) -> bool:
     if ".." in file_path:
         return False
     return True
-
 
 def get_file_path() -> str | None:
     """Extract file path from hook input via stdin."""
@@ -36,7 +34,6 @@ def get_file_path() -> str | None:
         return tool_input.get("file_path")
     except (json.JSONDecodeError, Exception):
         return None
-
 
 def run_command(cmd: list[str], cwd: str) -> tuple[int, str, str]:
     """Run a command and return (returncode, stdout, stderr)."""
@@ -53,7 +50,6 @@ def run_command(cmd: list[str], cwd: str) -> tuple[int, str, str]:
         return 1, "", "Command timed out"
     except FileNotFoundError:
         return -1, "", f"Command not found: {cmd[0]}"
-
 
 def lint_python(file_path: str, project_dir: str, rel_path: str) -> None:
     """Run Python linters (ruff, ty) if available."""
@@ -97,7 +93,6 @@ def lint_python(file_path: str, project_dir: str, rel_path: str) -> None:
     else:
         print(f"[lint-on-save] OK: {rel_path} passed all checks")
 
-
 def lint_powershell(file_path: str, project_dir: str, rel_path: str) -> None:
     """Run PowerShell linter (PSScriptAnalyzer) if available."""
     # Escape single quotes for PowerShell (prevent command injection)
@@ -114,7 +109,6 @@ def lint_powershell(file_path: str, project_dir: str, rel_path: str) -> None:
         print(stdout, file=sys.stderr)
     elif ret == 0:
         print(f"[lint-on-save] OK: {rel_path} passed PSScriptAnalyzer")
-
 
 def main() -> None:
     file_path = get_file_path()
@@ -138,7 +132,6 @@ def main() -> None:
     elif file_path.endswith((".ps1", ".psm1")):
         lint_powershell(file_path, project_dir, rel_path)
     # Other file types: skip silently
-
 
 if __name__ == "__main__":
     main()

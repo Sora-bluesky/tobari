@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-Tobari Stage Controller — auto-advance.
+Tobari Stage Controller — ✅ 進む (auto-advance).
 
 Validates DoD (Definition of Done) conditions for each STG gate and
 auto-advances stage_status in backlog.yaml + gates_passed in tobari-session.json.
 
 Usage (CLI):
-    python tobari_stage.py advance TASK-001 STG1
-    python tobari_stage.py check   TASK-001 STG2   # dry-run
-    python tobari_stage.py summary TASK-001
-    python tobari_stage.py next    TASK-001
+    python tobari_stage.py advance TASK-NNN STG1
+    python tobari_stage.py check   TASK-NNN STG2   # dry-run
+    python tobari_stage.py summary TASK-NNN
+    python tobari_stage.py next    TASK-NNN
 
 Usage (library):
     from tobari_stage import advance_gate, check_dod, get_stage_summary
-    result = advance_gate("TASK-001", "STG1")
+    result = advance_gate("TASK-NNN", "STG1")
 """
 
 import argparse
@@ -44,9 +44,7 @@ VALID_STATUSES = {"pending", "in_progress", "done"}
 
 BACKLOG_FILENAME = "tasks/backlog.yaml"
 
-
 # --- Data Types ---
-
 
 @dataclass
 class DoDCondition:
@@ -56,7 +54,6 @@ class DoDCondition:
     evidence: str = ""
     check_type: str = "auto"  # "auto" | "file_check" | "command" | "manual"
 
-
 @dataclass
 class DoDResult:
     """Result of checking all DoD conditions for a gate."""
@@ -64,7 +61,6 @@ class DoDResult:
     satisfied: bool
     conditions: list[DoDCondition] = field(default_factory=list)
     fail_reason: str | None = None
-
 
 @dataclass
 class AdvanceResult:
@@ -81,9 +77,7 @@ class AdvanceResult:
     evidence_data: dict = field(default_factory=dict)
     skipped: bool = False
 
-
 # --- Backlog YAML I/O ---
-
 
 def _get_backlog_path() -> Path:
     """Resolve the path to tasks/backlog.yaml."""
@@ -92,7 +86,6 @@ def _get_backlog_path() -> Path:
         return Path(project_dir) / BACKLOG_FILENAME
     hooks_dir = Path(__file__).resolve().parent
     return hooks_dir.parent.parent / BACKLOG_FILENAME
-
 
 def _load_backlog() -> list[dict[str, Any]] | None:
     """Load backlog.yaml and return the tasks list."""
@@ -109,14 +102,12 @@ def _load_backlog() -> list[dict[str, Any]] | None:
     except Exception:
         return None
 
-
 def _find_task(tasks: list[dict], task_id: str) -> dict | None:
     """Find a task by ID in the tasks list."""
     for task in tasks:
         if task.get("id") == task_id:
             return task
     return None
-
 
 def _update_stage_status_line(task_id: str, gate: str, new_status: str) -> bool:
     """Update a single STG gate status in backlog.yaml using line-based editing.
@@ -216,9 +207,7 @@ def _update_stage_status_line(task_id: str, gate: str, new_status: str) -> bool:
         print(f"Stage update error: {e}", file=sys.stderr)
         return False
 
-
 # --- DoD Check Functions ---
-
 
 def _check_stg0(task_id: str, task_data: dict, session: dict | None) -> DoDResult:
     """Check STG0 DoD: Requirements confirmed."""
@@ -262,7 +251,6 @@ def _check_stg0(task_id: str, task_data: dict, session: dict | None) -> DoDResul
     return DoDResult(gate="STG0", satisfied=all_satisfied,
                      conditions=conditions, fail_reason=fail_reason)
 
-
 def _check_stg1(task_id: str, task_data: dict, session: dict | None,
                 profile: str) -> DoDResult:
     """Check STG1 DoD: Design approach decided."""
@@ -291,7 +279,6 @@ def _check_stg1(task_id: str, task_data: dict, session: dict | None,
     return DoDResult(gate="STG1", satisfied=all_satisfied,
                      conditions=conditions, fail_reason=fail_reason)
 
-
 def _check_stg2(task_id: str, task_data: dict, session: dict | None,
                 profile: str) -> DoDResult:
     """Check STG2 DoD: Implementation complete."""
@@ -314,7 +301,6 @@ def _check_stg2(task_id: str, task_data: dict, session: dict | None,
 
     return DoDResult(gate="STG2", satisfied=all_satisfied,
                      conditions=conditions, fail_reason=fail_reason)
-
 
 def _check_stg3(task_id: str, task_data: dict, session: dict | None,
                 profile: str) -> DoDResult:
@@ -344,7 +330,6 @@ def _check_stg3(task_id: str, task_data: dict, session: dict | None,
     return DoDResult(gate="STG3", satisfied=all_satisfied,
                      conditions=conditions, fail_reason=fail_reason)
 
-
 def _check_stg4(task_id: str, task_data: dict, session: dict | None,
                 profile: str) -> DoDResult:
     """Check STG4 DoD: CI/CD automation."""
@@ -366,13 +351,13 @@ def _check_stg4(task_id: str, task_data: dict, session: dict | None,
         for e in evidence_list
     )
 
-    # Fallback: if no CI configured, STG3 results substitute
+    # Fallback: if no CI configured, STG3 results substitute ( )
     stg3_status = task_data.get("stage_status", {}).get("STG3")
     if not has_ci and stg3_status == "done":
         conditions.append(DoDCondition(
             name="ci_substitute_stg3",
             satisfied=True,
-            evidence="CI not configured; STG3 results substitute",
+            evidence="CI not configured; STG3 results substitute ( )",
             check_type="auto",
         ))
     else:
@@ -390,7 +375,6 @@ def _check_stg4(task_id: str, task_data: dict, session: dict | None,
 
     return DoDResult(gate="STG4", satisfied=all_satisfied,
                      conditions=conditions, fail_reason=fail_reason)
-
 
 def _check_stg5(task_id: str, task_data: dict, session: dict | None,
                 profile: str) -> DoDResult:
@@ -419,7 +403,6 @@ def _check_stg5(task_id: str, task_data: dict, session: dict | None,
     return DoDResult(gate="STG5", satisfied=all_satisfied,
                      conditions=conditions, fail_reason=fail_reason)
 
-
 def _check_stg6(task_id: str, task_data: dict, session: dict | None,
                 profile: str) -> DoDResult:
     """Check STG6 DoD: PR/Merge."""
@@ -447,7 +430,6 @@ def _check_stg6(task_id: str, task_data: dict, session: dict | None,
     return DoDResult(gate="STG6", satisfied=all_satisfied,
                      conditions=conditions, fail_reason=fail_reason)
 
-
 # DoD checker dispatch table
 _DOD_CHECKERS = {
     "STG0": lambda tid, td, s, p: _check_stg0(tid, td, s),
@@ -459,9 +441,7 @@ _DOD_CHECKERS = {
     "STG6": _check_stg6,
 }
 
-
 # --- Public API ---
-
 
 def get_current_stage(task_id: str) -> str | None:
     """Get the current active STG gate for a task.
@@ -481,7 +461,6 @@ def get_current_stage(task_id: str) -> str | None:
         if stage_status.get(gate) != "done":
             return gate
     return None  # All done
-
 
 def check_dod(task_id: str, gate: str) -> DoDResult:
     """Check DoD conditions for a specific gate (dry-run, no modifications)."""
@@ -508,7 +487,6 @@ def check_dod(task_id: str, gate: str) -> DoDResult:
                          fail_reason=f"ゲート {gate} のチェッカーが未実装です")
 
     return checker(task_id, task, session, profile)
-
 
 def advance_gate(task_id: str, gate: str) -> AdvanceResult:
     """Attempt to advance a gate to 'done'.
@@ -616,7 +594,7 @@ def advance_gate(task_id: str, gate: str) -> AdvanceResult:
                 fail_reason="tobari-session.json の更新に失敗しました",
             )
 
-    # Build evidence data and write to Evidence Ledger
+    # Build evidence data and write to Evidence Ledger (📋 残す)
     now = datetime.now(timezone.utc).isoformat()
     next_gate = GATE_ORDER[gate_idx + 1] if gate_idx < len(GATE_ORDER) - 1 else None
     evidence_data = {
@@ -642,7 +620,6 @@ def advance_gate(task_id: str, gate: str) -> AdvanceResult:
         skipped=should_skip,
     )
 
-
 def advance_to_next(task_id: str) -> AdvanceResult:
     """Attempt to advance to the next eligible gate.
 
@@ -656,7 +633,6 @@ def advance_to_next(task_id: str) -> AdvanceResult:
             fail_reason="進むべきゲートがありません",
         )
     return advance_gate(task_id, current)
-
 
 def get_stage_summary(task_id: str) -> dict:
     """Get a summary of all gate statuses for a task."""
@@ -697,14 +673,11 @@ def get_stage_summary(task_id: str) -> dict:
         "veil_active": session is not None,
     }
 
-
 # --- CLI Entry Point ---
-
 
 def _output_json(data: Any) -> None:
     """Print JSON to stdout."""
     print(json.dumps(data, ensure_ascii=False, indent=2))
-
 
 def main() -> None:
     """CLI entry point."""
@@ -715,21 +688,21 @@ def main() -> None:
 
     # advance: DoD check + transition
     p_advance = subparsers.add_parser("advance", help="Advance a gate to done")
-    p_advance.add_argument("task_id", help="Task ID (e.g., TASK-001)")
+    p_advance.add_argument("task_id", help="Task ID (e.g., TASK-NNN)")
     p_advance.add_argument("gate", help="Gate name (e.g., STG1)")
 
     # check: DoD check only (dry-run)
     p_check = subparsers.add_parser("check", help="Check DoD conditions (dry-run)")
-    p_check.add_argument("task_id", help="Task ID (e.g., TASK-001)")
+    p_check.add_argument("task_id", help="Task ID (e.g., TASK-NNN)")
     p_check.add_argument("gate", help="Gate name (e.g., STG1)")
 
     # summary: all gate statuses
     p_summary = subparsers.add_parser("summary", help="Show all gate statuses")
-    p_summary.add_argument("task_id", help="Task ID (e.g., TASK-001)")
+    p_summary.add_argument("task_id", help="Task ID (e.g., TASK-NNN)")
 
     # next: auto-detect and advance next gate
     p_next = subparsers.add_parser("next", help="Advance to the next eligible gate")
-    p_next.add_argument("task_id", help="Task ID (e.g., TASK-001)")
+    p_next.add_argument("task_id", help="Task ID (e.g., TASK-NNN)")
 
     args = parser.parse_args()
 
@@ -752,7 +725,6 @@ def main() -> None:
         result = advance_to_next(args.task_id)
         _output_json(asdict(result))
         sys.exit(0 if result.success else 1)
-
 
 if __name__ == "__main__":
     try:

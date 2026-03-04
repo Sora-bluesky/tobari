@@ -20,9 +20,11 @@ Usage in hooks:
         ...
 """
 
+import contextlib
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -38,6 +40,97 @@ BOUNDARY_FILENAME = "boundary-classification.yaml"
 EVIDENCE_LEDGER_FILENAME = "evidence-ledger.jsonl"
 EVIDENCE_LOG_DIR = "logs"
 
+# File locking constants
+LOCK_TIMEOUT = 5.0  # seconds
+LOCK_RETRY_INTERVAL = 0.05  # seconds
+
+@contextlib.contextmanager
+def _file_lock(lock_path: Path, timeout: float = LOCK_TIMEOUT):
+    """Cross-platform advisory file lock using a .lock sidecar file.
+
+    Uses msvcrt on Windows, fcntl on Unix.
+    Retries with fixed interval until timeout.
+    """
+    lock_file = lock_path.parent / (lock_path.name + ".lock")
+    fd = None
+    start = time.monotonic()
+
+    try:
+        while True:
+            try:
+                fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
+                if sys.platform == "win32":
+                    import msvcrt
+                    msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break  # Lock acquired
+            except (OSError, IOError):
+                if fd is not None:
+                    os.close(fd)
+                    fd = None
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise TimeoutError(
+                        f"File lock timeout ({timeout}s): {lock_file}"
+                    )
+                time.sleep(LOCK_RETRY_INTERVAL)
+
+        yield  # Critical section
+
+    finally:
+        if fd is not None:
+            try:
+                if sys.platform == "win32":
+                    import msvcrt
+                    msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(fd, fcntl.LOCK_UN)
+            except Exception:
+                pass
+            os.close(fd)
+
+def _read_modify_write_session(
+    modifier: "callable",
+) -> bool:
+    """Read session file, apply modifier, write back — under file lock.
+
+    Args:
+        modifier: A callable that receives the session dict and mutates it.
+
+    Returns:
+        True on success, False on error.
+    """
+    global _session_cache, _session_cache_mtime
+
+    session_path = _get_session_path()
+    if not session_path.exists():
+        return False
+
+    try:
+        with _file_lock(session_path):
+            with open(session_path, encoding="utf-8") as f:
+                data = json.load(f)
+
+            if not isinstance(data, dict) or not data.get("active", False):
+                return False
+
+            modifier(data)
+
+            with open(session_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.write("\n")
+
+        # Invalidate cache (outside lock)
+        _session_cache = None
+        _session_cache_mtime = 0.0
+        return True
+
+    except (json.JSONDecodeError, OSError, TimeoutError) as e:
+        print(f"Session file operation failed: {e}", file=sys.stderr)
+        return False
 
 def _get_session_path() -> Path:
     """Resolve the path to tobari-session.json."""
@@ -48,7 +141,6 @@ def _get_session_path() -> Path:
     # This module lives at {project}/.claude/hooks/tobari_session.py
     hooks_dir = Path(__file__).resolve().parent
     return hooks_dir.parent / SESSION_FILENAME
-
 
 def load_session() -> dict[str, Any] | None:
     """Load and cache tobari-session.json.
@@ -96,17 +188,14 @@ def load_session() -> dict[str, Any] | None:
         _session_cache = None
         return None
 
-
 def is_veil_active() -> bool:
     """Check if the veil is currently active."""
     return load_session() is not None
-
 
 def get_profile() -> str | None:
     """Get the operating profile (lite/standard/strict)."""
     session = load_session()
     return session.get("profile") if session else None
-
 
 def get_scope() -> dict[str, list[str]] | None:
     """Get the contract scope (include/exclude paths)."""
@@ -116,14 +205,12 @@ def get_scope() -> dict[str, list[str]] | None:
     contract = session.get("contract", {})
     return contract.get("scope")
 
-
 def get_contract() -> dict[str, Any] | None:
     """Get the full contract."""
     session = load_session()
     if not session:
         return None
     return session.get("contract")
-
 
 def is_path_in_scope(file_path: str) -> bool | None:
     """Check if a file path is within the contract scope.
@@ -167,12 +254,10 @@ def is_path_in_scope(file_path: str) -> bool | None:
     # Only excludes defined, path not excluded = in scope
     return True
 
-
 def get_task() -> str | None:
     """Get the current task name."""
     session = load_session()
     return session.get("task") if session else None
-
 
 def get_gates_passed() -> list[str]:
     """Get the list of passed STG gates."""
@@ -180,7 +265,6 @@ def get_gates_passed() -> list[str]:
     if not session:
         return []
     return session.get("gates_passed", [])
-
 
 def update_gates_passed(new_gate: str) -> bool:
     """Add a gate to gates_passed in tobari-session.json.
@@ -191,46 +275,17 @@ def update_gates_passed(new_gate: str) -> bool:
     Returns:
         True if successfully updated, False on error.
 
-    Behavior:
-        - Reads current session file directly (bypasses cache)
-        - Appends new_gate to gates_passed if not already present
-        - Writes back to file
-        - Invalidates cache so next load_session() reads fresh data
+    Uses file lock to prevent concurrent write corruption.
     """
-    global _session_cache, _session_cache_mtime
-
-    session_path = _get_session_path()
-    if not session_path.exists():
-        return False
-
-    try:
-        with open(session_path, encoding="utf-8") as f:
-            data = json.load(f)
-
-        if not isinstance(data, dict) or not data.get("active", False):
-            return False
-
+    def _modify(data: dict) -> None:
         gates = data.get("gates_passed", [])
         if new_gate not in gates:
             gates.append(new_gate)
             data["gates_passed"] = gates
 
-        with open(session_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-            f.write("\n")
-
-        # Invalidate cache
-        _session_cache = None
-        _session_cache_mtime = 0.0
-        return True
-
-    except (json.JSONDecodeError, OSError) as e:
-        print(f"Failed to update session gates_passed: {e}", file=__import__("sys").stderr)
-        return False
-
+    return _read_modify_write_session(_modify)
 
 # --- Boundary Classification ---
-
 
 def _get_boundary_path() -> Path:
     """Resolve the path to boundary-classification.yaml."""
@@ -241,7 +296,6 @@ def _get_boundary_path() -> Path:
     # This module lives at {project}/.claude/hooks/tobari_session.py
     hooks_dir = Path(__file__).resolve().parent
     return hooks_dir.parent.parent / "integration" / BOUNDARY_FILENAME
-
 
 def load_boundary_classification() -> dict[str, Any] | None:
     """Load and cache boundary-classification.yaml.
@@ -279,7 +333,6 @@ def load_boundary_classification() -> dict[str, Any] | None:
             "path": str(boundary_path),
         })
         return None
-
 
 def get_boundary_classification(file_path: str) -> str | None:
     """Get the boundary classification for a file path.
@@ -325,9 +378,7 @@ def get_boundary_classification(file_path: str) -> str | None:
 
     return best_match
 
-
 # --- Evidence Ledger ---
-
 
 def _get_evidence_dir() -> Path:
     """Resolve the path to .claude/logs/ directory."""
@@ -337,17 +388,16 @@ def _get_evidence_dir() -> Path:
     hooks_dir = Path(__file__).resolve().parent
     return hooks_dir.parent / EVIDENCE_LOG_DIR
 
-
 def _get_evidence_path() -> Path:
     """Resolve the path to .claude/logs/evidence-ledger.jsonl."""
     return _get_evidence_dir() / EVIDENCE_LEDGER_FILENAME
-
 
 def write_evidence(entry: dict[str, Any]) -> bool:
     """Append an evidence entry to the JSONL ledger.
 
     Adds timestamp if not present. Creates directory if needed.
     Designed to be called from multiple hooks (gate, stage, evidence).
+    Uses file lock to prevent interleaved writes from concurrent hooks.
 
     Returns True on success, False on error (fail-open: never blocks).
     """
@@ -358,14 +408,14 @@ def write_evidence(entry: dict[str, Any]) -> bool:
         evidence_path = _get_evidence_path()
         evidence_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(evidence_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        with _file_lock(evidence_path):
+            with open(evidence_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
         return True
 
     except Exception:
         return False
-
 
 def read_evidence() -> list[dict[str, Any]]:
     """Read all entries from the evidence ledger.
@@ -391,7 +441,6 @@ def read_evidence() -> list[dict[str, Any]]:
     except OSError:
         pass
     return entries
-
 
 def summarize_evidence() -> dict[str, Any]:
     """Summarize the evidence ledger for reporting.
@@ -429,9 +478,7 @@ def summarize_evidence() -> dict[str, Any]:
         },
     }
 
-
 # --- Token Usage (token_usage) ---
-
 
 def get_token_usage() -> dict[str, Any]:
     """Get current token_usage from tobari-session.json.
@@ -451,7 +498,6 @@ def get_token_usage() -> dict[str, Any]:
         "budget": int(usage.get("budget", 500000)),
     }
 
-
 def update_token_usage(delta_input: int, delta_output: int) -> dict[str, Any] | None:
     """Atomically increment token_usage in tobari-session.json.
 
@@ -462,52 +508,26 @@ def update_token_usage(delta_input: int, delta_output: int) -> dict[str, Any] | 
     Returns:
         Updated token_usage dict if successful, None on error or inactive session.
 
-    Behavior:
-        - Reads current session file directly (bypasses cache)
-        - Increments input/output by the given deltas
-        - Preserves existing budget value
-        - Writes back and invalidates cache
+    Uses file lock to prevent concurrent write corruption.
     """
-    global _session_cache, _session_cache_mtime
+    result_holder: dict[str, Any] = {}
 
-    session_path = _get_session_path()
-    if not session_path.exists():
-        return None
-
-    try:
-        with open(session_path, encoding="utf-8") as f:
-            data = json.load(f)
-
-        if not isinstance(data, dict) or not data.get("active", False):
-            return None
-
+    def _modify(data: dict) -> None:
         usage = data.get("token_usage", {})
         if not isinstance(usage, dict):
             usage = {}
-
         new_usage = {
             "input": int(usage.get("input", 0)) + max(0, delta_input),
             "output": int(usage.get("output", 0)) + max(0, delta_output),
             "budget": int(usage.get("budget", 500000)),
         }
         data["token_usage"] = new_usage
+        result_holder["usage"] = new_usage
 
-        with open(session_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-            f.write("\n")
-
-        # Invalidate cache
-        _session_cache = None
-        _session_cache_mtime = 0.0
-        return new_usage
-
-    except (json.JSONDecodeError, OSError, TypeError, ValueError) as e:
-        print(f"Failed to update token_usage: {e}", file=sys.stderr)
-        return None
-
+    success = _read_modify_write_session(_modify)
+    return result_holder.get("usage") if success else None
 
 # --- Self-Repair (retry_count) ---
-
 
 def get_retry_count() -> int:
     """Get current self-repair retry count from tobari-session.json.
@@ -522,46 +542,18 @@ def get_retry_count() -> int:
     except (TypeError, ValueError):
         return 0
 
-
 def set_retry_count(count: int) -> bool:
     """Set retry_count in tobari-session.json.
 
-    Reads fresh from disk, updates the field, and writes back.
-    Invalidates the in-process cache.
-
     Returns True on success, False on error.
+    Uses file lock to prevent concurrent write corruption.
     """
-    global _session_cache, _session_cache_mtime
-
-    session_path = _get_session_path()
-    if not session_path.exists():
-        return False
-
-    try:
-        with open(session_path, encoding="utf-8") as f:
-            data = json.load(f)
-
-        if not isinstance(data, dict) or not data.get("active", False):
-            return False
-
+    def _modify(data: dict) -> None:
         data["retry_count"] = max(0, int(count))
 
-        with open(session_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-            f.write("\n")
-
-        # Invalidate cache
-        _session_cache = None
-        _session_cache_mtime = 0.0
-        return True
-
-    except (json.JSONDecodeError, OSError, TypeError, ValueError) as e:
-        print(f"Failed to set retry_count: {e}", file=sys.stderr)
-        return False
-
+    return _read_modify_write_session(_modify)
 
 # --- Notification Utilities ---
-
 
 def get_webhook_config(session: dict[str, Any]) -> str | None:
     """Read webhook URL from tobari-session.json notification config.
@@ -577,7 +569,6 @@ def get_webhook_config(session: dict[str, Any]) -> str | None:
     if url and isinstance(url, str) and url.strip():
         return url.strip()
     return None
-
 
 def send_webhook(url: str, payload: dict[str, Any]) -> None:
     """Fire-and-forget HTTP POST to a webhook URL.
@@ -613,7 +604,6 @@ def send_webhook(url: str, payload: dict[str, Any]) -> None:
     thread = threading.Thread(target=_send, daemon=True)
     thread.start()
 
-
 def _get_backlog_path() -> Path:
     """Resolve the path to tasks/backlog.yaml."""
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
@@ -622,7 +612,6 @@ def _get_backlog_path() -> Path:
     # Fallback: {project}/tasks/backlog.yaml
     hooks_dir = Path(__file__).resolve().parent
     return hooks_dir.parent.parent / "tasks" / "backlog.yaml"
-
 
 def format_task_notification(task_id: str) -> str:
     """Generate GitHub PR description text from backlog.yaml task data.
