@@ -29,9 +29,16 @@ tobari は AI エージェントに **帳（結界）** をおろす。帳の内
 | ✅ **進む**   | auto-advance   | 帳が安全な操作を自動承認。人間にダイアログを見せない |
 | 📋 **残す**   | evidence trail | 全操作を証跡として記録、追跡可能                     |
 
-## Quick Start
+## Prerequisites
 
-### npm（推奨）
+| 必要なもの | バージョン | 用途 |
+|-----------|-----------|------|
+| [Node.js](https://nodejs.org/) | 18+ | `npx tobari init` の実行 |
+| [Python](https://python.org/) | 3.10+ | Hooks（帳の器官）の動作 |
+| [Git](https://git-scm.com/) | — | バージョン管理（`git init` 済みであること） |
+| [Claude Code](https://claude.ai/code) | — | Claude Pro $20/月 以上。API キーは不要 |
+
+## Quick Start
 
 ```bash
 # 既存プロジェクトに tobari を導入
@@ -41,16 +48,15 @@ npx tobari init
 /tobari my-feature
 ```
 
-### git clone
+### 既存の .claude/ がある場合
 
 ```bash
-git clone https://github.com/Sora-bluesky/tobari.git
-cd tobari
-# Claude Code で帳をおろす
-/tobari my-feature
-```
+# --force: 既存の settings.json をマージ（バックアップ自動作成）
+npx tobari init --force
 
-Claude Code（Claude Pro $20/月 以上）が必要です。API キーは不要です。
+# --update: Hooks のみ最新版に更新（rules/skills はそのまま）
+npx tobari init --update
+```
 
 ## なぜ tobari か
 
