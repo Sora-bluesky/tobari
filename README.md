@@ -31,10 +31,22 @@ tobari は AI エージェントに **帳（結界）** をおろす。帳の内
 
 ## Quick Start
 
+### npm（推奨）
+
+```bash
+# 既存プロジェクトに tobari を導入
+npx tobari init
+
+# Claude Code で帳をおろす
+/tobari my-feature
+```
+
+### git clone
+
 ```bash
 git clone https://github.com/Sora-bluesky/tobari.git
 cd tobari
-# Claude Code で開く
+# Claude Code で帳をおろす
 /tobari my-feature
 ```
 
@@ -163,17 +175,17 @@ Binding はガバナンス統制レイヤです。ルール・ゲート・契約
 
 帳は9つの「器官」で構成されています。それぞれが協調し、ユーザーが操作の詳細を気にせず済む状態を作ります。
 
-| 器官    | 名前         | Hook ファイル                                          | 役割                                           |
-| ------- | ------------ | ------------------------------------------------------ | ---------------------------------------------- |
-| 🫀 心臓 | 権限判定     | `tobari-gate.py`                                       | 安全な操作を自動承認、危険な操作を自動ブロック |
-| 👁️ 目   | 観測・記録   | `tobari-evidence.py`, `tobari-evidence-failure.py`     | 全操作を証跡として記録                         |
-| 👄 口   | 対話・通知   | `tobari-permission.py`                                 | 確認ダイアログの文脈付加、GitHub PR 完了通知   |
-| 🛡️ 盾   | 境界防御     | `tobari-gate.py` (boundary)                            | 秘密情報の漏洩検出、境界違反のブロック         |
-| ✋ 手   | Git 自動操作 | `tobari_stage.py`                                      | commit → push → PR → merge の自動化            |
-| 🦿 脚   | 自己修復     | `tobari-stop.py`                                       | テスト失敗時の自動修正（最大3回試行）          |
-| 🧠 記憶 | 状態維持     | `tobari-session-start.py`, `tobari-precompact.py`      | セッション横断の文脈保持                       |
-| 👛 財布 | コスト制御   | `tobari-cost.py`                                       | トークン消費の監視・警告                       |
-| 🦠 免疫 | 依存防御     | `tobari-gate.py` (scope)                               | 不正パッケージ・スコープ逸脱の検出             |
+| 器官    | 名前         | 役割                                           |
+| ------- | ------------ | ---------------------------------------------- |
+| 🫀 心臓 | 権限判定     | 安全な操作を自動承認、危険な操作を自動ブロック |
+| 👁️ 目   | 観測・記録   | 全操作を証跡として記録                         |
+| 👄 口   | 対話・通知   | 確認ダイアログの文脈付加、GitHub PR 完了通知   |
+| 🛡️ 盾   | 境界防御     | 秘密情報の漏洩検出、境界違反のブロック         |
+| ✋ 手   | Git 自動操作 | commit → push → PR → merge の自動化            |
+| 🦿 脚   | 自己修復     | テスト失敗時の自動修正（最大3回試行）          |
+| 🧠 記憶 | 状態維持     | セッション横断の文脈保持                       |
+| 👛 財布 | コスト制御   | トークン消費の監視・警告                       |
+| 🦠 免疫 | 依存防御     | 不正パッケージ・スコープ逸脱の検出             |
 
 加えて、git-guard（pre-commit / pre-push フック）が秘密情報のスキャンを担当します。
 
