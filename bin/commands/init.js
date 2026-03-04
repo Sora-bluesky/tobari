@@ -3,29 +3,13 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { execSync } = require("node:child_process");
-
-const TEMPLATE_DIR = path.join(__dirname, "..", "..", "templates");
-
-const GITIGNORE_ENTRIES = [
-  "# tobari - session state and logs (do not commit)",
-  ".claude/tobari-session.json",
-  ".claude/logs/",
-  ".claude/settings.local.json",
-  ".claude/checkpoints/",
-  "__pycache__/",
-  "*.pyc",
-];
-
-const TOBARI_SKILLS = [
-  "handoff",
-  "plan",
-  "simplify",
-  "startproject",
-  "tdd",
-  "team-implement",
-  "team-review",
-  "tobari",
-];
+const {
+  TEMPLATE_DIR,
+  deployWithMerge,
+  setRunShPermissions,
+  updateGitignore,
+  addPrepareScript,
+} = require("../lib/deploy");
 
 module.exports = function init(options) {
   const cwd = process.cwd();
@@ -76,13 +60,12 @@ module.exports = function init(options) {
   }
 
   // --- Deploy files ---
-  const templateClaudeDir = path.join(TEMPLATE_DIR, ".claude");
-
   if (force && fs.existsSync(claudeDir)) {
     // Force mode: merge settings.json, overwrite hooks/rules, preserve user skills
-    deployWithMerge(cwd, templateClaudeDir);
+    deployWithMerge(cwd);
   } else {
     // Fresh install: copy everything
+    const templateClaudeDir = path.join(TEMPLATE_DIR, ".claude");
     fs.cpSync(templateClaudeDir, claudeDir, { recursive: true });
   }
 
@@ -95,144 +78,15 @@ module.exports = function init(options) {
   // --- Set _run.sh permissions ---
   setRunShPermissions(cwd);
 
+  // --- Add prepare script to package.json ---
+  const prepared = addPrepareScript(cwd);
+  if (prepared) {
+    console.log('Added "prepare": "tobari sync" to package.json');
+  }
+
   // --- Print completion message ---
   printSuccess(python);
 };
-
-function deployWithMerge(cwd, templateClaudeDir) {
-  const claudeDir = path.join(cwd, ".claude");
-
-  // Overwrite hooks
-  const hooksDir = path.join(claudeDir, "hooks");
-  const templateHooksDir = path.join(templateClaudeDir, "hooks");
-  if (fs.existsSync(templateHooksDir)) {
-    fs.cpSync(templateHooksDir, hooksDir, { recursive: true, force: true });
-  }
-
-  // Overwrite rules
-  const rulesDir = path.join(claudeDir, "rules");
-  const templateRulesDir = path.join(templateClaudeDir, "rules");
-  if (fs.existsSync(templateRulesDir)) {
-    fs.cpSync(templateRulesDir, rulesDir, { recursive: true, force: true });
-  }
-
-  // Skills: only overwrite tobari-managed skills, preserve user additions
-  const skillsDir = path.join(claudeDir, "skills");
-  const templateSkillsDir = path.join(templateClaudeDir, "skills");
-  if (fs.existsSync(templateSkillsDir)) {
-    if (!fs.existsSync(skillsDir)) {
-      fs.mkdirSync(skillsDir, { recursive: true });
-    }
-    for (const skill of TOBARI_SKILLS) {
-      const srcSkill = path.join(templateSkillsDir, skill);
-      const destSkill = path.join(skillsDir, skill);
-      if (fs.existsSync(srcSkill)) {
-        fs.cpSync(srcSkill, destSkill, { recursive: true, force: true });
-      }
-    }
-  }
-
-  // Agents: copy (overwrite)
-  const templateAgentsDir = path.join(templateClaudeDir, "agents");
-  const agentsDir = path.join(claudeDir, "agents");
-  if (fs.existsSync(templateAgentsDir)) {
-    fs.cpSync(templateAgentsDir, agentsDir, { recursive: true, force: true });
-  }
-
-  // Commands: copy (overwrite)
-  const templateCommandsDir = path.join(templateClaudeDir, "commands");
-  const commandsDir = path.join(claudeDir, "commands");
-  if (fs.existsSync(templateCommandsDir)) {
-    fs.cpSync(templateCommandsDir, commandsDir, {
-      recursive: true,
-      force: true,
-    });
-  }
-
-  // Settings.json: merge
-  mergeSettingsJson(cwd, templateClaudeDir);
-}
-
-function mergeSettingsJson(cwd, templateClaudeDir) {
-  const settingsPath = path.join(cwd, ".claude", "settings.json");
-  const templateSettingsPath = path.join(templateClaudeDir, "settings.json");
-
-  if (!fs.existsSync(templateSettingsPath)) return;
-
-  if (!fs.existsSync(settingsPath)) {
-    fs.cpSync(templateSettingsPath, settingsPath);
-    return;
-  }
-
-  // Backup existing settings
-  const backupPath = settingsPath + ".bak";
-  fs.copyFileSync(settingsPath, backupPath);
-  console.log(`Backup created: .claude/settings.json.bak`);
-
-  let existing, template;
-  try {
-    existing = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-    template = JSON.parse(fs.readFileSync(templateSettingsPath, "utf8"));
-  } catch (e) {
-    console.warn(
-      "WARNING: Could not parse settings.json for merging. Using template version."
-    );
-    fs.cpSync(templateSettingsPath, settingsPath, { force: true });
-    return;
-  }
-
-  // Merge hooks: add tobari hooks without duplicating
-  if (template.hooks) {
-    if (!existing.hooks) existing.hooks = {};
-    for (const [hookType, hookEntries] of Object.entries(template.hooks)) {
-      if (!existing.hooks[hookType]) {
-        existing.hooks[hookType] = hookEntries;
-      } else {
-        // Add entries that don't already exist (match by command string)
-        const existingCommands = new Set(
-          existing.hooks[hookType].map((e) => e.command)
-        );
-        for (const entry of hookEntries) {
-          if (!existingCommands.has(entry.command)) {
-            existing.hooks[hookType].push(entry);
-          }
-        }
-      }
-    }
-  }
-
-  // Merge permissions
-  if (template.permissions) {
-    if (!existing.permissions) existing.permissions = {};
-    for (const [permType, permEntries] of Object.entries(
-      template.permissions
-    )) {
-      if (!existing.permissions[permType]) {
-        existing.permissions[permType] = permEntries;
-      } else if (Array.isArray(permEntries)) {
-        const existingSet = new Set(existing.permissions[permType]);
-        for (const entry of permEntries) {
-          if (!existingSet.has(entry)) {
-            existing.permissions[permType].push(entry);
-          }
-        }
-      }
-    }
-  }
-
-  // Merge env (existing keys take precedence)
-  if (template.env) {
-    if (!existing.env) existing.env = {};
-    for (const [key, val] of Object.entries(template.env)) {
-      if (!(key in existing.env)) {
-        existing.env[key] = val;
-      }
-    }
-  }
-
-  fs.writeFileSync(settingsPath, JSON.stringify(existing, null, 2) + "\n");
-  console.log("settings.json merged (existing customizations preserved).");
-}
 
 function deployCLAUDEmd(cwd) {
   const templateClaude = path.join(TEMPLATE_DIR, "CLAUDE.md");
@@ -252,47 +106,6 @@ function deployCLAUDEmd(cwd) {
     );
   } else {
     fs.copyFileSync(templateClaude, targetClaude);
-  }
-}
-
-function updateGitignore(cwd) {
-  const gitignorePath = path.join(cwd, ".gitignore");
-
-  let content = "";
-  if (fs.existsSync(gitignorePath)) {
-    content = fs.readFileSync(gitignorePath, "utf8");
-  }
-
-  const linesToAdd = [];
-  for (const entry of GITIGNORE_ENTRIES) {
-    if (!content.includes(entry)) {
-      linesToAdd.push(entry);
-    }
-  }
-
-  if (linesToAdd.length > 0) {
-    const separator = content.length > 0 && !content.endsWith("\n") ? "\n" : "";
-    const block = separator + "\n" + linesToAdd.join("\n") + "\n";
-    fs.appendFileSync(gitignorePath, block);
-  }
-}
-
-function setRunShPermissions(cwd) {
-  const runShPath = path.join(cwd, ".claude", "hooks", "_run.sh");
-  if (!fs.existsSync(runShPath)) return;
-
-  try {
-    fs.chmodSync(runShPath, 0o755);
-  } catch {
-    // chmod may fail on some Windows setups; check if already executable
-    try {
-      fs.accessSync(runShPath, fs.constants.X_OK);
-    } catch {
-      console.warn(
-        "WARNING: Could not set executable permission on _run.sh. " +
-          "You may need to run: chmod +x .claude/hooks/_run.sh"
-      );
-    }
   }
 }
 

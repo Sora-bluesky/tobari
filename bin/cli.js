@@ -11,6 +11,7 @@ const { values, positionals } = parseArgs({
     help: { type: "boolean", short: "h", default: false },
     force: { type: "boolean", short: "f", default: false },
     update: { type: "boolean", default: false },
+    check: { type: "boolean", short: "c", default: false },
   },
 });
 
@@ -30,6 +31,9 @@ const command = positionals[0];
 switch (command) {
   case "init":
     require("./commands/init")(values);
+    break;
+  case "sync":
+    require("./commands/sync")(values);
     break;
   case "verify":
     require("./commands/verify")();
@@ -51,6 +55,7 @@ Usage:
 
 Commands:
   init     Deploy tobari governance framework to the current project
+  sync     Sync tobari-managed files to the latest version
   verify   Check if tobari is properly configured
 
 Options:
@@ -61,10 +66,17 @@ Init Options:
   -f, --force    Overwrite existing .claude/ directory
       --update   Update hooks only (preserve rules/skills customizations)
 
+Sync Options:
+  -f, --force    Sync regardless of version match
+  -c, --check    Check for drift without modifying files (CI mode)
+
 Examples:
   tobari init          Set up tobari in the current project
   tobari init --force  Overwrite existing configuration
   tobari init --update Update hooks to the latest version
+  tobari sync          Update tobari files (skips if up to date)
+  tobari sync --force  Force sync regardless of version
+  tobari sync --check  Check if files are up to date (exit 1 if drift)
   tobari verify        Check setup status
 
 Documentation: ${pkg.homepage}

@@ -42,6 +42,9 @@ module.exports = function verify() {
   // Check 5: _run.sh executable permission
   results.push(checkRunShPermission(cwd));
 
+  // Check 6: prepare script in package.json
+  results.push(checkPrepareScript(cwd));
+
   // Summary
   console.log("");
   const hasFail = results.some((r) => r === "fail");
@@ -198,6 +201,32 @@ function checkRunShPermission(cwd) {
     printResult("warn", "_run.sh permission", "not executable");
     return "warn";
   }
+}
+
+function checkPrepareScript(cwd) {
+  const pkgPath = path.join(cwd, "package.json");
+  if (!fs.existsSync(pkgPath)) {
+    printResult("warn", "prepare script", "no package.json found");
+    return "warn";
+  }
+
+  let pkg;
+  try {
+    pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+  } catch {
+    printResult("warn", "prepare script", "JSON parse error");
+    return "warn";
+  }
+
+  if (pkg.scripts && pkg.scripts.prepare &&
+      pkg.scripts.prepare.includes("tobari sync")) {
+    printResult("pass", "prepare script", '"tobari sync" in scripts.prepare');
+    return "pass";
+  }
+
+  printResult("warn", "prepare script",
+    'scripts.prepare does not include "tobari sync"');
+  return "warn";
 }
 
 function printResult(status, label, detail) {
