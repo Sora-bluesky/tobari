@@ -33,9 +33,16 @@ Inside the veil, agents move freely. But they cannot escape it.
 | ✅ **Advance** | auto-advance   | Auto-approves safe operations. No dialogs shown to the user |
 | 📋 **Record**  | evidence trail | Records all operations as traceable evidence                |
 
-## Quick Start
+## Prerequisites
 
-### npm (Recommended)
+| Requirement | Version | Purpose |
+|------------|---------|---------|
+| [Node.js](https://nodejs.org/) | 18+ | Running `npx tobari init` |
+| [Python](https://python.org/) | 3.10+ | Hooks (veil organs) runtime |
+| [Git](https://git-scm.com/) | — | Version control (`git init` required) |
+| [Claude Code](https://claude.ai/code) | — | Claude Pro $20/month or higher. No API keys needed |
+
+## Quick Start
 
 ```bash
 # Add tobari to an existing project
@@ -45,16 +52,15 @@ npx tobari init
 /tobari my-feature
 ```
 
-### git clone
+### Existing .claude/ directory
 
 ```bash
-git clone https://github.com/Sora-bluesky/tobari.git
-cd tobari
-# Lower the veil with Claude Code
-/tobari my-feature
-```
+# --force: Merges existing settings.json (auto-backup created)
+npx tobari init --force
 
-> Requires Claude Code (Claude Pro $20/month or higher). No API keys needed.
+# --update: Updates hooks only (rules/skills untouched)
+npx tobari init --update
+```
 
 ## Architecture
 
