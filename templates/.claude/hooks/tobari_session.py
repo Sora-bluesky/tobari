@@ -774,6 +774,94 @@ def build_context_output(
         }
     }
 
+def _get_git_state() -> dict[str, Any]:
+    """Collect current git state for session finalization.
+
+    Returns dict with branch, uncommitted_changes, and pr_url fields.
+    Uses subprocess to run git commands; returns safe defaults on failure.
+    """
+    import subprocess
+
+    result: dict[str, Any] = {
+        "branch": None,
+        "uncommitted_changes": False,
+        "pr_url": None,
+    }
+
+    try:
+        branch = subprocess.run(
+            ["git", "branch", "--show-current"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if branch.returncode == 0:
+            result["branch"] = branch.stdout.strip() or None
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        pass
+
+    try:
+        status = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if status.returncode == 0:
+            result["uncommitted_changes"] = bool(status.stdout.strip())
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        pass
+
+    return result
+
+def finalize_session(reason: str = "session end") -> dict[str, Any]:
+    """Session end processing: update git state, summarize evidence,
+    reset retry count, then raise veil.
+
+    Called from /handoff skill or Stop hook fallback.
+
+    Args:
+        reason: Why the session is ending.
+
+    Returns:
+        Dict with status and reason.
+    """
+    session = load_session()
+    if not session or not session.get("active"):
+        return {"status": "skipped", "reason": "veil not active"}
+
+    # 1. Git state update
+    git_state = _get_git_state()
+
+    # 2. Evidence summary
+    evidence_summary = summarize_evidence()
+
+    # 3. Update session with finalization data before raising veil
+    session_path = _get_session_path()
+    try:
+        with _file_lock(session_path):
+            with open(session_path, encoding="utf-8") as f:
+                data = json.load(f)
+
+            if isinstance(data, dict) and data.get("active"):
+                data["git_state"] = git_state
+                data["evidence_summary"] = evidence_summary
+                data["retry_count"] = 0
+
+                with open(session_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                    f.write("\n")
+
+        # Invalidate cache so raise_veil reads fresh data
+        global _session_cache, _session_cache_mtime
+        _session_cache = None
+        _session_cache_mtime = 0.0
+
+    except (json.JSONDecodeError, OSError, TimeoutError) as e:
+        print(f"[tobari] WARNING: finalize_session pre-update failed: {e}",
+              file=sys.stderr)
+
+    # 4. Raise veil (sets active=false, raised_at, raised_reason, writes evidence)
+    raise_veil(reason)
+
+    return {"status": "finalized", "reason": reason}
+
 def raise_veil(reason: str = "session ended") -> bool:
     """Raise the veil (set active=false) with a reason and ceremony message.
 

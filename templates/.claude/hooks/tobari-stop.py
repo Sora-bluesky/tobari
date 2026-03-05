@@ -221,8 +221,8 @@ def main() -> None:
             sys.exit(0)
 
         else:
-            # Circuit Breaker triggered — reset and allow stop
-            tobari_session.set_retry_count(0)
+            # Circuit Breaker triggered — finalize session and allow stop
+            tobari_session.finalize_session("circuit-breaker stop")
             tobari_session.write_evidence({
                 "event": "circuit_breaker_triggered",
                 "attempts": MAX_RETRIES,
