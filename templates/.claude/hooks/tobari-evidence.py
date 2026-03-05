@@ -195,6 +195,77 @@ def cli_quality_gates() -> None:
     counts = summary.get("quality_gate_counts", {})
     print(json.dumps(counts, ensure_ascii=False, indent=2))
 
+def cli_verify() -> None:
+    """Verify evidence ledger integrity (hash chain + HMAC)."""
+    import hashlib
+    import hmac as hmac_mod
+
+    evidence_path = tobari_session._get_evidence_path()
+    if not evidence_path.exists():
+        print("Evidence ledger not found.")
+        return
+
+    raw_lines: list[str] = []
+    try:
+        with open(evidence_path, encoding="utf-8") as f:
+            for line in f:
+                stripped = line.strip()
+                if stripped:
+                    raw_lines.append(stripped)
+    except OSError as e:
+        print(f"Cannot read evidence ledger: {e}")
+        sys.exit(1)
+
+    if not raw_lines:
+        print("Evidence ledger is empty.")
+        return
+
+    hmac_key = tobari_session._get_hmac_key()
+    errors: list[str] = []
+    prev_hash = tobari_session.CHAIN_GENESIS_HASH
+
+    for i, raw_line in enumerate(raw_lines):
+        try:
+            entry = json.loads(raw_line)
+        except json.JSONDecodeError:
+            errors.append(f"Entry {i}: invalid JSON")
+            prev_hash = hashlib.sha256(raw_line.encode("utf-8")).hexdigest()
+            continue
+
+        # Check chain index
+        actual_index = entry.get("_chain_index")
+        if actual_index is not None and actual_index != i:
+            errors.append(
+                f"Entry {i}: chain_index mismatch (expected {i}, got {actual_index})"
+            )
+
+        # Check prev_hash
+        actual_prev = entry.get("_prev_hash", "")
+        if actual_prev and actual_prev != prev_hash:
+            errors.append(f"Entry {i}: prev_hash mismatch")
+
+        # Verify HMAC
+        actual_hmac = entry.get("_hmac")
+        if hmac_key and actual_hmac:
+            verify_entry = {k: v for k, v in entry.items() if k != "_hmac"}
+            canonical = tobari_session._canonical_json(verify_entry)
+            expected_hmac = hmac_mod.new(
+                hmac_key, canonical.encode("utf-8"), hashlib.sha256
+            ).hexdigest()
+            if not hmac_mod.compare_digest(actual_hmac, expected_hmac):
+                errors.append(f"Entry {i}: HMAC verification failed")
+
+        prev_hash = hashlib.sha256(raw_line.encode("utf-8")).hexdigest()
+
+    if errors:
+        print(f"FAIL: {len(errors)} integrity errors found:")
+        for err in errors:
+            print(f"  - {err}")
+        sys.exit(1)
+    else:
+        mode = "HMAC + hash chain" if hmac_key else "hash chain only (no HMAC key)"
+        print(f"OK: {len(raw_lines)} entries verified ({mode})")
+
 def main() -> None:
     """CLI or hook entry point."""
     if len(sys.argv) > 1:
@@ -203,9 +274,11 @@ def main() -> None:
             cli_summary()
         elif command == "quality-gates":
             cli_quality_gates()
+        elif command == "verify":
+            cli_verify()
         else:
             print(f"Unknown command: {command}", file=sys.stderr)
-            print("Usage: python tobari-evidence.py [summary|quality-gates]",
+            print("Usage: python tobari-evidence.py [summary|quality-gates|verify]",
                   file=sys.stderr)
             sys.exit(1)
     else:

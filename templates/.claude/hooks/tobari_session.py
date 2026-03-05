@@ -21,8 +21,11 @@ Usage in hooks:
 """
 
 import contextlib
+import hashlib
+import hmac as hmac_mod
 import json
 import os
+import secrets
 import sys
 import time
 from datetime import datetime, timezone
@@ -39,6 +42,9 @@ SESSION_FILENAME = "tobari-session.json"
 BOUNDARY_FILENAME = "boundary-classification.yaml"
 EVIDENCE_LEDGER_FILENAME = "evidence-ledger.jsonl"
 EVIDENCE_LOG_DIR = "logs"
+HMAC_KEY_FILENAME = "tobari-hmac-key"
+HMAC_KEY_ENV_VAR = "TOBARI_HMAC_KEY"
+CHAIN_GENESIS_HASH = "0" * 64  # SHA256 zero-fill for first entry
 
 # File locking constants
 LOCK_TIMEOUT = 5.0  # seconds
@@ -212,6 +218,22 @@ def get_contract() -> dict[str, Any] | None:
         return None
     return session.get("contract")
 
+def _is_dir_prefix(path: str, prefix: str) -> bool:
+    """Check if prefix is a directory-boundary-aware prefix of path.
+
+    Returns True if:
+    - path == prefix (exact match)
+    - path starts with prefix + "/" (prefix is a parent directory)
+    - prefix ends with "/" (already a directory indicator)
+
+    This prevents 'home/user' from matching 'home/username/file.txt'.
+    """
+    if path == prefix:
+        return True
+    if prefix.endswith("/"):
+        return path.startswith(prefix)
+    return path.startswith(prefix + "/")
+
 def is_path_in_scope(file_path: str) -> bool | None:
     """Check if a file path is within the contract scope.
 
@@ -234,26 +256,27 @@ def is_path_in_scope(file_path: str) -> bool | None:
         return None
 
     # Normalize path for cross-platform comparison
-    normalized = file_path.replace("\\", "/").rstrip("/")
+    # Use os.path.normcase() to handle Windows drive letter case (C: vs c:)
+    normalized = os.path.normcase(file_path).replace("\\", "/").rstrip("/")
 
     # Strip project root prefix to convert absolute paths to relative
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
     if project_dir:
-        project_prefix = project_dir.replace("\\", "/").rstrip("/") + "/"
+        project_prefix = os.path.normcase(project_dir).replace("\\", "/").rstrip("/") + "/"
         if normalized.startswith(project_prefix):
             normalized = normalized[len(project_prefix):]
 
     # Check excludes first (deny takes precedence)
     for pattern in excludes:
-        norm_pattern = pattern.replace("\\", "/").rstrip("/")
-        if normalized.startswith(norm_pattern) or normalized == norm_pattern:
+        norm_pattern = os.path.normcase(pattern).replace("\\", "/").rstrip("/")
+        if _is_dir_prefix(normalized, norm_pattern):
             return False
 
     # Check includes
     if includes:
         for pattern in includes:
-            norm_pattern = pattern.replace("\\", "/").rstrip("/")
-            if normalized.startswith(norm_pattern) or normalized == norm_pattern:
+            norm_pattern = os.path.normcase(pattern).replace("\\", "/").rstrip("/")
+            if _is_dir_prefix(normalized, norm_pattern):
                 return True
         # Path not in any include pattern = out of scope
         return False
@@ -377,8 +400,7 @@ def get_boundary_classification(file_path: str) -> str | None:
         dir_path = entry.get("path", "").replace("\\", "/")
         if dir_path.startswith("./"):
             dir_path = dir_path[2:]
-        if (normalized.startswith(dir_path) or normalized.endswith("/" + dir_path)
-                or ("/" + dir_path) in normalized):
+        if _is_dir_prefix(normalized, dir_path):
             if len(dir_path) > best_length:
                 best_match = entry.get("classification")
                 best_length = len(dir_path)
@@ -399,10 +421,83 @@ def _get_evidence_path() -> Path:
     """Resolve the path to .claude/logs/evidence-ledger.jsonl."""
     return _get_evidence_dir() / EVIDENCE_LEDGER_FILENAME
 
+def _get_hmac_key() -> bytes | None:
+    """Load HMAC key from environment or key file.
+
+    Priority:
+    1. TOBARI_HMAC_KEY environment variable (hex-encoded)
+    2. .claude/tobari-hmac-key file
+    3. Auto-generate and save to key file
+
+    Returns key bytes, or None if generation fails (chain-only mode).
+    """
+    env_key = os.environ.get(HMAC_KEY_ENV_VAR, "").strip()
+    if env_key:
+        try:
+            return bytes.fromhex(env_key)
+        except ValueError:
+            return env_key.encode("utf-8")
+
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if project_dir:
+        key_path = Path(project_dir) / ".claude" / HMAC_KEY_FILENAME
+    else:
+        key_path = Path(__file__).resolve().parent / HMAC_KEY_FILENAME
+
+    if key_path.exists():
+        try:
+            key_hex = key_path.read_text(encoding="utf-8").strip()
+            return bytes.fromhex(key_hex)
+        except (ValueError, OSError):
+            pass
+
+    try:
+        new_key = secrets.token_bytes(32)
+        key_path.parent.mkdir(parents=True, exist_ok=True)
+        key_path.write_text(new_key.hex(), encoding="utf-8")
+        return new_key
+    except OSError:
+        return None
+
+def _get_last_chain_state(evidence_path: Path) -> tuple[int, str]:
+    """Read the last entry from evidence ledger to get chain state.
+
+    Returns (last_index, last_hash).
+    If ledger is empty or unreadable, returns (-1, CHAIN_GENESIS_HASH).
+    """
+    if not evidence_path.exists():
+        return -1, CHAIN_GENESIS_HASH
+
+    last_line = ""
+    try:
+        with open(evidence_path, encoding="utf-8") as f:
+            for line in f:
+                stripped = line.strip()
+                if stripped:
+                    last_line = stripped
+    except OSError:
+        return -1, CHAIN_GENESIS_HASH
+
+    if not last_line:
+        return -1, CHAIN_GENESIS_HASH
+
+    try:
+        entry = json.loads(last_line)
+        idx = entry.get("_chain_index", -1)
+        entry_hash = hashlib.sha256(last_line.encode("utf-8")).hexdigest()
+        return idx, entry_hash
+    except json.JSONDecodeError:
+        return -1, CHAIN_GENESIS_HASH
+
+def _canonical_json(entry: dict) -> str:
+    """Produce canonical JSON (sorted keys, no extra whitespace)."""
+    return json.dumps(entry, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
 def write_evidence(entry: dict[str, Any]) -> bool:
-    """Append an evidence entry to the JSONL ledger.
+    """Append an evidence entry to the JSONL ledger with hash chain + optional HMAC.
 
     Adds timestamp if not present. Creates directory if needed.
+    Each entry gets _chain_index, _prev_hash, and optionally _hmac fields.
     Designed to be called from multiple hooks (gate, stage, evidence).
     Uses file lock to prevent interleaved writes from concurrent hooks.
 
@@ -416,12 +511,31 @@ def write_evidence(entry: dict[str, Any]) -> bool:
         evidence_path.parent.mkdir(parents=True, exist_ok=True)
 
         with _file_lock(evidence_path):
+            # Read chain state (inside lock for atomicity)
+            last_index, prev_hash = _get_last_chain_state(evidence_path)
+
+            # Add chain fields
+            entry["_chain_index"] = last_index + 1
+            entry["_prev_hash"] = prev_hash
+
+            # Compute HMAC (if key available)
+            hmac_key = _get_hmac_key()
+            if hmac_key:
+                canonical = _canonical_json(entry)
+                entry["_hmac"] = hmac_mod.new(
+                    hmac_key, canonical.encode("utf-8"), hashlib.sha256
+                ).hexdigest()
+
             with open(evidence_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
         return True
 
-    except Exception:
+    except Exception as e:
+        print(
+            f"[tobari] WARNING: Evidence write failed: {e}",
+            file=sys.stderr,
+        )
         return False
 
 def read_evidence() -> list[dict[str, Any]]:
@@ -619,6 +733,125 @@ def _get_backlog_path() -> Path:
     # Fallback: {project}/tasks/backlog.yaml
     hooks_dir = Path(__file__).resolve().parent
     return hooks_dir.parent.parent / "tasks" / "backlog.yaml"
+
+def build_context_output(
+    intro_text: str,
+    session_active_text: str,
+    session_inactive_text: str | None = None,
+) -> dict[str, Any]:
+    """Build hookSpecificOutput with session context injection.
+
+    Shared helper for PreCompact and SessionStart hooks to avoid
+    duplicate session-loading and output-formatting logic.
+
+    Args:
+        intro_text: Always-injected project reference text.
+        session_active_text: Text when veil is active (may contain
+            {task}, {profile}, {gates} placeholders).
+        session_inactive_text: Text when veil is inactive (optional).
+
+    Returns:
+        Dict suitable for JSON output as hookSpecificOutput.
+    """
+    context_parts = [intro_text]
+
+    session = load_session()
+    if session:
+        task = session.get("task", "unknown")
+        profile = session.get("profile", "standard")
+        gates = session.get("gates_passed", [])
+        context_parts.append(
+            session_active_text.format(
+                task=task, profile=profile, gates=gates,
+            )
+        )
+    elif session_inactive_text:
+        context_parts.append(session_inactive_text)
+
+    return {
+        "hookSpecificOutput": {
+            "additionalContext": " ".join(context_parts)
+        }
+    }
+
+def raise_veil(reason: str = "session ended") -> bool:
+    """Raise the veil (set active=false) with a reason and ceremony message.
+
+    Args:
+        reason: Why the veil is being raised.
+
+    Returns:
+        True if successfully raised, False on error.
+    """
+    session_path = _get_session_path()
+    if not session_path.exists():
+        return False
+
+    try:
+        with _file_lock(session_path):
+            with open(session_path, encoding="utf-8") as f:
+                data = json.load(f)
+
+            if not isinstance(data, dict):
+                return False
+
+            was_active = data.get("active", False)
+            data["active"] = False
+            data["raised_at"] = datetime.now(timezone.utc).isoformat()
+            data["raised_reason"] = reason
+
+            with open(session_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.write("\n")
+
+        # Invalidate cache
+        global _session_cache, _session_cache_mtime
+        _session_cache = None
+        _session_cache_mtime = 0.0
+
+        if was_active:
+            write_evidence({
+                "event": "veil_raised",
+                "reason": reason,
+                "task": data.get("task", "unknown"),
+            })
+
+        return True
+
+    except (json.JSONDecodeError, OSError, TimeoutError) as e:
+        print(f"[tobari] WARNING: Failed to raise veil: {e}", file=sys.stderr)
+        return False
+
+def get_raised_info() -> dict[str, str] | None:
+    """Get info about when/why the veil was last raised.
+
+    Returns dict with 'task', 'raised_at', 'raised_reason' if the session
+    file exists and active=false with raised info. None otherwise.
+    """
+    session_path = _get_session_path()
+    if not session_path.exists():
+        return None
+
+    try:
+        with open(session_path, encoding="utf-8") as f:
+            data = json.load(f)
+
+        if not isinstance(data, dict):
+            return None
+        if data.get("active", False):
+            return None  # Veil is still down
+
+        raised_at = data.get("raised_at")
+        if not raised_at:
+            return None  # Old format without raised info
+
+        return {
+            "task": data.get("task", "unknown"),
+            "raised_at": raised_at,
+            "raised_reason": data.get("raised_reason", "unknown"),
+        }
+    except (json.JSONDecodeError, OSError):
+        return None
 
 def format_task_notification(task_id: str) -> str:
     """Generate GitHub PR description text from backlog.yaml task data.

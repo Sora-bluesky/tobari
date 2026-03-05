@@ -9,6 +9,7 @@ When the veil is active, this hook enforces safety rules:
 When the veil is inactive, provides design-change advisory (no blocking).
 
 Unified hook for permission decisions.
+Consolidated from earlier per-tool hooks.
 
 Profile behavior:
 - Lite: destructive Bash deny only (minimal gate density)
@@ -112,6 +113,30 @@ _FALLBACK_SECRET_PATTERNS: list[tuple[str, str]] = [
      "接続文字列（パスワード含む）"),
 ]
 
+# --- Sensitive File Access Patterns ---
+# Detect shell commands that read sensitive files (cat, less, more, etc.)
+
+SENSITIVE_FILE_ACCESS_PATTERNS: list[tuple[str, str]] = [
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*~/\.ssh/",
+     "SSH key/config file access"),
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*/\.ssh/",
+     "SSH key/config file access"),
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*~/\.aws/",
+     "AWS credential file access"),
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*/\.aws/",
+     "AWS credential file access"),
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*~/\.gnupg/",
+     "GnuPG key file access"),
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*/\.gnupg/",
+     "GnuPG key file access"),
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*\.env\b",
+     ".env file (secrets/environment) access"),
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*~/\.kube/config",
+     "Kubernetes config file access"),
+    (r"\b(cat|less|more|head|tail|bat|type)\b.*~/\.config/gcloud/",
+     "GCP credential file access"),
+]
+
 def _load_secret_patterns() -> list[tuple[str, str]]:
     """Load secret patterns from shared YAML definition.
 
@@ -142,7 +167,7 @@ def _load_secret_patterns() -> list[tuple[str, str]]:
 
 SECRET_PATTERNS = _load_secret_patterns()
 
-# --- Advisory Mode Patterns (veil-off, from ) ---
+# --- Advisory Mode Patterns (veil-off) ---
 
 DESIGN_INDICATORS = [
     "DESIGN.md", "ARCHITECTURE.md", "architecture", "design",
@@ -326,6 +351,39 @@ def check_secret_in_bash(command: str) -> dict | None:
                 "  環境変数（$ENV_VAR）を使用してください。",
                 tool_name="Bash",
             )
+
+    # Check for sensitive file access patterns
+    for pattern, label in SENSITIVE_FILE_ACCESS_PATTERNS:
+        if re.search(pattern, command, re.IGNORECASE):
+            return make_deny_response(
+                reason="機密ファイルへのアクセスを検出",
+                detail=f"検出パターン: {label}\n  コマンド: {truncate_command(command)}",
+                recovery="機密ファイルの内容をコマンドラインで表示しないでください。\n"
+                "  ファイルの存在確認には `test -f` を使用してください。",
+                tool_name="Bash",
+            )
+
+    return None
+
+def check_advisory_destructive_bash(command: str) -> dict | None:
+    """Advisory mode: warn (but don't block) when destructive Bash patterns detected.
+
+    Uses hookSpecificOutput.additionalContext to provide safety awareness
+    even when the veil is inactive. Does NOT set permissionDecision.
+    """
+    for pattern, label in DESTRUCTIVE_BASH_PATTERNS:
+        if re.search(pattern, command, re.IGNORECASE):
+            return {
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "additionalContext": (
+                        f"[Advisory] Destructive command detected: {label}\n"
+                        f"Command: {truncate_command(command)}\n"
+                        "The veil is inactive, so this command was NOT blocked.\n"
+                        "Consider using safer alternatives."
+                    ),
+                }
+            }
     return None
 
 # --- Gate Checks: Edit/Write ---
@@ -410,9 +468,7 @@ def check_design_advisory(file_path: str, content: str) -> dict | None:
                     "hookEventName": "PreToolUse",
                     "additionalContext": (
                         f"[Design Change Detected] File path contains '{indicator}'. "
-                        "Consider reviewing design implications before proceeding. "
-                        "**Recommended**: Use Task tool with subagent_type='general-purpose' "
-                        "for design review."
+                        "Consider reviewing design implications before proceeding."
                     ),
                 }
             }
@@ -422,10 +478,8 @@ def check_design_advisory(file_path: str, content: str) -> dict | None:
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "additionalContext": (
-                    "[Review Suggestion] Creating new file with significant content. "
-                    "Consider reviewing this plan for potential improvements. "
-                    "**Recommended**: Use Task tool with subagent_type='general-purpose' "
-                    "to consult external review and preserve main context."
+                    "[Large File Advisory] Creating new file with significant content. "
+                    "Consider self-reviewing for design implications before proceeding."
                 ),
             }
         }
@@ -514,7 +568,15 @@ def main():
 
         else:
             # === No veil: Advisory mode (backward compatible) ===
-            if tool_name in ("Edit", "Write", "NotebookEdit"):
+            if tool_name == "Bash":
+                command = tool_input.get("command", "")
+                if command:
+                    result = check_advisory_destructive_bash(command)
+                    if result:
+                        print(json.dumps(result))
+                sys.exit(0)
+
+            elif tool_name in ("Edit", "Write", "NotebookEdit"):
                 file_path = tool_input.get("file_path", "")
                 if not file_path:
                     file_path = tool_input.get("notebook_path", "")

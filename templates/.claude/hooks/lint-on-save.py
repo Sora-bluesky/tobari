@@ -93,10 +93,26 @@ def lint_python(file_path: str, project_dir: str, rel_path: str) -> None:
     else:
         print(f"[lint-on-save] OK: {rel_path} passed all checks")
 
+def _escape_powershell_string(s: str) -> str:
+    """Escape a string for safe use inside PowerShell single-quoted string.
+
+    PowerShell single-quoted strings ('...') only interpret '' as literal '.
+    Null bytes and newlines could break out of the quoting context, so they
+    cause the function to return empty string (reject the path).
+    """
+    if "\x00" in s or "\n" in s or "\r" in s:
+        return ""
+    return s.replace("'", "''")
+
 def lint_powershell(file_path: str, project_dir: str, rel_path: str) -> None:
     """Run PowerShell linter (PSScriptAnalyzer) if available."""
-    # Escape single quotes for PowerShell (prevent command injection)
-    safe_path = file_path.replace("'", "''")
+    safe_path = _escape_powershell_string(file_path)
+    if not safe_path:
+        print(
+            f"[lint-on-save] WARNING: Unsafe path rejected for PSScriptAnalyzer: {rel_path}",
+            file=sys.stderr,
+        )
+        return
     ret, stdout, stderr = run_command(
         ["pwsh", "-NoProfile", "-Command",
          f"Invoke-ScriptAnalyzer -Path '{safe_path}' -Severity Warning,Error"],
