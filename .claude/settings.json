@@ -144,6 +144,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Bash|Read|Grep|Glob|WebFetch|WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-injection-guard.py\"",
+            "timeout": 5
+          }
+        ]
       }
     ]
   },

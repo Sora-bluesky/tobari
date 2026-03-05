@@ -10,6 +10,7 @@ const {
   updateGitignore,
   checkDrift,
 } = require("../lib/deploy");
+const { runMigrations } = require("../lib/migrate");
 
 module.exports = function sync(options) {
   const cwd = process.cwd();
@@ -34,8 +35,8 @@ module.exports = function sync(options) {
 
   // --- Version check ---
   const versionFilePath = path.join(cwd, VERSION_FILE);
+  const installedVersion = readVersionFile(versionFilePath);
   if (!force) {
-    const installedVersion = readVersionFile(versionFilePath);
     if (installedVersion === currentVersion) {
       console.log(`tobari v${currentVersion} - already up to date.`);
       return;
@@ -45,12 +46,13 @@ module.exports = function sync(options) {
   // --- Check if .claude/ exists ---
   const claudeDir = path.join(cwd, ".claude");
   if (!fs.existsSync(claudeDir)) {
-    // First sync = treat as fresh install (copy everything)
+    // First sync = treat as fresh install (copy everything, no migrations needed)
     console.log(`tobari sync v${currentVersion} (initial setup)\n`);
     fs.cpSync(templateClaudeDir, claudeDir, { recursive: true });
   } else {
-    // Existing .claude/ = merge deploy
+    // Existing .claude/ = run migrations then merge deploy
     console.log(`tobari sync v${currentVersion}\n`);
+    runMigrations(cwd, installedVersion, currentVersion, { verbose: true });
     deployWithMerge(cwd, { verbose: true });
   }
 
