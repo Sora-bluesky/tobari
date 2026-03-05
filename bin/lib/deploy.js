@@ -119,6 +119,66 @@ function deployWithMerge(cwd, options = {}) {
 }
 
 /**
+ * Core merge logic for settings.json objects.
+ * Merges template entries into existing settings without mutating originals.
+ *
+ * @param {object} existing - Current settings object
+ * @param {object} template - Template settings object
+ * @returns {object} New merged settings object
+ */
+function mergeSettingsCore(existing, template) {
+  const merged = JSON.parse(JSON.stringify(existing));
+
+  // Merge hooks: add tobari hooks without duplicating (match by command string)
+  if (template.hooks) {
+    if (!merged.hooks) merged.hooks = {};
+    for (const [hookType, hookEntries] of Object.entries(template.hooks)) {
+      if (!merged.hooks[hookType]) {
+        merged.hooks[hookType] = hookEntries;
+      } else {
+        const existingCommands = new Set(
+          merged.hooks[hookType].map((e) => e.command)
+        );
+        for (const entry of hookEntries) {
+          if (!existingCommands.has(entry.command)) {
+            merged.hooks[hookType].push(entry);
+          }
+        }
+      }
+    }
+  }
+
+  // Merge permissions: add without duplicating
+  if (template.permissions) {
+    if (!merged.permissions) merged.permissions = {};
+    for (const [permType, permEntries] of Object.entries(template.permissions)) {
+      if (!merged.permissions[permType]) {
+        merged.permissions[permType] = permEntries;
+      } else if (Array.isArray(permEntries)) {
+        const existingSet = new Set(merged.permissions[permType]);
+        for (const entry of permEntries) {
+          if (!existingSet.has(entry)) {
+            merged.permissions[permType].push(entry);
+          }
+        }
+      }
+    }
+  }
+
+  // Merge env: existing keys take precedence
+  if (template.env) {
+    if (!merged.env) merged.env = {};
+    for (const [key, val] of Object.entries(template.env)) {
+      if (!(key in merged.env)) {
+        merged.env[key] = val;
+      }
+    }
+  }
+
+  return merged;
+}
+
+/**
  * Merge tobari template settings.json with existing project settings.
  * Hooks: add without duplicating (match by command string).
  * Permissions: add without duplicating.
@@ -159,55 +219,8 @@ function mergeSettingsJson(cwd, options = {}) {
     return;
   }
 
-  // Merge hooks: add tobari hooks without duplicating
-  if (template.hooks) {
-    if (!existing.hooks) existing.hooks = {};
-    for (const [hookType, hookEntries] of Object.entries(template.hooks)) {
-      if (!existing.hooks[hookType]) {
-        existing.hooks[hookType] = hookEntries;
-      } else {
-        const existingCommands = new Set(
-          existing.hooks[hookType].map((e) => e.command)
-        );
-        for (const entry of hookEntries) {
-          if (!existingCommands.has(entry.command)) {
-            existing.hooks[hookType].push(entry);
-          }
-        }
-      }
-    }
-  }
-
-  // Merge permissions
-  if (template.permissions) {
-    if (!existing.permissions) existing.permissions = {};
-    for (const [permType, permEntries] of Object.entries(
-      template.permissions
-    )) {
-      if (!existing.permissions[permType]) {
-        existing.permissions[permType] = permEntries;
-      } else if (Array.isArray(permEntries)) {
-        const existingSet = new Set(existing.permissions[permType]);
-        for (const entry of permEntries) {
-          if (!existingSet.has(entry)) {
-            existing.permissions[permType].push(entry);
-          }
-        }
-      }
-    }
-  }
-
-  // Merge env (existing keys take precedence)
-  if (template.env) {
-    if (!existing.env) existing.env = {};
-    for (const [key, val] of Object.entries(template.env)) {
-      if (!(key in existing.env)) {
-        existing.env[key] = val;
-      }
-    }
-  }
-
-  fs.writeFileSync(settingsPath, JSON.stringify(existing, null, 2) + "\n");
+  const merged = mergeSettingsCore(existing, template);
+  fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2) + "\n");
   if (verbose) {
     console.log("  Merging settings.json  (customizations preserved)");
   }
@@ -349,7 +362,7 @@ function compareDirectories(srcDir, destDir) {
 
 /**
  * Compute the merged settings.json result without writing to disk.
- * Replicates mergeSettingsJson() merge logic in memory only.
+ * Uses mergeSettingsCore() for consistent merge logic.
  *
  * @param {string} cwd - Project root directory
  * @returns {object|null} Merged settings object, or null if no template exists
@@ -373,56 +386,7 @@ function computeMergedSettings(cwd) {
     return template;
   }
 
-  // Deep clone to avoid mutating the original
-  const merged = JSON.parse(JSON.stringify(existing));
-
-  // Merge hooks: add tobari hooks without duplicating
-  if (template.hooks) {
-    if (!merged.hooks) merged.hooks = {};
-    for (const [hookType, hookEntries] of Object.entries(template.hooks)) {
-      if (!merged.hooks[hookType]) {
-        merged.hooks[hookType] = hookEntries;
-      } else {
-        const existingCommands = new Set(
-          merged.hooks[hookType].map((e) => e.command)
-        );
-        for (const entry of hookEntries) {
-          if (!existingCommands.has(entry.command)) {
-            merged.hooks[hookType].push(entry);
-          }
-        }
-      }
-    }
-  }
-
-  // Merge permissions
-  if (template.permissions) {
-    if (!merged.permissions) merged.permissions = {};
-    for (const [permType, permEntries] of Object.entries(template.permissions)) {
-      if (!merged.permissions[permType]) {
-        merged.permissions[permType] = permEntries;
-      } else if (Array.isArray(permEntries)) {
-        const existingSet = new Set(merged.permissions[permType]);
-        for (const entry of permEntries) {
-          if (!existingSet.has(entry)) {
-            merged.permissions[permType].push(entry);
-          }
-        }
-      }
-    }
-  }
-
-  // Merge env (existing keys take precedence)
-  if (template.env) {
-    if (!merged.env) merged.env = {};
-    for (const [key, val] of Object.entries(template.env)) {
-      if (!(key in merged.env)) {
-        merged.env[key] = val;
-      }
-    }
-  }
-
-  return merged;
+  return mergeSettingsCore(existing, template);
 }
 
 /**
@@ -614,6 +578,8 @@ module.exports = {
   VERSION_FILE,
   deployWithMerge,
   mergeSettingsJson,
+  mergeSettingsCore,
+  computeMergedSettings,
   setRunShPermissions,
   updateGitignore,
   addPrepareScript,
