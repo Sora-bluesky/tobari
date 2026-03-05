@@ -32,8 +32,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import tobari_session
 
-# Token estimation: ~4 chars per token (rough approximation for mixed JP/EN text)
-CHARS_PER_TOKEN = 4
+# Token estimation rates (chars per token)
+CHARS_PER_TOKEN_ASCII = 4     # English/ASCII: ~4 chars per token
+CHARS_PER_TOKEN_CJK = 1.5     # CJK (Japanese/Chinese/Korean): ~1.5 chars per token
 
 # Budget thresholds
 THRESHOLD_LOG = 0.50   # 50%: log to evidence only
@@ -76,9 +77,42 @@ def estimate_tokens(
     else:
         output_text = ""
 
-    input_tokens = max(1, len(input_text) // CHARS_PER_TOKEN)
-    output_tokens = max(1, len(output_text) // CHARS_PER_TOKEN)
+    input_tokens = _estimate_tokens_from_text(input_text)
+    output_tokens = _estimate_tokens_from_text(output_text)
     return input_tokens, output_tokens
+
+def _estimate_tokens_from_text(text: str) -> int:
+    """Estimate token count using weighted average based on CJK character ratio.
+
+    CJK characters (Japanese, Chinese, Korean) use ~1.5 chars per token,
+    while ASCII text uses ~4 chars per token. This function detects the
+    CJK ratio and applies a weighted average for more accurate estimation.
+    """
+    if not text:
+        return 1
+
+    total_count = len(text)
+    if total_count == 0:
+        return 1
+
+    cjk_count = 0
+    for ch in text:
+        cp = ord(ch)
+        if (0x4E00 <= cp <= 0x9FFF      # CJK Unified Ideographs
+                or 0x3040 <= cp <= 0x309F  # Hiragana
+                or 0x30A0 <= cp <= 0x30FF  # Katakana
+                or 0x3400 <= cp <= 0x4DBF  # CJK Extension A
+                or 0xAC00 <= cp <= 0xD7AF  # Hangul
+                ):
+            cjk_count += 1
+
+    cjk_ratio = cjk_count / total_count
+    effective_rate = (
+        cjk_ratio * CHARS_PER_TOKEN_CJK
+        + (1 - cjk_ratio) * CHARS_PER_TOKEN_ASCII
+    )
+
+    return max(1, int(total_count / effective_rate))
 
 def calc_percent(usage: dict) -> float:
     """Calculate budget usage as a fraction (0.0 – N.N).
