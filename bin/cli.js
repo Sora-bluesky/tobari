@@ -12,6 +12,7 @@ const { values, positionals } = parseArgs({
     force: { type: "boolean", short: "f", default: false },
     update: { type: "boolean", default: false },
     check: { type: "boolean", short: "c", default: false },
+    test: { type: "boolean", short: "t", default: false },
   },
 });
 
@@ -36,7 +37,7 @@ switch (command) {
     require("./commands/sync")(values);
     break;
   case "verify":
-    require("./commands/verify")();
+    require("./commands/verify")(values);
     break;
   default:
     console.error(`Unknown command: ${command}`);
@@ -70,6 +71,9 @@ Sync Options:
   -f, --force    Sync regardless of version match
   -c, --check    Check for drift without modifying files (CI mode)
 
+Verify Options:
+  -t, --test     Run Python tests (pytest) after setup checks
+
 Examples:
   tobari init          Set up tobari in the current project
   tobari init --force  Overwrite existing configuration
@@ -78,6 +82,7 @@ Examples:
   tobari sync --force  Force sync regardless of version
   tobari sync --check  Check if files are up to date (exit 1 if drift)
   tobari verify        Check setup status
+  tobari verify --test Check setup + run all tests
 
 Documentation: ${pkg.homepage}
 `.trim());

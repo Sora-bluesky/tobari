@@ -21,9 +21,10 @@ const REQUIRED_HOOKS = [
 
 const REQUIRED_HOOK_TYPES = ["PreToolUse", "PostToolUse", "Stop"];
 
-module.exports = function verify() {
+module.exports = function verify(options = {}) {
   const cwd = process.cwd();
   const results = [];
+  const runTests = options.test || false;
 
   console.log("\ntobari setup verification\n");
 
@@ -44,6 +45,11 @@ module.exports = function verify() {
 
   // Check 6: prepare script in package.json
   results.push(checkPrepareScript(cwd));
+
+  // Check 7: run tests (--test flag)
+  if (runTests) {
+    results.push(runPythonTests(cwd));
+  }
 
   // Summary
   console.log("");
@@ -227,6 +233,63 @@ function checkPrepareScript(cwd) {
   printResult("warn", "prepare script",
     'scripts.prepare does not include "tobari sync"');
   return "warn";
+}
+
+function runPythonTests(cwd) {
+  const testsDir = path.join(cwd, "tests");
+  if (!fs.existsSync(testsDir)) {
+    printResult("warn", "Python tests", "tests/ directory not found");
+    return "warn";
+  }
+
+  // Detect python command
+  const pythonCmd = detectPython();
+  if (!pythonCmd) {
+    printResult("fail", "Python tests", "python not found");
+    return "fail";
+  }
+
+  console.log("\n  Running Python tests...\n");
+  try {
+    const output = execSync(`${pythonCmd} -m pytest tests/ -v --tb=short`, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+      timeout: 300000,
+    });
+    // Count passed/failed from pytest output
+    const summaryMatch = output.match(/(\d+) passed/);
+    const passed = summaryMatch ? summaryMatch[1] : "?";
+    printResult("pass", "Python tests", `${passed} passed`);
+    return "pass";
+  } catch (err) {
+    // pytest returns non-zero on test failures
+    const output = (err.stdout || "") + (err.stderr || "");
+    const failMatch = output.match(/(\d+) failed/);
+    const passMatch = output.match(/(\d+) passed/);
+    const failed = failMatch ? failMatch[1] : "?";
+    const passed = passMatch ? passMatch[1] : "0";
+    printResult("fail", "Python tests", `${failed} failed, ${passed} passed`);
+    // Print last few lines for context
+    const lines = output.trim().split("\n");
+    const tail = lines.slice(-5);
+    for (const line of tail) {
+      console.log(`          ${line}`);
+    }
+    return "fail";
+  }
+}
+
+function detectPython() {
+  for (const cmd of ["python3", "python"]) {
+    try {
+      execSync(`${cmd} --version`, { stdio: ["pipe", "pipe", "pipe"] });
+      return cmd;
+    } catch {
+      // try next
+    }
+  }
+  return null;
 }
 
 function printResult(status, label, detail) {

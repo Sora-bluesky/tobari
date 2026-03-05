@@ -180,9 +180,8 @@ function mergeSettingsCore(existing, template) {
 
 /**
  * Merge tobari template settings.json with existing project settings.
- * Hooks: add without duplicating (match by command string).
- * Permissions: add without duplicating.
- * Env: existing keys take precedence.
+ * Delegates merge logic to computeMergedSettings() (DRY).
+ * This function handles file I/O (backup + write) only.
  *
  * @param {string} cwd - Project root directory
  * @param {object} [options]
@@ -191,38 +190,21 @@ function mergeSettingsCore(existing, template) {
 function mergeSettingsJson(cwd, options = {}) {
   const verbose = options.verbose || false;
   const settingsPath = path.join(cwd, ".claude", "settings.json");
-  const templateSettingsPath = path.join(TEMPLATE_DIR, ".claude", "settings.json");
+  const settingsExists = fs.existsSync(settingsPath);
 
-  if (!fs.existsSync(templateSettingsPath)) return;
+  const merged = computeMergedSettings(cwd);
+  if (merged === null) return;
 
-  if (!fs.existsSync(settingsPath)) {
-    fs.cpSync(templateSettingsPath, settingsPath);
-    if (verbose) {
-      console.log("  Merging settings.json  (created from template)");
-    }
-    return;
+  // Backup existing settings before overwriting
+  if (settingsExists) {
+    fs.copyFileSync(settingsPath, settingsPath + ".bak");
   }
 
-  // Backup existing settings
-  const backupPath = settingsPath + ".bak";
-  fs.copyFileSync(settingsPath, backupPath);
-
-  let existing, template;
-  try {
-    existing = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-    template = JSON.parse(fs.readFileSync(templateSettingsPath, "utf8"));
-  } catch (e) {
-    console.warn(
-      "WARNING: Could not parse settings.json for merging. Using template version."
-    );
-    fs.cpSync(templateSettingsPath, settingsPath, { force: true });
-    return;
-  }
-
-  const merged = mergeSettingsCore(existing, template);
   fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2) + "\n");
   if (verbose) {
-    console.log("  Merging settings.json  (customizations preserved)");
+    console.log(settingsExists
+      ? "  Merging settings.json  (customizations preserved)"
+      : "  Merging settings.json  (created from template)");
   }
 }
 
