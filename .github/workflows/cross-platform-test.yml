@@ -1,0 +1,60 @@
+name: Cross-Platform Test
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        node-version: [18]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Create test project
+        run: |
+          mkdir /tmp/tobari-test-project
+          cd /tmp/tobari-test-project
+          git init
+          git config user.email "test@example.com"
+          git config user.name "Test"
+          npm init -y
+
+      - name: Install tobari from local source
+        run: |
+          cd /tmp/tobari-test-project
+          npm install "${{ github.workspace }}"
+
+      - name: Run tobari init
+        run: |
+          cd /tmp/tobari-test-project
+          npx tobari init
+
+      - name: Run tobari verify
+        run: |
+          cd /tmp/tobari-test-project
+          npx tobari verify
+
+      - name: Run tobari sync --check (drift detection)
+        run: |
+          cd /tmp/tobari-test-project
+          npx tobari sync --check
