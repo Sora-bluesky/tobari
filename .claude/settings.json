@@ -10,16 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-session-start.py\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-session-start.js\"",
             "timeout": 5
           }
         ]
@@ -31,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-gate.py\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-gate.js\"",
             "timeout": 10
           }
         ]
@@ -43,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-permission.py\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-permission.js\"",
             "timeout": 10
           }
         ]
@@ -64,17 +55,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-stop.py\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-stop.js\"",
             "timeout": 30
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-check.sh\"",
-            "timeout": 10
           }
         ]
       }
@@ -86,17 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-precompact.py\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "auto",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact-log.sh\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-precompact.js\"",
             "timeout": 5
           }
         ]
@@ -108,7 +80,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence-failure.py\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence-failure.js\"",
             "timeout": 5
           }
         ]
@@ -120,7 +92,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence.py\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence.js\"",
             "timeout": 5
           }
         ]
@@ -130,7 +102,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint-on-save.py\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint-on-save.js\"",
             "timeout": 30
           }
         ]
@@ -140,7 +112,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-cost.py\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-cost.js\"",
             "timeout": 5
           }
         ]
@@ -150,7 +122,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-injection-guard.py\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-injection-guard.js\"",
             "timeout": 5
           }
         ]
