@@ -22,6 +22,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 
 const tobariSession = require("./tobari-session.js");
+const { t } = require("./tobari-i18n.js");
 
 // --- Constants ---
 
@@ -56,65 +57,65 @@ function _getProjectRoot() {
 
 const DESTRUCTIVE_BASH_PATTERNS = [
   // File system destruction
-  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b/i, "rm -rf（再帰的強制削除）"],
-  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*)\s+\//i, "rm -r /（ルートディレクトリの再帰削除）"],
-  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*)\s+~/i, "rm -r ~（ホームディレクトリの再帰削除）"],
-  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*)\s+\.\s*$/i, "rm -r .（カレントディレクトリの再帰削除）"],
-  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*)\s+\.\./i, "rm -r ..（親ディレクトリの再帰削除）"],
+  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b/i, t("gate.pattern.rm_rf")],
+  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*)\s+\//i, t("gate.pattern.rm_r_root")],
+  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*)\s+~/i, t("gate.pattern.rm_r_home")],
+  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*)\s+\.\s*$/i, t("gate.pattern.rm_r_current")],
+  [/rm\s+(-[a-zA-Z]*r[a-zA-Z]*)\s+\.\./i, t("gate.pattern.rm_r_parent")],
 
   // Git destructive operations
-  [/git\s+push\s+.*--force(?!-with-lease)\b/i, "git push --force（リモート履歴の強制上書き）"],
-  [/git\s+push\s+(?:.*\s)?-f\b/i, "git push -f（リモート履歴の強制上書き）"],
-  [/git\s+reset\s+--hard/i, "git reset --hard（未コミット変更の全破棄）"],
-  [/git\s+clean\s+.*-[a-zA-Z]*f/i, "git clean -f（未追跡ファイルの強制削除）"],
-  [/git\s+checkout\s+--\s+\./i, "git checkout -- .（全変更の破棄）"],
-  [/git\s+restore\s+.*--worktree\s+\./i, "git restore --worktree .（全変更の復元）"],
+  [/git\s+push\s+.*--force(?!-with-lease)\b/i, t("gate.pattern.git_push_force")],
+  [/git\s+push\s+(?:.*\s)?-f\b/i, t("gate.pattern.git_push_f")],
+  [/git\s+reset\s+--hard/i, t("gate.pattern.git_reset_hard")],
+  [/git\s+clean\s+.*-[a-zA-Z]*f/i, t("gate.pattern.git_clean_f")],
+  [/git\s+checkout\s+--\s+\./i, t("gate.pattern.git_checkout_dot")],
+  [/git\s+restore\s+.*--worktree\s+\./i, t("gate.pattern.git_restore_worktree")],
   // git branch -D: case-sensitive (uppercase D only) — no 'i' flag
   null, // placeholder — handled by CASE_SENSITIVE_DESTRUCTIVE_PATTERNS
-  [/git\s+push\s+.*--delete\b/i, "git push --delete（リモートブランチ削除）"],
-  [/git\s+push\s+\S+\s+:\S+/i, "git push origin :branch（リモートブランチ削除）"],
-  [/git\s+stash\s+(drop|clear)\b/i, "git stash drop/clear（stash の削除）"],
-  [/git\s+reflog\s+(delete|expire)\b/i, "git reflog delete/expire（reflog の削除）"],
-  [/git\s+filter-branch\b/i, "git filter-branch（履歴の書き換え）"],
+  [/git\s+push\s+.*--delete\b/i, t("gate.pattern.git_push_delete")],
+  [/git\s+push\s+\S+\s+:\S+/i, t("gate.pattern.git_push_colon")],
+  [/git\s+stash\s+(drop|clear)\b/i, t("gate.pattern.git_stash_drop")],
+  [/git\s+reflog\s+(delete|expire)\b/i, t("gate.pattern.git_reflog_delete")],
+  [/git\s+filter-branch\b/i, t("gate.pattern.git_filter_branch")],
 
   // Database destruction
-  [/drop\s+table/i, "DROP TABLE（テーブル削除）"],
-  [/drop\s+database/i, "DROP DATABASE（データベース削除）"],
-  [/truncate\s+table/i, "TRUNCATE TABLE（テーブルデータ全削除）"],
+  [/drop\s+table/i, t("gate.pattern.drop_table")],
+  [/drop\s+database/i, t("gate.pattern.drop_database")],
+  [/truncate\s+table/i, t("gate.pattern.truncate_table")],
 
   // System-level danger
-  [/chmod\s+(-[a-zA-Z]*R[a-zA-Z]*)\s+777\s+\//i, "chmod -R 777 /（全ファイルの権限変更）"],
-  [/mkfs\./i, "mkfs（ディスクフォーマット）"],
-  [/dd\s+.*of=\/dev\//i, "dd of=/dev/（デバイスへの直接書き込み）"],
+  [/chmod\s+(-[a-zA-Z]*R[a-zA-Z]*)\s+777\s+\//i, t("gate.pattern.chmod_777")],
+  [/mkfs\./i, t("gate.pattern.mkfs")],
+  [/dd\s+.*of=\/dev\//i, t("gate.pattern.dd_dev")],
 
   // Process/system danger
-  [/kill\s+-9\s+-1/i, "kill -9 -1（全プロセス強制終了）"],
-  [/\bshutdown\b/i, "shutdown（システムシャットダウン）"],
-  [/\breboot\b/i, "reboot（システム再起動）"],
+  [/kill\s+-9\s+-1/i, t("gate.pattern.kill_all")],
+  [/\bshutdown\b/i, t("gate.pattern.shutdown")],
+  [/\breboot\b/i, t("gate.pattern.reboot")],
 ].filter(Boolean);
 
 // Case-sensitive pattern (Python's (?-i:D) — uppercase D only)
 const CASE_SENSITIVE_DESTRUCTIVE_PATTERNS = [
-  [/git\s+branch\s+(?:-[a-zA-Z]*D|-d\s+--force)\b/, "git branch -D（ブランチの強制削除）"],
+  [/git\s+branch\s+(?:-[a-zA-Z]*D|-d\s+--force)\b/, t("gate.pattern.git_branch_D")],
 ];
 
 // --- Strict Profile Additional Patterns ---
 
 const STRICT_SUSPICIOUS_PATTERNS = [
-  [/\|.*\bcurl\b/i, "パイプ経由の curl（データ流出リスク）"],
-  [/\bcurl\s+.*-X\s+(POST|PUT|DELETE)/i, "curl による変更系 HTTP リクエスト"],
-  [/\bwget\s+.*-O\s+\//i, "wget によるシステムパスへの書き込み"],
-  [/\beval\s+/i, "eval（コード注入リスク）"],
+  [/\|.*\bcurl\b/i, t("gate.strict.curl_pipe")],
+  [/\bcurl\s+.*-X\s+(POST|PUT|DELETE)/i, t("gate.strict.curl_mutate")],
+  [/\bwget\s+.*-O\s+\//i, t("gate.strict.wget_system")],
+  [/\beval\s+/i, t("gate.strict.eval")],
 ];
 
 // --- Secret Detection Patterns ---
 
 const _FALLBACK_SECRET_PATTERNS = [
-  [/(?:api[_-]?key|apikey)\s*[=:]\s*["']([A-Za-z0-9_\-]{20,})["']/i, "API キー"],
-  [/AKIA[0-9A-Z]{16}/, "AWS アクセスキー"],
-  [/(?:password|passwd|pwd|secret)\s*[=:]\s*["']([^"']{8,})["']/i, "パスワード/シークレット"],
-  [/-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----/, "秘密鍵"],
-  [/(?:mongodb|postgres|mysql|redis):\/\/[^:]+:[^@]+@/i, "接続文字列（パスワード含む）"],
+  [/(?:api[_-]?key|apikey)\s*[=:]\s*["']([A-Za-z0-9_\-]{20,})["']/i, t("gate.secret.api_key")],
+  [/AKIA[0-9A-Z]{16}/, t("gate.secret.aws_key")],
+  [/(?:password|passwd|pwd|secret)\s*[=:]\s*["']([^"']{8,})["']/i, t("gate.secret.password")],
+  [/-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----/, t("gate.secret.private_key")],
+  [/(?:mongodb|postgres|mysql|redis):\/\/[^:]+:[^@]+@/i, t("gate.secret.connection_string")],
 ];
 
 // --- Sensitive File Access Patterns ---
@@ -171,28 +172,28 @@ const SIMPLE_EDIT_PATTERNS = [
 
 function validateInput(filePath, content) {
   if (!filePath) {
-    return "ファイルパスが空です";
+    return t("gate.validate.empty_path");
   }
   if (filePath.length > MAX_PATH_LENGTH) {
-    return `ファイルパスが長すぎます（${filePath.length} > ${MAX_PATH_LENGTH}）`;
+    return t("gate.validate.path_too_long", { actual: filePath.length, max: MAX_PATH_LENGTH });
   }
   if (content.length > MAX_CONTENT_LENGTH) {
-    return `コンテンツが大きすぎます（${content.length} > ${MAX_CONTENT_LENGTH}）`;
+    return t("gate.validate.content_too_large", { actual: content.length, max: MAX_CONTENT_LENGTH });
   }
 
   // Null byte check (poison byte — truncation attack)
   if (filePath.includes("\x00")) {
-    return `ヌルバイトを検出: ${filePath}`;
+    return t("gate.validate.null_byte", { filePath });
   }
 
   // UNC path check — must come BEFORE ADS check (\\?\C:\... has colon)
   if (filePath.startsWith("\\\\") || filePath.startsWith("//")) {
-    return `UNC パスを検出: ${filePath}`;
+    return t("gate.validate.unc_path", { filePath });
   }
 
   // NT prefix check
   if (filePath.startsWith("\\\\?\\") || filePath.startsWith("\\\\.\\")) {
-    return `NT プレフィックスを検出: ${filePath}`;
+    return t("gate.validate.nt_prefix", { filePath });
   }
 
   // Windows ADS check: colon only valid at drive letter position (index 1)
@@ -200,7 +201,7 @@ function validateInput(filePath, content) {
     const pathAfterDrive = (filePath.length > 2 && filePath[1] === ":")
       ? filePath.slice(2) : filePath;
     if (pathAfterDrive.includes(":")) {
-      return `Windows ADS（代替データストリーム）を検出: ${filePath}`;
+      return t("gate.validate.windows_ads", { filePath });
     }
   }
 
@@ -224,17 +225,17 @@ function validateInput(filePath, content) {
         ? resolved.toLowerCase().startsWith((projectRoot + path.sep).toLowerCase()) || resolved.toLowerCase() === projectRoot.toLowerCase()
         : resolved.startsWith(projectRoot + path.sep) || resolved === projectRoot;
       if (!startsWithRoot) {
-        return `パストラバーサルを検出（プロジェクトルート外: ${filePath}）`;
+        return t("gate.validate.traversal_outside", { filePath });
       }
     } catch (_) {
-      return `パス解決に失敗: ${filePath}`;
+      return t("gate.validate.resolve_failed", { filePath });
     }
   } else {
     // Fallback: component-level ".." check
     const normalized = filePath.replace(/\\/g, "/");
     const parts = normalized.split("/");
     if (parts.includes("..")) {
-      return `パストラバーサルを検出（'..' コンポーネント: ${filePath}）`;
+      return t("gate.validate.traversal_dotdot", { filePath });
     }
   }
 
@@ -282,13 +283,13 @@ function makeDenyResponse(reason, detail, recovery, toolName = "", toolInput = n
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
       additionalContext:
-        `🔒 帳が止めました — ${reason}\n` +
+        `${t("gate.deny.header", { reason })}\n` +
         `\n` +
-        `  タスク: ${task}\n` +
-        `  プロファイル: ${profile}\n` +
+        `  ${t("gate.deny.task", { task })}\n` +
+        `  ${t("gate.deny.profile", { profile })}\n` +
         `  ${detail}\n` +
         `\n` +
-        `対処法:\n` +
+        `${t("gate.deny.recovery_header")}\n` +
         `  ${recovery}`,
     },
   };
@@ -301,10 +302,9 @@ function checkDestructiveBash(command, profile) {
   for (const [pattern, label] of DESTRUCTIVE_BASH_PATTERNS) {
     if (pattern.test(command)) {
       return makeDenyResponse(
-        "破壊的コマンドを検出",
-        `検出: ${label}\n  コマンド: ${truncateCommand(command)}`,
-        "安全な代替コマンドを使用してください。\n" +
-        "  例: rm -rf → 個別ファイルの rm、git push --force → git push --force-with-lease",
+        t("gate.destructive_detected"),
+        t("gate.destructive_detail", { label, command: truncateCommand(command) }),
+        t("gate.destructive_recovery"),
         "Bash",
       );
     }
@@ -314,10 +314,9 @@ function checkDestructiveBash(command, profile) {
   for (const [pattern, label] of CASE_SENSITIVE_DESTRUCTIVE_PATTERNS) {
     if (pattern.test(command)) {
       return makeDenyResponse(
-        "破壊的コマンドを検出",
-        `検出: ${label}\n  コマンド: ${truncateCommand(command)}`,
-        "安全な代替コマンドを使用してください。\n" +
-        "  例: rm -rf → 個別ファイルの rm、git push --force → git push --force-with-lease",
+        t("gate.destructive_detected"),
+        t("gate.destructive_detail", { label, command: truncateCommand(command) }),
+        t("gate.destructive_recovery"),
         "Bash",
       );
     }
@@ -328,10 +327,9 @@ function checkDestructiveBash(command, profile) {
     for (const [pattern, label] of STRICT_SUSPICIOUS_PATTERNS) {
       if (pattern.test(command)) {
         return makeDenyResponse(
-          "Strict プロファイルで不審なコマンドを検出",
-          `検出: ${label}\n  コマンド: ${truncateCommand(command)}`,
-          "安全性を確認してから再実行してください。\n" +
-          "  Standard プロファイルに変更するか、帳をおろし直してください（/tobari）。",
+          t("gate.strict_detected"),
+          t("gate.destructive_detail", { label, command: truncateCommand(command) }),
+          t("gate.strict_recovery"),
           "Bash",
         );
       }
@@ -345,10 +343,9 @@ function checkSecretInBash(command) {
   for (const [pattern, label] of SECRET_PATTERNS) {
     if (pattern.test(command)) {
       return makeDenyResponse(
-        "Bash コマンド内に秘密情報を検出",
-        `検出パターン: ${label}`,
-        "秘密情報をコマンドに直接含めないでください。\n" +
-        "  環境変数（$ENV_VAR）を使用してください。",
+        t("gate.secret_in_bash"),
+        t("gate.secret_detail", { label }),
+        t("gate.secret_recovery"),
         "Bash",
       );
     }
@@ -357,10 +354,9 @@ function checkSecretInBash(command) {
   for (const [pattern, label] of SENSITIVE_FILE_ACCESS_PATTERNS) {
     if (pattern.test(command)) {
       return makeDenyResponse(
-        "機密ファイルへのアクセスを検出",
-        `検出パターン: ${label}\n  コマンド: ${truncateCommand(command)}`,
-        "機密ファイルの内容をコマンドラインで表示しないでください。\n" +
-        "  ファイルの存在確認には `test -f` を使用してください。",
+        t("gate.sensitive_file"),
+        t("gate.sensitive_detail", { label, command: truncateCommand(command) }),
+        t("gate.sensitive_recovery"),
         "Bash",
       );
     }
@@ -415,11 +411,13 @@ function checkScope(filePath, toolName) {
   if (inScope === false) {
     const scope = tobariSession.getScope() || {};
     return makeDenyResponse(
-      "契約範囲外のファイル操作を検出",
-      `対象ファイル: ${filePath}\n` +
-      `  契約スコープ: ${JSON.stringify(scope.include || [])}\n` +
-      `  除外パス: ${JSON.stringify(scope.exclude || [])}`,
-      "契約範囲を変更するには、帳をおろし直してください（/tobari）。",
+      t("gate.scope_violation"),
+      t("gate.scope_detail", {
+        filePath,
+        include: JSON.stringify(scope.include || []),
+        exclude: JSON.stringify(scope.exclude || []),
+      }),
+      t("gate.scope_recovery"),
       toolName,
     );
   }
@@ -441,10 +439,9 @@ function checkBoundaryClassification(filePath, toolName) {
   }
 
   return makeDenyResponse(
-    "境界分類違反 — private_only ファイルへの操作を検出",
-    `ファイル: ${filePath}\n  分類: private_only（ガバナンス内部専用）`,
-    "このファイルはガバナンス内部専用です。\n" +
-    "  契約範囲を変更するには、帳をおろし直してください（/tobari）。",
+    t("gate.boundary_violation"),
+    t("gate.boundary_detail", { filePath }),
+    t("gate.boundary_recovery"),
     toolName,
   );
 }
@@ -457,10 +454,9 @@ function checkSecretInContent(content, toolName) {
   for (const [pattern, label] of SECRET_PATTERNS) {
     if (pattern.test(content)) {
       return makeDenyResponse(
-        "秘密情報のハードコードを検出",
-        `検出パターン: ${label}`,
-        "環境変数（os.environ）を使用してください。\n" +
-        "  .env ファイルに秘密情報を格納し、.gitignore に追加してください。",
+        t("gate.secret_in_content"),
+        t("gate.secret_detail", { label }),
+        t("gate.secret_content_recovery"),
         toolName,
       );
     }
@@ -544,9 +540,9 @@ function handler(data) {
       const validationFailure = validateInput(filePath, content);
       if (validationFailure) {
         return makeDenyResponse(
-          "不正な入力を検出",
-          `検証失敗: ${validationFailure}`,
-          "正しいファイルパスとコンテンツで再実行してください。",
+          t("gate.invalid_input"),
+          t("gate.validation_failed", { detail: validationFailure }),
+          t("gate.validation_recovery"),
           toolName,
         );
       }
@@ -591,7 +587,7 @@ function handler(data) {
           hookEventName: "PreToolUse",
           additionalContext:
             `[Input Validation Warning] ${validationFailure}\n` +
-            "入力値を確認してください。",
+            t("gate.validation_advisory"),
         },
       };
     }
