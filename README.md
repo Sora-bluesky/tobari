@@ -1,202 +1,210 @@
 # tobari
 
-> 🌐 [English](README_en.md)
+> 🌐 [日本語](README_ja.md)
 
-![tobari](docs/diagrams/tobari-hero-ja.jpg)
+![tobari](docs/diagrams/tobari-hero-en.jpg)
 
-> 帳をおろして、解き放て。
+> Lower the veil. Unleash.
 
-AI にコードを書かせるとき、安全な操作は自動で通し、危険な操作は自動で止め、全てを記録する — Claude Code の安全統制フレームワーク。
+An AI agent deleted your files entirely.
+It rewrote your tests and claimed "done" -- lying to your face.
+You hit "Allow" on every prompt, and your passwords ended up public.
 
-AI エージェントは強力だ。しかし暴走すれば、ファイルの全削除も秘密情報の漏洩も一瞬で起きる。
-tobari は AI エージェントに **帳（結界）** をおろす。帳の内側では自由に動くが、帳の外には出られない。
+AI agents are powerful. But when they go rogue, the damage is instant and irreversible.
 
-**あなたが全てを理解していなくても、帳がリスクを減らす。**
+tobari lowers a **veil (barrier)** over your AI agent.
+Inside the veil, agents move freely. But they cannot escape it.
 
-## 30秒でわかる
+**You don't need to understand everything. The veil protects you.**
 
-1. `/tobari` で帳をおろす
-2. エージェントが自動で動く
-3. わずらわしい承認は不要。帳が安全な操作を自動承認する
-4. 異常時だけ帳が止める（ファイル全削除、秘密情報の漏洩 → 自動ブロック）
-5. 帳が判断できない操作はあなたに確認する（使い込むほど確認は減っていく）
-6. 一度許可した操作は覚える。帳は使うほど賢くなる
-7. 何が起きたか全て記録される（いつでも追跡可能）
+## Understand in 30 Seconds
 
-| 柱            | コンセプト     | 帳がやること                                         |
-| ------------- | -------------- | ---------------------------------------------------- |
-| 🔒 **止める** | fail-close     | 破壊的操作を事前に自動ブロック                       |
-| ✅ **進む**   | auto-advance   | 帳が安全な操作を自動承認。人間にダイアログを見せない |
-| 📋 **残す**   | evidence trail | 全操作を証跡として記録、追跡可能                     |
+1. Run `/tobari` to lower the veil
+2. The agent works autonomously
+3. No approval fatigue -- the veil auto-approves safe operations
+4. The veil blocks dangerous actions automatically (file deletion, secret leaks -- instant block)
+5. For uncertain operations, the veil asks you (confirmations decrease over time)
+6. Approved operations are remembered -- the veil learns and grows quieter
+7. Everything is recorded (fully traceable at any time)
+
+| Pillar         | Concept        | What the Veil Does                                          |
+| -------------- | -------------- | ----------------------------------------------------------- |
+| 🔒 **Block**   | fail-close     | Auto-blocks destructive operations before they execute      |
+| ✅ **Advance** | auto-advance   | Auto-approves safe operations. No dialogs shown to the user |
+| 📋 **Record**  | evidence trail | Records all operations as traceable evidence                |
 
 ## Prerequisites
 
-| 必要なもの | バージョン | 用途 |
-|-----------|-----------|------|
-| [Node.js](https://nodejs.org/) | 18+ | `npx tobari init` の実行 |
-| [Git](https://git-scm.com/) | — | バージョン管理（`git init` 済みであること） |
-| [Claude Code](https://claude.ai/code) | — | Claude Pro $20/月 以上。API キーは不要 |
+| Requirement | Version | Purpose |
+|------------|---------|---------|
+| [Node.js](https://nodejs.org/) | 18+ | Hooks (veil organs) runtime, `npx tobari init` |
+| [Git](https://git-scm.com/) | — | Version control (`git init` required) |
+| [Claude Code](https://claude.ai/code) | — | Claude Pro $20/month or higher. No API keys needed |
 
 ## Quick Start
 
 ```bash
-# 既存プロジェクトに tobari を導入
+# Add tobari to an existing project
 npx tobari init
 
-# Claude Code で帳をおろす
+# Lower the veil with Claude Code
 /tobari my-feature
 ```
 
-### 既存の .claude/ がある場合
+### Existing .claude/ directory
 
 ```bash
-# --force: 既存の settings.json をマージ（バックアップ自動作成）
+# --force: Merges existing settings.json (auto-backup created)
 npx tobari init --force
 
-# --update: Hooks のみ最新版に更新（rules/skills はそのまま）
+# --update: Updates hooks only (rules/skills untouched)
 npx tobari init --update
 ```
 
-## なぜ tobari か
+## What Does "Lower the Veil" Mean?
 
-AI エージェントを活用する開発者が増えている。
-ターミナルを複数開き、エージェントを並列で走らせ、Issue から PR までを自動化する。
-速い。確かに速い。
+"Tobari" is a Japanese word for the curtains that hung in ancient palace chambers, separating the safe interior from the chaos outside.
 
-**速さだけなら、帳（tobari）はいらない。**
+When you type `/tobari`, a **veil descends** over Claude Code.
 
-- 「複数のエージェントが同時に動いている。誰が何をしているか把握できているか？」
-- 「1つが暴走したとき、残りの3つは止まるか？」
-- 「誰も見ていないコミットに、秘密情報が混入していないと言い切れるか？」
+Inside the veil, the AI agent writes code, edits files, and runs tests freely. But it cannot reach beyond the veil -- it cannot touch files it shouldn't, run commands it shouldn't, or leak information it shouldn't.
 
-並列は手段であり、目的ではない。速さを追求するほど、安全の代償は大きくなる。
+When lowering the veil, you decide just one thing: **what to build**.
+Everything else -- safety decisions, operation approvals, evidence recording -- the veil handles for you.
 
-tobari はこの問いに答える。
+The more you use it, the smarter the veil becomes. It remembers what you've approved and stops asking. Cautious at first, then quietly confident. That's how the veil learns.
 
-| 観点             | 従来のエージェント       | マルチエージェント並列       | tobari                                               |
-| ---------------- | ------------------------ | ---------------------------- | ---------------------------------------------------- |
-| 実行モデル       | 1エージェント、逐次実行  | 複数プロセスを手動で並列起動 | Claude Code が一元管理、自動で並列                   |
-| 承認ダイアログ   | 毎回手動で承認           | プロセスごとに承認が必要     | 帳（tobari）が安全な操作を自動承認                   |
-| 安全装置         | ユーザーの目視確認のみ   | 各プロセスに個別設定が必要   | 帳（tobari）が全操作を一括で統制                     |
-| 暴走検知         | 承認を見逃したら手遅れ   | 気づいた時にはもう遅い       | 帳（tobari）が事前に止める（fail-close）             |
-| 証跡             | なし                     | ログが分散、追跡が困難       | 全操作を1つの証跡に記録                              |
-| プラットフォーム | OS を問わない            | ターミナル多重化ツールに依存 | OS を問わない（Windows / Mac / Linux）               |
-| 人間の関与       | 承認ダイアログに張り付き | 起動・監視・介入すべて手動   | 帳（tobari）をおろしたら、あとは帳（tobari）が進める |
+## Internationalization (i18n)
 
-tobari の設計思想は単純だ。
+tobari supports multiple languages for hook messages. Set the `TOBARI_LANG` environment variable to change the language:
 
-**速さと安全を選択肢にしない。両方を同時に実現する。**
+| Language | Value | Description |
+|----------|-------|-------------|
+| English  | `en`  | Default. All hook messages in English |
+| Japanese | `ja`  | All hook messages in Japanese |
 
-帳（tobari）の内側では、エージェントが自由に動き、自動で前進する。
-帳（tobari）の外に出ようとする操作は、事前に検知してブロックする。
-あなたは「何を作るか」だけを決めればいい。あとは帳（tobari）がリスクを減らし、進め、記録する。
+```bash
+# Use Japanese messages
+export TOBARI_LANG=ja
 
-**何より、あなたが全てを理解していなくても使える。**
+# Or set in tobari-session.json
+# { "lang": "ja" }
+```
+
+Language detection priority: `TOBARI_LANG` env var > `tobari-session.json` `lang` field > default (`en`).
 
 ## Architecture
 
-![Architecture](docs/diagrams/tobari-architecture-ja.png)
+![Architecture](docs/diagrams/tobari-architecture-en.png)
 
-tobari は **Orchestra 層** と **Binding 層** の二層構造で設計されています。
+tobari has a two-layer structure:
 
-- **Orchestra 層**: Claude Code が全体統括。サブエージェントと Agent Teams で並列実行
-- **Binding 層**: ガバナンス統制。STG ゲート・fail-close・証跡記録
+- **Orchestra Layer**: Claude Code orchestrates everything. Subagents and Agent Teams handle parallel execution.
+- **Binding Layer**: Governance control. STG gates enforce quality, fail-close blocks unsafe actions, and evidence recording keeps a full audit trail.
 
 ### Agent Roles
 
-| Agent                            | Role       | Use For                              |
-| -------------------------------- | ---------- | ------------------------------------ |
-| Claude Code（メイン）            | 全体統括   | ユーザー対話、タスク管理、コード編集 |
-| Plan サブエージェント            | 設計計画   | 実装戦略の策定                       |
-| Explore サブエージェント         | コード探索 | ファイル検索、コードベース理解       |
-| general-purpose サブエージェント | 実装・委譲 | コード実装、ファイル操作             |
-| Agent Teams チームメイト         | 並列協調   | /team-implement, /team-review        |
+| Agent                    | Role                  | Use For                                         |
+| ------------------------ | --------------------- | ----------------------------------------------- |
+| Claude Code (Main)       | Orchestrator          | User interaction, task management, code editing |
+| Plan Subagent            | Design Planning       | Implementation strategy                         |
+| Explore Subagent         | Code Exploration      | File search, codebase understanding             |
+| general-purpose Subagent | Implementation        | Code implementation, file operations            |
+| Agent Teams Teammates    | Parallel Coordination | /team-implement, /team-review                   |
 
-![Agent Delegation](docs/diagrams/tobari-agent-delegation-ja.png)
+![Agent Delegation](docs/diagrams/tobari-agent-delegation-en.png)
+
+## Directory Structure
+
+```
+tobari/
+├── .claude/
+│   ├── hooks/          # Veil Hooks (auto-approve, block, evidence recording)
+│   ├── skills/         # Skill definitions (/tobari, /team-implement, etc.)
+│   ├── rules/          # Coding, security, and language rules
+│   └── settings.json   # Permission settings
+├── .githooks/          # Git security hooks (pre-commit, pre-push)
+├── CLAUDE.md           # Project configuration (read by Claude Code)
+└── NOTICE              # License attribution
+```
 
 ## Workflow
 
-![Workflow](docs/diagrams/tobari-workflow-ja.png)
+![Workflow](docs/diagrams/tobari-workflow-en.png)
 
-| Step | コマンド               | 内容                                       | STG       |
-| ---- | ---------------------- | ------------------------------------------ | --------- |
-| 1    | `/tobari feature-name` | 帳をおろす（契約生成）                     | STG0      |
-| 2    | 自動実行               | 設計・実装をエージェントが自動で実行       | STG1-STG2 |
-| 3    | `/team-implement`      | Agent Teams で並列実装（オプション）       | STG2      |
-| 4    | `/team-review`         | 並列レビュー（セキュリティ・品質・テスト） | STG3      |
-| 5    | 自動完了               | テスト・CI・コミット・PR が自動で流れる    | STG3-STG6 |
-
-STG0 だけが唯一の人間タッチポイントです。それ以降は帳が自動で前進させます。
-異常が検出された場合のみ、帳が実行を停止し、理由と対処法を表示します。
+1. **`/tobari feature-name`** -- Lower the veil (STG0: Contract generation)
+2. **Design & Implementation** -- Agent executes automatically (STG1-STG2)
+3. **`/team-implement`** -- Parallel implementation with Agent Teams (optional)
+4. **`/team-review`** -- Parallel review (security, quality, tests)
+5. **Auto-complete** -- Tests, CI, commit, PR flow automatically (STG3-STG6)
 
 ## Profiles
 
-| Profile      | ゲート密度                       | 用途                                           |
-| ------------ | -------------------------------- | ---------------------------------------------- |
-| **Lite**     | STG0 + STG6 のみ                 | 低リスクタスク（ドキュメント修正、軽微な変更） |
-| **Standard** | 全 STG ゲート                    | 通常の開発タスク                               |
-| **Strict**   | 全 STG ゲート + 人間レビュー必須 | セキュリティに関わる変更、公開向けの変更       |
+| Profile      | Gate Density                     | Use When                                    |
+| ------------ | -------------------------------- | ------------------------------------------- |
+| **Lite**     | STG0 + STG6 only                 | Low-risk tasks (docs, minor edits)          |
+| **Standard** | All STG gates                    | Normal development tasks                    |
+| **Strict**   | All STG gates + mandatory review | Security-sensitive or public-facing changes |
 
-Profile は `/tobari` 実行時にタスクのリスクレベルに基づいて自動選択されます。
+Profile is auto-selected based on task risk level at `/tobari` time.
 
 ## Binding (Governance)
 
-Binding はガバナンス統制レイヤです。ルール・ゲート・契約の体系で実行を統制します。
+![Gate Map](docs/diagrams/tobari-gate-map-en.png)
 
-![Gate Map](docs/diagrams/tobari-gate-map-ja.png)
+Binding is the governance control layer. It is not an LLM -- it is a set of rules, gates, and contracts that enforce safety and quality.
 
-### STG Gates
+### STG Gates (Stage Gates)
 
-| Gate | Name       | Purpose                                              |
-| ---- | ---------- | ---------------------------------------------------- |
-| STG0 | 要件定義   | タスクの受け入れ条件確認（唯一の人間タッチポイント） |
-| STG1 | 設計       | アーキテクチャ・アプローチのレビュー                 |
-| STG2 | 実装       | コード作成とセルフレビュー                           |
-| STG3 | 検証       | テスト実行、lint チェック                            |
-| STG4 | 自動化     | CI/CD チェック                                       |
-| STG5 | コミット   | 変更のコミット・プッシュ                             |
-| STG6 | PR・マージ | Pull Request の作成とマージ                          |
+| Gate | Name           | Purpose                                                    |
+| ---- | -------------- | ---------------------------------------------------------- |
+| STG0 | Requirements   | Task acceptance criteria confirmed (only human touchpoint) |
+| STG1 | Design         | Architecture/approach reviewed                             |
+| STG2 | Implementation | Code written and self-reviewed                             |
+| STG3 | Verification   | Tests pass, lint clean                                     |
+| STG4 | Automation     | CI/CD checks pass                                          |
+| STG5 | Commit/Push    | Changes committed and pushed                               |
+| STG6 | PR/Merge       | Pull request created and merged                            |
 
-![Lifecycle](docs/diagrams/tobari-lifecycle-ja.png)
+![Lifecycle](docs/diagrams/tobari-lifecycle-en.png)
 
-### fail-close 原則
+### fail-close Principle
 
-安全条件が満たされない場合、Binding が実行を停止します。
-停止時には理由と対処法を出力します。ゲートをスキップすることはありません。
+When safety conditions are NOT met, Binding **stops execution immediately**. It outputs the reason and recovery steps, then waits. No gate is ever skipped -- if a condition fails, the pipeline halts until the issue is resolved.
 
 ## Skills
 
-| Skill                    | Command           | Description                    |
-| ------------------------ | ----------------- | ------------------------------ |
-| 帳をおろす               | `/tobari`         | 帳をおろしてプロジェクト開始   |
-| 並列実装                 | `/team-implement` | Agent Teams で並列実装         |
-| 並列レビュー             | `/team-review`    | Agent Teams で並列レビュー     |
-| 計画策定                 | `/plan`           | 設計計画を策定                 |
-| テスト駆動開発           | `/tdd`            | RED-GREEN-REFACTOR サイクル    |
-| コード簡素化             | `/simplify`       | コードの複雑性を削減           |
-| セッション引き継ぎ       | `/handoff`        | セッション状態を保存・引き継ぎ |
+| Skill                   | Command           | Description                              |
+| ----------------------- | ----------------- | ---------------------------------------- |
+| Lower the Veil          | `/tobari`         | Lower the veil and start a project       |
+| Parallel Implementation | `/team-implement` | Parallel implementation with Agent Teams |
+| Parallel Review         | `/team-review`    | Parallel review with Agent Teams         |
+| Design Planning         | `/plan`           | Create an implementation plan            |
+| Test-Driven Development | `/tdd`            | RED-GREEN-REFACTOR cycle                 |
+| Code Simplification     | `/simplify`       | Reduce code complexity                   |
+| Session Handoff         | `/handoff`        | Save and hand off session state          |
 
 ## Hooks
 
-帳は9つの「器官」で構成されています。それぞれが協調し、ユーザーが操作の詳細を気にせず済む状態を作ります。
+The veil is composed of 9 "organs" that work together to provide autonomous, safe operation:
 
-| 器官    | 名前         | 役割                                           |
-| ------- | ------------ | ---------------------------------------------- |
-| 🫀 心臓 | 権限判定     | 安全な操作を自動承認、危険な操作を自動ブロック |
-| 👁️ 目   | 観測・記録   | 全操作を証跡として記録                         |
-| 👄 口   | 対話・通知   | 確認ダイアログの文脈付加、GitHub PR 完了通知   |
-| 🛡️ 盾   | 境界防御     | 秘密情報の漏洩検出、境界違反のブロック         |
-| ✋ 手   | Git 自動操作 | commit → push → PR → merge の自動化            |
-| 🦿 脚   | 自己修復     | テスト失敗時の自動修正（最大3回試行）          |
-| 🧠 記憶 | 状態維持     | セッション横断の文脈保持                       |
-| 👛 財布 | コスト制御   | トークン消費の監視・警告                       |
-| 🦠 免疫 | 依存防御     | 不正パッケージ・スコープ逸脱の検出             |
+| Organ     | Name              | Hook                                                        | Role                                                   |
+| --------- | ----------------- | ----------------------------------------------------------- | ------------------------------------------------------ |
+| 🫀 Heart  | Permission Engine | `tobari-gate.js`                                            | Auto-approves safe ops, auto-blocks dangerous ops      |
+| 👁️ Eye    | Observer          | `tobari-evidence.js` / `tobari-evidence-failure.js`         | Records all operations as evidence (success + failure) |
+| 👄 Mouth  | Communicator      | `tobari-permission.js`                                      | Contextual permission dialogs, GitHub PR notifications |
+| 🛡️ Shield | Boundary Guard    | `tobari-injection-guard.js`                                 | Detects secret leaks, blocks boundary violations       |
+| ✋ Hand   | Git Automation    | `tobari-stop.js`                                            | Automates commit, push, PR, merge                      |
+| 🦿 Leg    | Self-Healer       | `tobari-stop.js`                                            | Auto-fixes test failures (up to 3 retries)             |
+| 🧠 Memory | State Keeper      | `tobari-session-start.js` / `tobari-precompact.js`          | Preserves context across sessions                      |
+| 👛 Wallet | Cost Controller   | `tobari-cost.js`                                            | Monitors token usage, warns on budget limits           |
+| 🦠 Immune | Dependency Guard  | `tobari-injection-guard.js`                                 | Detects unauthorized packages, scope violations        |
 
-加えて、git-guard（pre-commit / pre-push フック）が秘密情報のスキャンを担当します。
+In addition, **git-guard** (pre-commit/pre-push hooks) provides secret scanning as a final boundary defense.
 
 ## Disclaimer
 
-tobari はリスクを軽減するためのツールであり、完全な安全性を保証するものではありません。既知のパターンに基づいて危険な操作を検出・ブロックしますが、全ての脅威を防ぐことはできません。重要なシステムでの使用時は、tobari に加えて適切なバックアップ・レビュー体制を維持してください。本ソフトウェアは MIT License に基づき「現状のまま（AS IS）」で提供されます。
+tobari is a risk-mitigation tool and does not guarantee complete safety. It detects and blocks dangerous operations based on known patterns, but cannot prevent all threats. When using tobari with critical systems, maintain proper backups and review processes in addition to tobari. This software is provided "AS IS" under the MIT License.
 
 ## Attribution
 
