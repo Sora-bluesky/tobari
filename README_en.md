@@ -38,7 +38,6 @@ Inside the veil, agents move freely. But they cannot escape it.
 | Requirement | Version | Purpose |
 |------------|---------|---------|
 | [Node.js](https://nodejs.org/) | 18+ | Running `npx tobari init` |
-| [Python](https://python.org/) | 3.10+ | Hooks (veil organs) runtime |
 | [Git](https://git-scm.com/) | — | Version control (`git init` required) |
 | [Claude Code](https://claude.ai/code) | — | Claude Pro $20/month or higher. No API keys needed |
 
@@ -171,12 +170,20 @@ The veil is composed of 9 "organs" that work together to provide autonomous, saf
 
 In addition, **git-guard** (pre-commit/pre-push hooks) provides secret scanning as a final boundary defense.
 
-## Language Rules
+## Internationalization (i18n)
 
-| Target             | Language |
-| ------------------ | -------- |
-| Thinking & Code    | English  |
-| User Communication | Japanese |
+tobari supports multiple languages for hook messages and user-facing output.
+
+| Language | Status | How to Set |
+| -------- | ------ | ---------- |
+| English  | Default | `TOBARI_LANG=en` or omit (auto-detected) |
+| Japanese | Supported | `TOBARI_LANG=ja` |
+
+All internal code, comments, and thinking remain in English.
+
+## Disclaimer
+
+tobari is a risk-mitigation tool and does not guarantee complete safety. It detects and blocks dangerous operations based on known patterns, but cannot prevent all threats. When using tobari with critical systems, maintain proper backups and review processes alongside it. This software is provided "AS IS" under the MIT License.
 
 ## Attribution
 

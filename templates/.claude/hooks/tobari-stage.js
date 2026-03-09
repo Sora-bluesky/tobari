@@ -22,6 +22,7 @@
 const fs = require("fs");
 const path = require("path");
 const tobariSession = require("./tobari-session.js");
+const { t } = require("./tobari-i18n.js");
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -502,10 +503,12 @@ function _checkStg0(taskId, taskData, session) {
   const allSatisfied = conditions.every((c) => c.satisfied);
   const failReason = allSatisfied
     ? null
-    : `STG0 未達条件: ${conditions
-        .filter((c) => !c.satisfied)
-        .map((c) => c.name)
-        .join(", ")}`;
+    : t("stage.stg0_fail", {
+        conditions: conditions
+          .filter((c) => !c.satisfied)
+          .map((c) => c.name)
+          .join(", "),
+      });
 
   return _dodResult("STG0", allSatisfied, conditions, failReason);
 }
@@ -533,7 +536,7 @@ function _checkStg1(taskId, taskData, session, profile) {
   const allSatisfied = conditions.every((c) => c.satisfied);
   const failReason = allSatisfied
     ? null
-    : "設計の証跡が evidence に存在しません";
+    : t("stage.stg1_fail");
 
   return _dodResult("STG1", allSatisfied, conditions, failReason);
 }
@@ -556,7 +559,7 @@ function _checkStg2(taskId, taskData, session, profile) {
   const allSatisfied = conditions.every((c) => c.satisfied);
   const failReason = allSatisfied
     ? null
-    : "実装の証跡が evidence に存在しません";
+    : t("stage.stg2_fail");
 
   return _dodResult("STG2", allSatisfied, conditions, failReason);
 }
@@ -588,7 +591,7 @@ function _checkStg3(taskId, taskData, session, profile) {
   const allSatisfied = conditions.every((c) => c.satisfied);
   const failReason = allSatisfied
     ? null
-    : "テスト/lint の検証証跡が evidence に存在しません";
+    : t("stage.stg3_fail");
 
   return _dodResult("STG3", allSatisfied, conditions, failReason);
 }
@@ -638,7 +641,7 @@ function _checkStg4(taskId, taskData, session, profile) {
   const allSatisfied = conditions.every((c) => c.satisfied);
   const failReason = allSatisfied
     ? null
-    : "CI チェックの証跡が evidence に存在しません";
+    : t("stage.stg4_fail");
 
   return _dodResult("STG4", allSatisfied, conditions, failReason);
 }
@@ -668,7 +671,7 @@ function _checkStg5(taskId, taskData, session, profile) {
   const allSatisfied = conditions.every((c) => c.satisfied);
   const failReason = allSatisfied
     ? null
-    : "コミット/push の証跡が evidence に存在しません";
+    : t("stage.stg5_fail");
 
   return _dodResult("STG5", allSatisfied, conditions, failReason);
 }
@@ -694,7 +697,7 @@ function _checkStg6(taskId, taskData, session, profile) {
   const allSatisfied = conditions.every((c) => c.satisfied);
   const failReason = allSatisfied
     ? null
-    : "PR/マージの証跡が evidence に存在しません";
+    : t("stage.stg6_fail");
 
   return _dodResult("STG6", allSatisfied, conditions, failReason);
 }
@@ -751,7 +754,7 @@ function getCurrentStage(taskId) {
  */
 function checkDod(taskId, gate) {
   if (!GATE_ORDER.includes(gate)) {
-    return _dodResult(gate, false, [], `無効なゲート名: ${gate}`);
+    return _dodResult(gate, false, [], t("stage.invalid_gate", { gate }));
   }
 
   const tasks = _loadBacklog();
@@ -760,7 +763,7 @@ function checkDod(taskId, gate) {
       gate,
       false,
       [],
-      "tasks/backlog.yaml が見つかりません"
+      t("stage.backlog_not_found")
     );
   }
 
@@ -770,7 +773,7 @@ function checkDod(taskId, gate) {
       gate,
       false,
       [],
-      `タスク ${taskId} が backlog.yaml に存在しません`
+      t("stage.task_not_found", { taskId })
     );
   }
 
@@ -783,7 +786,7 @@ function checkDod(taskId, gate) {
       gate,
       false,
       [],
-      `ゲート ${gate} のチェッカーが未実装です`
+      t("stage.checker_missing", { gate })
     );
   }
 
@@ -807,37 +810,40 @@ function checkDod(taskId, gate) {
  */
 function advanceGate(taskId, gate) {
   if (!GATE_ORDER.includes(gate)) {
+    const msg = t("stage.invalid_gate", { gate });
     return _advanceResult({
       success: false,
       gate,
       task_id: taskId,
       action: "fail-close",
-      message: `無効なゲート名: ${gate}`,
-      fail_reason: `無効なゲート名: ${gate}`,
+      message: msg,
+      fail_reason: msg,
     });
   }
 
   const tasks = _loadBacklog();
   if (!tasks) {
+    const msg = t("stage.backlog_not_found");
     return _advanceResult({
       success: false,
       gate,
       task_id: taskId,
       action: "fail-close",
-      message: "tasks/backlog.yaml が見つかりません",
-      fail_reason: "tasks/backlog.yaml が見つかりません",
+      message: msg,
+      fail_reason: msg,
     });
   }
 
   const task = _findTask(tasks, taskId);
   if (!task) {
+    const msg = t("stage.task_not_found", { taskId });
     return _advanceResult({
       success: false,
       gate,
       task_id: taskId,
       action: "fail-close",
-      message: `タスク ${taskId} が backlog.yaml に存在しません`,
-      fail_reason: `タスク ${taskId} が backlog.yaml に存在しません`,
+      message: msg,
+      fail_reason: msg,
     });
   }
 
@@ -846,6 +852,7 @@ function advanceGate(taskId, gate) {
 
   // Check: gate not already done
   if (currentStatus === "done") {
+    const msg = t("stage.already_done", { gate });
     return _advanceResult({
       success: false,
       gate,
@@ -853,8 +860,8 @@ function advanceGate(taskId, gate) {
       action: "fail-close",
       previous_status: "done",
       new_status: "done",
-      message: `${gate} は既に完了しています`,
-      fail_reason: `${gate} は既に完了しています`,
+      message: msg,
+      fail_reason: msg,
     });
   }
 
@@ -864,16 +871,17 @@ function advanceGate(taskId, gate) {
     const prevGate = GATE_ORDER[gateIdx - 1];
     const prevStatus = stageStatus[prevGate] || "pending";
     if (prevStatus !== "done") {
+      const msg = t("stage.prev_not_done", { prevGate, gate });
       return _advanceResult({
         success: false,
         gate,
         task_id: taskId,
         action: "fail-close",
         previous_status: currentStatus,
-        message: `${prevGate} が完了していないため、${gate} に進めません`,
-        fail_reason: `${prevGate} が完了していないため、${gate} に進めません`,
+        message: msg,
+        fail_reason: msg,
         required_actions: [
-          `先に ${prevGate} を完了してください`,
+          t("stage.complete_prev", { prevGate }),
           `node .claude/hooks/tobari-stage.js advance ${taskId} ${prevGate}`,
         ],
       });
@@ -896,11 +904,11 @@ function advanceGate(taskId, gate) {
       task_id: taskId,
       action: "fail-close",
       previous_status: currentStatus,
-      message: `${gate} の DoD が未達です`,
+      message: t("stage.dod_not_met", { gate }),
       fail_reason: dodResult.fail_reason,
       required_actions: [
-        dodResult.fail_reason || "DoD 条件を満たしてください",
-        `修正後: node .claude/hooks/tobari-stage.js advance ${taskId} ${gate}`,
+        dodResult.fail_reason || t("stage.dod_fallback"),
+        t("stage.retry_command", { taskId, gate }),
       ],
     });
   }
@@ -915,8 +923,8 @@ function advanceGate(taskId, gate) {
       task_id: taskId,
       action: "fail-close",
       previous_status: currentStatus,
-      message: "backlog.yaml の更新に失敗しました",
-      fail_reason: "backlog.yaml の更新に失敗しました（書き込みエラー）",
+      message: t("stage.backlog_not_found"),
+      fail_reason: t("stage.backlog_write_error"),
     });
   }
 
@@ -931,9 +939,8 @@ function advanceGate(taskId, gate) {
         task_id: taskId,
         action: "fail-close",
         previous_status: currentStatus,
-        message:
-          "tobari-session.json の更新に失敗しました（backlog.yaml をロールバック済み）",
-        fail_reason: "tobari-session.json の更新に失敗しました",
+        message: t("stage.session_write_error"),
+        fail_reason: t("stage.session_write_error"),
       });
     }
   }
@@ -956,8 +963,8 @@ function advanceGate(taskId, gate) {
 
   const action = shouldSkip ? "skipped" : "advanced";
   const nextMsg = nextGate
-    ? `次のゲート: ${nextGate}`
-    : "全ゲート完了";
+    ? t("stage.next_gate", { nextGate })
+    : t("stage.all_gates_done");
 
   return _advanceResult({
     success: true,
@@ -988,8 +995,8 @@ function advanceToNext(taskId) {
       gate: "",
       task_id: taskId,
       action: "fail-close",
-      message: `タスク ${taskId} の全ゲートが完了済みか、タスクが見つかりません`,
-      fail_reason: "進むべきゲートがありません",
+      message: t("stage.no_next_gate", { taskId }),
+      fail_reason: t("stage.no_next_gate_reason"),
     });
   }
   return advanceGate(taskId, current);
@@ -1004,12 +1011,12 @@ function advanceToNext(taskId) {
 function getStageSummary(taskId) {
   const tasks = _loadBacklog();
   if (!tasks) {
-    return { error: "tasks/backlog.yaml が見つかりません" };
+    return { error: t("stage.backlog_not_found") };
   }
 
   const task = _findTask(tasks, taskId);
   if (!task) {
-    return { error: `タスク ${taskId} が backlog.yaml に存在しません` };
+    return { error: t("stage.task_not_found", { taskId }) };
   }
 
   const stageStatus = task.stage_status || {};
@@ -1115,7 +1122,7 @@ if (require.main === module) {
     _outputJson({
       success: false,
       error: e.message,
-      message: `Stage Controller でエラーが発生しました: ${e.message}`,
+      message: t("stage.controller_error", { message: e.message }),
     });
     process.exit(1);
   }

@@ -21,6 +21,7 @@
 const fs = require("fs");
 const path = require("path");
 const tobariSession = require("./tobari-session.js");
+const { t } = require("./tobari-i18n.js");
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -172,7 +173,7 @@ function detectTestFailure(transcript) {
       const summary =
         failureSnippets.length > 0
           ? failureSnippets.slice(0, 5).join("\n")
-          : "\u30c6\u30b9\u30c8\u5931\u6557\u3092\u691c\u51fa"; // テスト失敗を検出
+          : t("stop.fallback_summary");
       return [true, summary];
     }
 
@@ -227,7 +228,7 @@ function _loadTranscript(data) {
 // ---------------------------------------------------------------------------
 
 /**
- * Build Japanese repair instruction injected into Claude.
+ * Build localized repair instruction injected into Claude.
  *
  * @param {number} retryCount - Current retry count (before increment).
  * @param {string} failureSummary - Detected failure text.
@@ -237,12 +238,12 @@ function _loadTranscript(data) {
 function _makeRepairInstruction(retryCount, failureSummary, task) {
   const attempt = retryCount + 1;
   return (
-    `\uD83E\uDDBF \u5E33 [${task}] \u2014 \u30c6\u30b9\u30c8\u5931\u6557\u3092\u691c\u51fa\uFF08\u8A66\u884C ${attempt}/${MAX_RETRIES}\uFF09\n\n` +
-    `\u691c\u51fa\u3055\u308c\u305f\u30a8\u30e9\u30fc:\n${failureSummary}\n\n` +
-    `\u81ea\u52d5\u4fee\u5fa9\u3092\u5b9f\u884c\u3057\u3066\u304f\u3060\u3055\u3044:\n` +
-    `1. \u30a8\u30e9\u30fc\u30e1\u30c3\u30bb\u30fc\u30b8\u3092\u5206\u6790\u3057\u3066\u6839\u672c\u539f\u56e0\u3092\u7279\u5b9a\n` +
-    `2. \u8a72\u5f53\u3059\u308b\u30b3\u30fc\u30c9\u3092\u4fee\u6b63\n` +
-    `3. \u30c6\u30b9\u30c8\u3092\u518d\u5b9f\u884c\u3057\u3066\u6210\u529f\u3092\u78ba\u8a8d`
+    t("stop.repair.header", { task, attempt, max: MAX_RETRIES }) + "\n\n" +
+    t("stop.repair.errors", { summary: failureSummary }) + "\n\n" +
+    t("stop.repair.instruction") + "\n" +
+    t("stop.repair.step1") + "\n" +
+    t("stop.repair.step2") + "\n" +
+    t("stop.repair.step3")
   );
   // 🦿 帳 [{task}] — テスト失敗を検出（試行 {attempt}/{MAX_RETRIES}）
   // 検出されたエラー:
@@ -255,7 +256,7 @@ function _makeRepairInstruction(retryCount, failureSummary, task) {
 }
 
 /**
- * Build Japanese Circuit Breaker escalation message.
+ * Build localized Circuit Breaker escalation message.
  *
  * @param {string} failureSummary - Detected failure text.
  * @param {string} task - Current task name.
@@ -263,13 +264,12 @@ function _makeRepairInstruction(retryCount, failureSummary, task) {
  */
 function _makeCircuitBreakerMessage(failureSummary, task) {
   return (
-    `\u26a0\ufe0f \u5e33 [${task}] \u2014 \u81ea\u5df1\u4fee\u5fa9\u306e\u9650\u754c\u306b\u9054\u3057\u307e\u3057\u305f` +
-    `\uFF08${MAX_RETRIES}/${MAX_RETRIES}\u56de\u5931\u6557\uFF09\n\n` +
-    `\u6700\u5f8c\u306b\u691c\u51fa\u3055\u308c\u305f\u30a8\u30e9\u30fc:\n${failureSummary}\n\n` +
-    `\u624b\u52d5\u3067\u306e\u5bfe\u5fdc\u304c\u5fc5\u8981\u3067\u3059:\n` +
-    `1. \u30a8\u30e9\u30fc\u306e\u8a73\u7d30\u3092\u78ba\u8a8d: .claude/logs/evidence-ledger.jsonl\n` +
-    `2. \u30c6\u30b9\u30c8\u30d5\u30a1\u30a4\u30eb\u3092\u76f4\u63a5\u78ba\u8a8d\u3057\u3066\u554f\u984c\u3092\u7279\u5b9a\n` +
-    `3. \u4fee\u6b63\u5f8c\u306b\u4f5c\u696d\u3092\u518d\u958b\u3057\u3066\u304f\u3060\u3055\u3044`
+    t("stop.circuit.header", { task, max: MAX_RETRIES }) + "\n\n" +
+    t("stop.circuit.last_error", { summary: failureSummary }) + "\n\n" +
+    t("stop.circuit.manual") + "\n" +
+    t("stop.circuit.step1") + "\n" +
+    t("stop.circuit.step2") + "\n" +
+    t("stop.circuit.step3")
   );
   // ⚠️ 帳 [{task}] — 自己修復の限界に達しました（{MAX_RETRIES}/{MAX_RETRIES}回失敗）
   //

@@ -20,6 +20,7 @@
  */
 
 const session = require("./tobari-session.js");
+const { t } = require("./tobari-i18n.js");
 
 // Token estimation rates (chars per token)
 const CHARS_PER_TOKEN_ASCII = 4;
@@ -112,7 +113,7 @@ function calcPercent(usage) {
 }
 
 /**
- * Build Japanese warning message for budget threshold.
+ * Build localized warning message for budget threshold.
  * @param {number} percent
  * @param {object} usage
  * @returns {string}
@@ -125,15 +126,15 @@ function buildWarningMessage(percent, usage) {
 
   if (percent >= THRESHOLD_STOP) {
     return (
-      `\u26a0\ufe0f \u5e33[\u{1f45b}\u8ca1\u5e03] \u30c8\u30fc\u30af\u30f3\u4e88\u7b97\u304c\u4e0a\u9650\u306b\u9054\u3057\u307e\u3057\u305f\uff08${pct}%\u4f7f\u7528\u6e08\u307f\uff09\n` +
-      `\u6d88\u8cbb: ${total.toLocaleString()} / \u4e88\u7b97: ${budget.toLocaleString()} \u30c8\u30fc\u30af\u30f3\n` +
-      `\u3053\u306e\u30bb\u30c3\u30b7\u30e7\u30f3\u306e\u4f5c\u696d\u3092\u5b8c\u4e86\u3057\u3001\u65b0\u3057\u3044\u30bb\u30c3\u30b7\u30e7\u30f3\u3092\u958b\u59cb\u3057\u3066\u304f\u3060\u3055\u3044\u3002`
+      t("cost.budget_exceeded", { pct }) + "\n" +
+      t("cost.budget_exceeded_detail", { total: total.toLocaleString(), budget: budget.toLocaleString() }) + "\n" +
+      t("cost.budget_exceeded_action")
     );
   }
   return (
-    `\u26a0\ufe0f \u5e33[\u{1f45b}\u8ca1\u5e03] \u30c8\u30fc\u30af\u30f3\u4e88\u7b97\u8b66\u544a\uff08${pct}%\u4f7f\u7528\u6e08\u307f\uff09\n` +
-    `\u6b8b\u308a\u7d04 ${remaining.toLocaleString()} \u30c8\u30fc\u30af\u30f3\uff08\u4e88\u7b97: ${budget.toLocaleString()} \u30c8\u30fc\u30af\u30f3\uff09\n` +
-    `\u4f5c\u696d\u3092\u306a\u308b\u3079\u304f\u52b9\u7387\u7684\u306b\u9032\u3081\u3066\u304f\u3060\u3055\u3044\u3002`
+    t("cost.budget_warning", { pct }) + "\n" +
+    t("cost.budget_warning_detail", { remaining: remaining.toLocaleString(), budget: budget.toLocaleString() }) + "\n" +
+    t("cost.budget_warning_action")
   );
 }
 
