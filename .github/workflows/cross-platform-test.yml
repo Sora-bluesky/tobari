@@ -25,11 +25,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Create test project
         run: |
           mkdir /tmp/tobari-test-project
@@ -58,3 +53,6 @@ jobs:
         run: |
           cd /tmp/tobari-test-project
           npx tobari sync --check
+
+      - name: Run unit tests
+        run: node --test tests/*.js --test-concurrency=1

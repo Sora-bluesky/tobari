@@ -1,0 +1,23 @@
+- id: "TASK-001"
+  phase: "P3"
+  title: "CI/CD 再構築（release-please導入、テストCI更新、マイグレーションスクリプト）"
+  priority: "P1"
+  status: "in-progress"
+  owner: "Claude Code"
+  acceptance:
+    - "release-please 設定ファイル3つが .github/ に存在する"
+    - "cross-platform-test.yml に Python セットアップが含まれていない"
+    - "cross-platform-test.yml に node --test tests/*.js --test-concurrency=1 が含まれている"
+    - "bin/migrations/2.0.0.js が存在し version, description, run をエクスポートしている"
+    - "既存テストがパスする"
+  evidence: []
+  stage_status:
+    STG0: "done"
+    STG1: "pending"
+    STG2: "pending"
+    STG3: "pending"
+    STG4: "pending"
+    STG5: "pending"
+    STG6: "pending"
+  next_action: "実装開始"
+  updated_at: "2026-03-10"
