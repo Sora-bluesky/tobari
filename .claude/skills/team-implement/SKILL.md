@@ -23,13 +23,13 @@ metadata:
 ```
 Step 1: Analyze Plan & Design Team
   計画からタスク依存関係を分析し、チーム構成を決定
-    |
+    ↓
 Step 2: Spawn Agent Team
   モジュール/レイヤー単位でTeammateを起動
-    |
+    ↓
 Step 3: Monitor & Coordinate
   Lead がモニタリング、統合、品質管理
-    |
+    ↓
 Step 4: Integration & Verification
   全タスク完了後、統合テスト実行
 ```
@@ -74,9 +74,9 @@ Teammate 3: Shared infrastructure
 
 ### Anti-patterns
 
-- 2つの Teammate が同じファイルを編集 -> 上書きリスク
-- Teammate あたりのタスクが多すぎる -> 長時間放置リスク
-- 依存関係が複雑すぎる -> 調整コストが利益を上回る
+- 2つの Teammate が同じファイルを編集 → 上書きリスク
+- Teammate あたりのタスクが多すぎる → 長時間放置リスク
+- 依存関係が複雑すぎる → 調整コストが利益を上回る
 
 ---
 
@@ -133,8 +133,8 @@ Spawn teammates:
    ## Key Decisions
    - {decision made during implementation and rationale}
    ## Communication with Teammates
-   - -> {recipient}: {summary of message sent}
-   - <- {sender}: {summary of message received}
+   - → {recipient}: {summary of message sent}
+   - ← {sender}: {summary of message received}
    ## Issues Encountered
    - {issue}: {how it was resolved}
    (If none, write 'None')
@@ -170,8 +170,8 @@ Spawn teammates:
    ## Key Decisions
    - {decision made during implementation and rationale}
    ## Communication with Teammates
-   - -> {recipient}: {summary of message sent}
-   - <- {sender}: {summary of message received}
+   - → {recipient}: {summary of message sent}
+   - ← {sender}: {summary of message received}
    ## Issues Encountered
    - {issue}: {how it was resolved}
    (If none, write 'None')
@@ -196,16 +196,16 @@ Wait for all teammates to complete their tasks.
 
 ### Intervention Triggers
 
-| 状況                              | 対応                                           |
-| --------------------------------- | ---------------------------------------------- |
-| Teammate が長時間タスクを進めない | メッセージで確認、必要なら再指示               |
-| ファイル競合が発生                | 所有権を再配分                                 |
-| テストが失敗し続ける              | 関連する Implementer にメッセージ              |
-| 想定外の技術的問題                | サブエージェントの分析能力を活用して問題を解析 |
+| 状況                              | 対応                                 |
+| --------------------------------- | ------------------------------------ |
+| Teammate が長時間タスクを進めない | メッセージで確認、必要なら再指示     |
+| ファイル競合が発生                | 所有権を再配分                       |
+| テストが失敗し続ける              | 関連する Implementer にメッセージ    |
+| 想定外の技術的問題                | サブエージェント経由で分析・解決     |
 
 ### Quality Gates (via Hooks)
 
-`TeammateIdle` hook と `TaskCompleted` hook が自動で品質チェック:
+`TeammateIdle` hook と `TaskCompleted` hook が自動で品質チェック：
 
 - lint チェック（ruff）
 - テスト実行（pytest）
@@ -241,9 +241,9 @@ poe all
 
 ### 品質チェック
 
-- ruff: ✓ / ✗
-- ty: ✓ / ✗
-- pytest: ✓ ({N} tests passed)
+- ruff: pass / fail
+- ty: pass / fail
+- pytest: pass ({N} tests passed)
 - coverage: {N}%
 
 ### 次のステップ

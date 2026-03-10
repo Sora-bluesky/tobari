@@ -22,13 +22,13 @@ metadata:
 ```
 Step 1: Gather Diff
   実装範囲の変更差分を収集
-    |
+    ↓
 Step 2: Spawn Review Team
   専門レビュアーを並列起動
-    |
+    ↓
 Step 3: Synthesize Findings
   レビュー結果を統合、優先度付け
-    |
+    ↓
 Step 4: Report to User
   発見事項と推奨アクションを提示
 ```
@@ -101,8 +101,8 @@ Spawn reviewers:
    ## Findings
    - [{severity}] {file}:{line} — {issue summary}
    ## Communication with Teammates
-   - -> {recipient}: {summary of message sent}
-   - <- {sender}: {summary of message received}
+   - → {recipient}: {summary of message sent}
+   - ← {sender}: {summary of message received}
    (If none, write 'None')
    ## Issues Encountered
    - {issue}: {how it was resolved}
@@ -150,8 +150,8 @@ Spawn reviewers:
    ## Deep Analysis
    - {question analyzed}: {key insight from analysis}
    ## Communication with Teammates
-   - -> {recipient}: {summary of message sent}
-   - <- {sender}: {summary of message received}
+   - → {recipient}: {summary of message sent}
+   - ← {sender}: {summary of message received}
    (If none, write 'None')
    ## Issues Encountered
    - {issue}: {how it was resolved}
@@ -197,8 +197,8 @@ Spawn reviewers:
    - Total: {N} tests, Passed: {N}, Failed: {N}
    - Coverage: {percentage}
    ## Communication with Teammates
-   - -> {recipient}: {summary of message sent}
-   - <- {sender}: {summary of message received}
+   - → {recipient}: {summary of message sent}
+   - ← {sender}: {summary of message received}
    (If none, write 'None')
    ## Issues Encountered
    - {issue}: {how it was resolved}

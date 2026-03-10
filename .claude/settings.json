@@ -215,8 +215,6 @@
       "Bash(source:*)",
       "Bash(docker:*)",
       "Bash(docker-compose:*)",
-      "Bash(gemini:*)",
-      "Bash(codex:*)",
       "Bash(for:*)",
       "Bash(do)",
       "Bash(then)",
