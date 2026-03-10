@@ -2,7 +2,6 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { execSync } = require("node:child_process");
 const {
   TEMPLATE_DIR,
   deployWithMerge,
@@ -32,7 +31,7 @@ module.exports = function init(options) {
   // --- Check for existing .claude/ ---
   if (fs.existsSync(claudeDir) && !force) {
     const hasGate = fs.existsSync(
-      path.join(claudeDir, "hooks", "tobari-gate.py")
+      path.join(claudeDir, "hooks", "tobari-gate.js")
     );
     if (hasGate) {
       console.error(
@@ -47,16 +46,6 @@ module.exports = function init(options) {
       );
     }
     process.exit(1);
-  }
-
-  // --- Detect Python ---
-  const python = detectPython();
-  if (!python) {
-    console.warn(
-      "WARNING: Python 3.10+ not found. Hooks will not work until Python is installed.\n"
-    );
-  } else {
-    console.log(`Python detected: ${python.version} (${python.command})`);
   }
 
   // --- Deploy files ---
@@ -85,11 +74,11 @@ module.exports = function init(options) {
   }
 
   // --- Print completion message ---
-  printSuccess(python);
+  printSuccess();
 };
 
 function deployCLAUDEmd(cwd) {
-  const templateClaude = path.join(TEMPLATE_DIR, "CLAUDE.md");
+  const templateClaude = path.join(TEMPLATE_DIR, "templates", "CLAUDE.md");
   const targetClaude = path.join(cwd, "CLAUDE.md");
 
   if (!fs.existsSync(templateClaude)) return;
@@ -125,44 +114,18 @@ function updateHooksOnly(cwd) {
   console.log("Rules and skills were not modified.");
 }
 
-function detectPython() {
-  const candidates = ["python3", "python"];
-  for (const cmd of candidates) {
-    try {
-      const output = execSync(`${cmd} --version`, {
-        encoding: "utf8",
-        stdio: ["pipe", "pipe", "pipe"],
-      }).trim();
-      // output format: "Python 3.12.1"
-      const match = output.match(/Python\s+(\d+\.\d+\.\d+)/);
-      if (match) {
-        const [major, minor] = match[1].split(".").map(Number);
-        if (major >= 3 && minor >= 10) {
-          return { command: cmd, version: output };
-        }
-        console.warn(
-          `WARNING: ${output} found, but Python 3.10+ is required for tobari hooks.`
-        );
-      }
-    } catch {
-      // Command not found, try next
-    }
-  }
-  return null;
-}
-
-function printSuccess(python) {
+function printSuccess() {
   console.log(`
 +--------------------------------------------------+
 |  tobari setup complete                            |
 +--------------------------------------------------+
 
 Deployed files:
-  .claude/hooks/     (12 files - governance hooks)
-  .claude/rules/     (6 files - coding & security rules)
-  .claude/skills/    (8 skills - workflow automation)
-  .claude/agents/    (1 file - agent configuration)
-  .claude/commands/  (1 file - /orose alias)
+  .claude/hooks/     (governance hooks)
+  .claude/rules/     (coding & security rules)
+  .claude/skills/    (workflow automation)
+  .claude/agents/    (agent configuration)
+  .claude/commands/  (/orose alias)
   .claude/settings.json
 
 Next steps:
@@ -171,7 +134,7 @@ Next steps:
   3. The veil will guard your safety automatically
 
 Prerequisites:
-  - Python 3.10+ ${python ? "(detected)" : "(NOT FOUND - install before using hooks)"}
+  - Node.js 18+
   - Claude Code (Max plan recommended)
 
 Documentation: https://github.com/Sora-bluesky/tobari

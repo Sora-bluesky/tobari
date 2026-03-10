@@ -1,6 +1,6 @@
 {
   "name": "tobari",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "description": "Claude Code governance framework - Lower the veil. Unleash.",
   "keywords": [
     "claude-code",
@@ -27,7 +27,13 @@
   },
   "files": [
     "bin/",
-    "templates/"
+    ".claude/hooks/",
+    ".claude/rules/",
+    ".claude/skills/",
+    ".claude/agents/",
+    ".claude/commands/",
+    ".claude/settings.json",
+    "templates/CLAUDE.md"
   ],
   "engines": {
     "node": ">=18.0.0"

@@ -5,7 +5,7 @@ const path = require("node:path");
 
 // --- Constants ---
 
-const TEMPLATE_DIR = path.join(__dirname, "..", "..", "templates");
+const TEMPLATE_DIR = path.join(__dirname, "..", "..");
 
 const GITIGNORE_ENTRIES = [
   "# tobari - session state and logs (do not commit)",
@@ -13,19 +13,26 @@ const GITIGNORE_ENTRIES = [
   ".claude/logs/",
   ".claude/settings.local.json",
   ".claude/checkpoints/",
-  "__pycache__/",
-  "*.pyc",
+  ".claude/hooks/tobari-hmac-key",
+  ".claude/tobari-session.json.lock",
+  ".claude/tobari-cost-state.json",
+  ".claude/tobari-cost-state.json.lock",
   ".tobari-version",
+  "HANDOFF.md",
 ];
 
 const TOBARI_SKILLS = [
+  "checkpointing",
+  "docs-sync",
   "handoff",
+  "init",
   "plan",
   "simplify",
   "startproject",
   "tdd",
   "team-implement",
   "team-review",
+  "test-coverage-improver",
   "tobari",
 ];
 
