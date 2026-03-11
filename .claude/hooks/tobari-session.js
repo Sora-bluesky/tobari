@@ -455,7 +455,11 @@ function canonicalPathKey(filePath) {
   if (path.isAbsolute(filePath)) {
     result = path.resolve(filePath);
   } else {
-    result = path.resolve(projectDir || process.cwd(), filePath);
+    // Resolve projectDir symlinks first for consistent path comparison
+    // (macOS: /var/folders → /private/var/folders)
+    let base = projectDir || process.cwd();
+    try { base = fs.realpathSync(base); } catch (_) {}
+    result = path.resolve(base, filePath);
   }
 
   // Resolve symlinks if the file exists
