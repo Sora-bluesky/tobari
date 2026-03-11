@@ -341,11 +341,10 @@ Init Step 6: 完了メッセージ    使い方ガイドを表示
 
 | チェック項目 | ツール | 確認方法 |
 | --- | --- | --- |
-| Python 3.8+ | Bash | `python3 --version` または `python --version` |
-| hooks ディレクトリ | Glob | `.claude/hooks/*.py` の存在確認 |
+| Node.js 18+ | Bash | `node --version` |
+| hooks ディレクトリ | Glob | `.claude/hooks/*.js` の存在確認 |
 | settings.json の hooks 設定 | Read | `.claude/settings.json` の `hooks` キーを確認 |
 | `.gitignore` への tobari-session.json 除外 | Grep | `tobari-session.json` が `.gitignore` に含まれるか |
-| `_run.sh` の実行権限 | Bash | `ls -la .claude/hooks/_run.sh`（存在と権限確認） |
 
 ---
 
@@ -358,11 +357,10 @@ Init Step 6: 完了メッセージ    使い方ガイドを表示
 
 | 項目 | 状態 |
 |------|------|
-| Python 3.8+ | OK / NG |
+| Node.js 18+ | OK / NG |
 | hooks ディレクトリ | OK / NG |
 | settings.json の hooks 設定 | OK / WARN |
 | .gitignore への除外登録 | OK / WARN |
-| _run.sh 実行権限 | OK / WARN |
 ```
 
 全て OK の場合:
@@ -402,21 +400,18 @@ mkdir -p .claude/hooks
 
 | ファイル | 役割 |
 | --- | --- |
-| `_run.sh` | Python 自動検出ラッパー |
-| `tobari_session.py` | セッション共有ライブラリ |
-| `tobari_stage.py` | STG ステージコントローラ |
-| `tobari-gate.py` | PreToolUse: Gate (止める) |
-| `tobari-evidence.py` | PostToolUse: Evidence (残す) |
-| `tobari-stop.py` | Stop: Self-Repair (自己修復) |
-| `tobari-cost.py` | PostToolUse: Cost Monitor (コスト監視) |
-| `tobari-permission.py` | PermissionRequest: Permission (口) |
-| `tobari-precompact.py` | PreCompact: Memory (記憶) |
-| `lint-on-save.py` | PostToolUse: コード品質 |
-
-**ファイル作成後**、`_run.sh` に実行権限を付与:
-```bash
-chmod +x .claude/hooks/_run.sh
-```
+| `tobari-session.js` | セッション共有ライブラリ |
+| `tobari-stage.js` | STG ステージコントローラ |
+| `tobari-gate.js` | PreToolUse: Gate (止める) |
+| `tobari-evidence.js` | PostToolUse: Evidence (残す) |
+| `tobari-evidence-failure.js` | PostToolUseFailure: Evidence (失敗記録) |
+| `tobari-stop.js` | Stop: Self-Repair (自己修復) |
+| `tobari-cost.js` | PostToolUse: Cost Monitor (コスト監視) |
+| `tobari-permission.js` | PermissionRequest: Permission (口) |
+| `tobari-precompact.js` | PreCompact: Memory (記憶) |
+| `tobari-injection-guard.js` | PostToolUse: Injection Guard (境界防御) |
+| `tobari-session-start.js` | SessionStart: Session Init (セッション開始) |
+| `lint-on-save.js` | PostToolUse: コード品質 |
 
 #### 4c. settings.json の hooks 設定が不足している場合
 
@@ -431,7 +426,7 @@ chmod +x .claude/hooks/_run.sh
         "matcher": "Edit|Write|NotebookEdit|Bash",
         "hooks": [{
           "type": "command",
-          "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-gate.py\"",
+          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-gate.js\"",
           "timeout": 10
         }]
       }
@@ -441,7 +436,7 @@ chmod +x .claude/hooks/_run.sh
         "matcher": "Bash|Edit|Write|NotebookEdit|Read|Grep|Glob|WebFetch|WebSearch|Task",
         "hooks": [{
           "type": "command",
-          "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence.py\"",
+          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence.js\"",
           "timeout": 5
         }]
       },
@@ -449,7 +444,7 @@ chmod +x .claude/hooks/_run.sh
         "matcher": "Bash|Edit|Write|NotebookEdit|Read|Grep|Glob|WebFetch|WebSearch|Task",
         "hooks": [{
           "type": "command",
-          "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-cost.py\"",
+          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-cost.js\"",
           "timeout": 5
         }]
       }
@@ -458,7 +453,7 @@ chmod +x .claude/hooks/_run.sh
       {
         "hooks": [{
           "type": "command",
-          "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-stop.py\"",
+          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-stop.js\"",
           "timeout": 30
         }]
       }
@@ -468,7 +463,7 @@ chmod +x .claude/hooks/_run.sh
         "matcher": ".*",
         "hooks": [{
           "type": "command",
-          "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-permission.py\"",
+          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-permission.js\"",
           "timeout": 10
         }]
       }
@@ -478,7 +473,7 @@ chmod +x .claude/hooks/_run.sh
         "matcher": "auto",
         "hooks": [{
           "type": "command",
-          "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/_run.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-precompact.py\"",
+          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-precompact.js\"",
           "timeout": 5
         }]
       }
