@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.1](https://github.com/Sora-bluesky/tobari/compare/v2.0.0...v2.0.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* remove Python references from SKILL.md init flow ([8783e11](https://github.com/Sora-bluesky/tobari/commit/8783e118fb997c7ad79aa7ad8409bf999345d371))
+* remove Python references from SKILL.md init flow ([9c3fba7](https://github.com/Sora-bluesky/tobari/commit/9c3fba75e0ddd1162d8f68f5c9abd684a0b1bff7))
+
 ## [2.0.0](https://github.com/Sora-bluesky/tobari/compare/v1.5.0...v2.0.0) (2026-03-11)
 
 
