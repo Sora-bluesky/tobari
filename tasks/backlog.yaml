@@ -7,7 +7,7 @@
   acceptance:
     - "release-please 設定ファイル3つが .github/ に存在する"
     - "cross-platform-test.yml に Python セットアップが含まれていない"
-    - "cross-platform-test.yml に node --test tests/*.js --test-concurrency=1 が含まれている"
+    - "cross-platform-test.yml に node --test --test-concurrency=1 tests/*.js が含まれている"
     - "bin/migrations/2.0.0.js が存在し version, description, run をエクスポートしている"
     - "既存テストがパスする"
   evidence: []
@@ -21,3 +21,19 @@
     STG6: "pending"
   next_action: "実装開始"
   updated_at: "2026-03-10"
+
+- id: "TASK-002"
+  phase: "P4"
+  title: "CI修正: node --test フラグ順序修正"
+  priority: "P1"
+  status: "in-progress"
+  owner: "Claude Code"
+  acceptance:
+    - "node --test --test-concurrency=1 tests/*.js の順序になっている"
+    - "ローカルでテストコマンドが正常に実行できる"
+  evidence: []
+  stage_status:
+    STG0: "done"
+    STG6: "pending"
+  next_action: "cross-platform-test.yml 修正"
+  updated_at: "2026-03-11"

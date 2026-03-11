@@ -55,4 +55,4 @@ jobs:
           npx tobari sync --check
 
       - name: Run unit tests
-        run: node --test tests/*.js --test-concurrency=1
+        run: node --test --test-concurrency=1 tests/*.js
