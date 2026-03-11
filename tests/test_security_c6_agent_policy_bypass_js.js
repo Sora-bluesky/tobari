@@ -42,6 +42,8 @@ function saveSession(session) {
 function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
+  } else {
+    try { fs.unlinkSync(SESSION_PATH); } catch {}
   }
   tobariSession._resetCache();
 }
@@ -140,7 +142,7 @@ function assertNotPolicyDenial(result, message) {
 
 describe("C6-1: Basic policy enforcement", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -218,7 +220,7 @@ describe("C6-1: Basic policy enforcement", () => {
 
 describe("C6-2: Privilege escalation attempts", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -311,7 +313,7 @@ describe("C6-2: Privilege escalation attempts", () => {
 
 describe("C6-3: Policy manipulation", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -379,7 +381,7 @@ describe("C6-3: Policy manipulation", () => {
 
 describe("C6-4: denied_tools precedence", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -466,7 +468,7 @@ describe("C6-4: denied_tools precedence", () => {
 
 describe("C6-5: Edge cases", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -561,7 +563,7 @@ describe("C6-5: Edge cases", () => {
 
 describe("C6-6: Gate integration — deny response structure", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -634,7 +636,7 @@ describe("C6-6: Gate integration — deny response structure", () => {
 
 describe("C6-7: Cross-agent isolation", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {

@@ -38,6 +38,8 @@ function saveSession(session) {
 function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
+  } else {
+    try { fs.unlinkSync(SESSION_PATH); } catch {}
   }
   tobariSession._resetCache();
 }
@@ -74,7 +76,7 @@ function makeBaseSession(overrides = {}) {
 
 describe("getAgentPolicy", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -138,7 +140,7 @@ describe("getAgentPolicy", () => {
 
 describe("checkAgentToolPermission", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -242,7 +244,7 @@ describe("checkAgentToolPermission", () => {
 
 describe("gate handler agent policy enforcement", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -382,7 +384,7 @@ describe("gate handler agent policy enforcement", () => {
 
 describe("evidence handler agent info recording", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -433,7 +435,7 @@ describe("evidence handler agent info recording", () => {
 
 describe("A8 integration: full agent governance flow", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {

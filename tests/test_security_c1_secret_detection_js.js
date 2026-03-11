@@ -42,6 +42,8 @@ function saveSession(session) {
 function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
+  } else {
+    try { fs.unlinkSync(SESSION_PATH); } catch {}
   }
   tobariSession._resetCache();
 }
@@ -162,7 +164,7 @@ function buildMysqlConn() {
 
 describe("C1-1: Direct secret detection", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
     saveSession(makeBaseSession());
   });
 
@@ -353,7 +355,7 @@ describe("C1-1: Direct secret detection", () => {
 
 describe("C1-2: Bypass attempt resistance", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
     saveSession(makeBaseSession());
   });
 
@@ -527,7 +529,7 @@ describe("C1-2: Bypass attempt resistance", () => {
 
 describe("C1-3: False positive avoidance", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
     saveSession(makeBaseSession());
   });
 
@@ -671,7 +673,7 @@ describe("C1-3: False positive avoidance", () => {
 
 describe("C1-4: Veil-off behavior (advisory only, no blocking)", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
     saveSession(makeBaseSession({ active: false }));
   });
 

@@ -36,6 +36,8 @@ function saveSession(session) {
 function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
+  } else {
+    try { fs.unlinkSync(SESSION_PATH); } catch {}
   }
   tobariSession._resetCache();
 }
@@ -224,7 +226,7 @@ describe("workLogDirExists", () => {
 
 describe("handler — veil not active", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -282,7 +284,7 @@ describe("handler — veil not active", () => {
 
 describe("handler — veil active", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -374,7 +376,7 @@ describe("handler — veil active", () => {
 
 describe("handler — error handling (fail-open)", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {
@@ -423,7 +425,7 @@ describe("handler — error handling (fail-open)", () => {
 
 describe("handler — empty/missing fields", () => {
   beforeEach(() => {
-    originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
   });
 
   afterEach(() => {

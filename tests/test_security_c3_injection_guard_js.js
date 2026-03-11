@@ -42,6 +42,8 @@ function saveSession(session) {
 function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
+  } else {
+    try { fs.unlinkSync(SESSION_PATH); } catch {}
   }
   tobariSession._resetCache();
 }
