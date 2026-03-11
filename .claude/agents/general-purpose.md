@@ -1,6 +1,6 @@
 ---
 name: general-purpose
-description: "General-purpose subagent for code implementation and research organization. Use for code implementation, file operations, and exploration to save main context."
+description: "General-purpose subagent for code implementation and deep analysis. Use for code implementation, file operations, and exploration to save main context."
 tools: Read, Edit, Write, Bash, Grep, Glob, WebFetch, WebSearch
 model: opus
 ---

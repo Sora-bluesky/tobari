@@ -22,6 +22,10 @@
 - PowerShell: Pester 5.0+ (`Invoke-Pester -Verbose`)
 - Currently: manual verification + git-guard checks
 
+## Task Management
+
+- **SoT**: `tasks/backlog.yaml`
+
 ## Important Commands
 
 ```powershell

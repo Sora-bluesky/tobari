@@ -18,6 +18,7 @@ STG0 儀式を実行します。
 
 ## 背景
 
+- Claude Code 専用設計への移行により、外部 CLI 依存を廃止
 - 旧 startproject は外部 CLI に依存していたが、
   帳アーキテクチャでは Claude Code のみで STG0 儀式を完結する
 

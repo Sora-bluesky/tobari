@@ -2,21 +2,21 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { execSync } = require("node:child_process");
 
 const REQUIRED_HOOKS = [
-  "_run.sh",
-  "tobari_session.py",
-  "tobari_stage.py",
-  "tobari-gate.py",
-  "tobari-evidence.py",
-  "tobari-evidence-failure.py",
-  "tobari-stop.py",
-  "tobari-cost.py",
-  "tobari-permission.py",
-  "tobari-precompact.py",
-  "tobari-session-start.py",
-  "lint-on-save.py",
+  "tobari-session.js",
+  "tobari-stage.js",
+  "tobari-gate.js",
+  "tobari-evidence.js",
+  "tobari-evidence-failure.js",
+  "tobari-stop.js",
+  "tobari-cost.js",
+  "tobari-permission.js",
+  "tobari-precompact.js",
+  "tobari-session-start.js",
+  "tobari-injection-guard.js",
+  "tobari-i18n.js",
+  "lint-on-save.js",
 ];
 
 const REQUIRED_HOOK_TYPES = ["PreToolUse", "PostToolUse", "Stop"];
@@ -28,8 +28,8 @@ module.exports = function verify(options = {}) {
 
   console.log("\ntobari setup verification\n");
 
-  // Check 1: Python version
-  results.push(checkPython());
+  // Check 1: Node.js version
+  results.push(checkNode());
 
   // Check 2: hooks files
   results.push(checkHooksFiles(cwd));
@@ -40,15 +40,12 @@ module.exports = function verify(options = {}) {
   // Check 4: .gitignore entries
   results.push(checkGitignore(cwd));
 
-  // Check 5: _run.sh executable permission
-  results.push(checkRunShPermission(cwd));
-
-  // Check 6: prepare script in package.json
+  // Check 5: prepare script in package.json
   results.push(checkPrepareScript(cwd));
 
-  // Check 7: run tests (--test flag)
+  // Check 6: run tests (--test flag)
   if (runTests) {
-    results.push(runPythonTests(cwd));
+    results.push(runNodeTests(cwd));
   }
 
   // Summary
@@ -66,34 +63,13 @@ module.exports = function verify(options = {}) {
   }
 };
 
-function checkPython() {
-  const candidates = ["python3", "python"];
-  for (const cmd of candidates) {
-    try {
-      const output = execSync(`${cmd} --version`, {
-        encoding: "utf8",
-        stdio: ["pipe", "pipe", "pipe"],
-      }).trim();
-      const match = output.match(/Python\s+(\d+)\.(\d+)/);
-      if (match) {
-        const major = parseInt(match[1], 10);
-        const minor = parseInt(match[2], 10);
-        if (major >= 3 && minor >= 10) {
-          printResult("pass", `Python 3.10+`, `${cmd} ${output}`);
-          return "pass";
-        }
-        printResult(
-          "fail",
-          "Python 3.10+",
-          `${output} found, but 3.10+ required`
-        );
-        return "fail";
-      }
-    } catch {
-      // try next
-    }
+function checkNode() {
+  const [major] = process.versions.node.split(".").map(Number);
+  if (major >= 18) {
+    printResult("pass", "Node.js 18+", `v${process.versions.node}`);
+    return "pass";
   }
-  printResult("fail", "Python 3.10+", "python3/python not found");
+  printResult("fail", "Node.js 18+", `v${process.versions.node} found, but 18+ required`);
   return "fail";
 }
 
@@ -187,28 +163,6 @@ function checkGitignore(cwd) {
   return "warn";
 }
 
-function checkRunShPermission(cwd) {
-  const runShPath = path.join(cwd, ".claude", "hooks", "_run.sh");
-  if (!fs.existsSync(runShPath)) {
-    printResult("warn", "_run.sh permission", "file not found");
-    return "warn";
-  }
-
-  try {
-    fs.accessSync(runShPath, fs.constants.X_OK);
-    printResult("pass", "_run.sh permission", "executable");
-    return "pass";
-  } catch {
-    // On Windows, X_OK check may not work correctly
-    if (process.platform === "win32") {
-      printResult("pass", "_run.sh permission", "Windows (git manages permissions)");
-      return "pass";
-    }
-    printResult("warn", "_run.sh permission", "not executable");
-    return "warn";
-  }
-}
-
 function checkPrepareScript(cwd) {
   const pkgPath = path.join(cwd, "package.json");
   if (!fs.existsSync(pkgPath)) {
@@ -235,61 +189,28 @@ function checkPrepareScript(cwd) {
   return "warn";
 }
 
-function runPythonTests(cwd) {
+function runNodeTests(cwd) {
   const testsDir = path.join(cwd, "tests");
   if (!fs.existsSync(testsDir)) {
-    printResult("warn", "Python tests", "tests/ directory not found");
+    printResult("warn", "tests", "tests/ directory not found");
     return "warn";
   }
 
-  // Detect python command
-  const pythonCmd = detectPython();
-  if (!pythonCmd) {
-    printResult("fail", "Python tests", "python not found");
-    return "fail";
-  }
-
-  console.log("\n  Running Python tests...\n");
+  console.log("\n  Running tests...\n");
   try {
-    const output = execSync(`${pythonCmd} -m pytest tests/ -v --tb=short`, {
+    const { execSync } = require("node:child_process");
+    execSync("node --test tests/*.js --test-concurrency=1", {
       cwd,
       encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
+      stdio: "inherit",
       timeout: 300000,
     });
-    // Count passed/failed from pytest output
-    const summaryMatch = output.match(/(\d+) passed/);
-    const passed = summaryMatch ? summaryMatch[1] : "?";
-    printResult("pass", "Python tests", `${passed} passed`);
+    printResult("pass", "tests", "all passed");
     return "pass";
-  } catch (err) {
-    // pytest returns non-zero on test failures
-    const output = (err.stdout || "") + (err.stderr || "");
-    const failMatch = output.match(/(\d+) failed/);
-    const passMatch = output.match(/(\d+) passed/);
-    const failed = failMatch ? failMatch[1] : "?";
-    const passed = passMatch ? passMatch[1] : "0";
-    printResult("fail", "Python tests", `${failed} failed, ${passed} passed`);
-    // Print last few lines for context
-    const lines = output.trim().split("\n");
-    const tail = lines.slice(-5);
-    for (const line of tail) {
-      console.log(`          ${line}`);
-    }
+  } catch {
+    printResult("fail", "tests", "some tests failed");
     return "fail";
   }
-}
-
-function detectPython() {
-  for (const cmd of ["python3", "python"]) {
-    try {
-      execSync(`${cmd} --version`, { stdio: ["pipe", "pipe", "pipe"] });
-      return cmd;
-    } catch {
-      // try next
-    }
-  }
-  return null;
 }
 
 function printResult(status, label, detail) {
