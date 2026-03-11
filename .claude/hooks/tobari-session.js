@@ -450,23 +450,33 @@ function canonicalPathKey(filePath) {
   const projectDir = process.env.CLAUDE_PROJECT_DIR || "";
   const isWin = process.platform === "win32";
 
+  // Resolve projectDir symlinks once for consistent path comparison
+  // (macOS: /var/folders → /private/var/folders)
+  let resolvedBase = projectDir || process.cwd();
+  try { resolvedBase = fs.realpathSync(resolvedBase); } catch (_) {}
+
   // Resolve to absolute path
   let result;
   if (path.isAbsolute(filePath)) {
     result = path.resolve(filePath);
   } else {
-    // Resolve projectDir symlinks first for consistent path comparison
-    // (macOS: /var/folders → /private/var/folders)
-    let base = projectDir || process.cwd();
-    try { base = fs.realpathSync(base); } catch (_) {}
-    result = path.resolve(base, filePath);
+    result = path.resolve(resolvedBase, filePath);
   }
 
   // Resolve symlinks if the file exists
   try {
     result = fs.realpathSync(result);
   } catch (_) {
-    // File may not exist yet — use resolved path
+    // File may not exist yet — replace unresolved projectDir prefix
+    // with resolved version for consistent comparison
+    if (projectDir && resolvedBase !== projectDir) {
+      const normDir = projectDir.replace(/\\/g, "/").replace(/\/+$/, "");
+      const normResolved = resolvedBase.replace(/\\/g, "/").replace(/\/+$/, "");
+      const normResult = result.replace(/\\/g, "/");
+      if (normResult.startsWith(normDir + "/")) {
+        result = normResolved + normResult.slice(normDir.length);
+      }
+    }
   }
 
   // Forward slashes, no trailing slash
