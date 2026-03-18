@@ -605,8 +605,42 @@ function checkBashScope(command) {
   if (includes.length === 0 && excludes.length === 0) return null;
 
   const targets = extractBashWriteTargets(command);
+  const projectRoot = _getProjectRoot();
 
   for (const target of targets) {
+    // Project root boundary — same as validateInput for Edit/Write.
+    // Prevents LLM from using amendScope() to escape project boundary via Bash.
+    if (projectRoot) {
+      try {
+        const fileKey = tobariSession.canonicalPathKey(target);
+        if (fileKey !== projectRoot && !fileKey.startsWith(projectRoot + "/")) {
+          const homeDir = os.homedir().replace(/\\/g, "/");
+          const homeDirKey = _IS_WINDOWS ? homeDir.toLowerCase() : homeDir;
+          const claudeInfraPrefix = homeDirKey + "/.claude/";
+          if (!fileKey.startsWith(claudeInfraPrefix)) {
+            return makeDenyResponse(
+              t("gate.validate.traversal_outside", { filePath: target }),
+              t("gate.bash_scope_detail", {
+                command: truncateCommand(command),
+                targetPath: target,
+                include: JSON.stringify(includes),
+                exclude: JSON.stringify(excludes),
+              }),
+              t("gate.bash_scope_recovery"),
+              "Bash",
+            );
+          }
+        }
+      } catch (_) {
+        return makeDenyResponse(
+          t("gate.validate.resolve_failed", { filePath: target }),
+          "",
+          t("gate.bash_scope_recovery"),
+          "Bash",
+        );
+      }
+    }
+
     const inScope = tobariSession.isPathInScope(target);
     if (inScope === false) {
       return makeDenyResponse(

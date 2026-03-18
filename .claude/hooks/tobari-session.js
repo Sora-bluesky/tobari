@@ -384,6 +384,33 @@ function getScope() {
  * @returns {boolean} true if successful
  */
 function amendScope(newScope, reason) {
+  // Reject paths outside project root to prevent scope escape
+  const projectDir = process.env.CLAUDE_PROJECT_DIR || "";
+  if (projectDir && newScope && newScope.include) {
+    const rootKey = canonicalPathKey(projectDir);
+    const isWin = process.platform === "win32";
+    const homeDir = (process.env.HOME || process.env.USERPROFILE || "").replace(
+      /\\/g,
+      "/",
+    );
+    const homeDirKey = isWin ? homeDir.toLowerCase() : homeDir;
+    const claudeInfraPrefix = homeDirKey + "/.claude/";
+
+    for (const inc of newScope.include) {
+      // Skip relative paths (they're relative to project root)
+      if (!path.isAbsolute(inc)) continue;
+      const incKey = canonicalPathKey(inc);
+      if (
+        incKey !== rootKey &&
+        !incKey.startsWith(rootKey + "/") &&
+        !incKey.startsWith(claudeInfraPrefix)
+      ) {
+        // Absolute path outside project root — reject
+        return false;
+      }
+    }
+  }
+
   const result = readModifyWriteSession((data) => {
     const contract = data.contract || {};
     const previousScope = contract.scope
