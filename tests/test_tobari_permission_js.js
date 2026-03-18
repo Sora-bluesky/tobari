@@ -37,20 +37,33 @@ describe("SAFE_BASH_PATTERNS", () => {
 
   it("each entry is [RegExp, string]", () => {
     for (const [pattern, label] of perm.SAFE_BASH_PATTERNS) {
-      assert.ok(pattern instanceof RegExp, `Expected RegExp, got ${typeof pattern}`);
-      assert.equal(typeof label, "string", `Expected string label, got ${typeof label}`);
+      assert.ok(
+        pattern instanceof RegExp,
+        `Expected RegExp, got ${typeof pattern}`,
+      );
+      assert.equal(
+        typeof label,
+        "string",
+        `Expected string label, got ${typeof label}`,
+      );
     }
   });
 
   it("all patterns have the i flag for case-insensitive matching", () => {
     for (const [pattern] of perm.SAFE_BASH_PATTERNS) {
-      assert.ok(pattern.flags.includes("i"), `Pattern ${pattern} missing i flag`);
+      assert.ok(
+        pattern.flags.includes("i"),
+        `Pattern ${pattern} missing i flag`,
+      );
     }
   });
 
   it("all patterns are anchored with ^", () => {
     for (const [pattern] of perm.SAFE_BASH_PATTERNS) {
-      assert.ok(pattern.source.startsWith("^"), `Pattern ${pattern} not anchored with ^`);
+      assert.ok(
+        pattern.source.startsWith("^"),
+        `Pattern ${pattern} not anchored with ^`,
+      );
     }
   });
 });
@@ -302,11 +315,15 @@ describe("describeOperation — Edit/Write", () => {
   it("Edit shows file path", () => {
     const result = perm.describeOperation("Edit", { file_path: "/foo/bar.js" });
     assert.ok(result.includes("/foo/bar.js"));
-    assert.ok(result.includes("\u7DE8\u96C6") || result.includes("\u4F5C\u6210"));
+    assert.ok(
+      result.includes("\u7DE8\u96C6") || result.includes("\u4F5C\u6210"),
+    );
   });
 
   it("Write shows file path", () => {
-    const result = perm.describeOperation("Write", { file_path: "/baz/qux.ts" });
+    const result = perm.describeOperation("Write", {
+      file_path: "/baz/qux.ts",
+    });
     assert.ok(result.includes("/baz/qux.ts"));
   });
 
@@ -343,7 +360,9 @@ describe("describeOperation — Glob/Grep", () => {
 
 describe("describeOperation — WebFetch/WebSearch", () => {
   it("WebFetch shows URL", () => {
-    const result = perm.describeOperation("WebFetch", { url: "https://example.com/page" });
+    const result = perm.describeOperation("WebFetch", {
+      url: "https://example.com/page",
+    });
     assert.ok(result.includes("example.com"));
     assert.ok(result.includes("\u53D6\u5F97"));
   });
@@ -357,9 +376,13 @@ describe("describeOperation — WebFetch/WebSearch", () => {
 
 describe("describeOperation — Task", () => {
   it("Task shows subagent description", () => {
-    const result = perm.describeOperation("Task", { description: "analyze code" });
+    const result = perm.describeOperation("Task", {
+      description: "analyze code",
+    });
     assert.ok(result.includes("analyze code"));
-    assert.ok(result.includes("\u30B5\u30D6\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8"));
+    assert.ok(
+      result.includes("\u30B5\u30D6\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8"),
+    );
   });
 });
 
@@ -397,13 +420,17 @@ describe("classifyOperation — safe tools", () => {
 
 describe("classifyOperation — Bash", () => {
   it("safe Bash command is classified as safe", () => {
-    const [cls, reason] = perm.classifyOperation("Bash", { command: "git status" });
+    const [cls, reason] = perm.classifyOperation("Bash", {
+      command: "git status",
+    });
     assert.equal(cls, "safe");
     assert.ok(reason.length > 0);
   });
 
   it("unsafe Bash command is classified as unknown", () => {
-    const [cls, reason] = perm.classifyOperation("Bash", { command: "curl http://example.com" });
+    const [cls, reason] = perm.classifyOperation("Bash", {
+      command: "curl http://example.com",
+    });
     assert.equal(cls, "unknown");
     assert.ok(reason.length > 0);
   });
@@ -422,7 +449,9 @@ describe("classifyOperation — Bash", () => {
 describe("classifyOperation — Edit/Write", () => {
   it("Edit/Write delegates to isPathInScope", () => {
     // Result depends on session scope state; verify it returns a valid classification
-    const [cls, reason] = perm.classifyOperation("Edit", { file_path: "/some/path.js" });
+    const [cls, reason] = perm.classifyOperation("Edit", {
+      file_path: "/some/path.js",
+    });
     assert.ok(cls === "safe" || cls === "unknown");
     assert.ok(reason.length > 0);
   });
@@ -432,12 +461,16 @@ describe("classifyOperation — Edit/Write", () => {
     const [cls] = perm.classifyOperation("Edit", {
       file_path: ".claude/hooks/tobari-permission.js",
     });
-    assert.ok(cls === "safe" || cls === "unknown",
-      `Expected 'safe' or 'unknown', got '${cls}'`);
+    assert.ok(
+      cls === "safe" || cls === "unknown",
+      `Expected 'safe' or 'unknown', got '${cls}'`,
+    );
   });
 
   it("Write with file_path is classified", () => {
-    const [cls] = perm.classifyOperation("Write", { file_path: "/some/file.txt" });
+    const [cls] = perm.classifyOperation("Write", {
+      file_path: "/some/file.txt",
+    });
     assert.ok(cls === "safe" || cls === "unknown");
   });
 
@@ -447,7 +480,9 @@ describe("classifyOperation — Edit/Write", () => {
   });
 
   it("NotebookEdit with notebook_path is classified", () => {
-    const [cls] = perm.classifyOperation("NotebookEdit", { notebook_path: "/nb.ipynb" });
+    const [cls] = perm.classifyOperation("NotebookEdit", {
+      notebook_path: "/nb.ipynb",
+    });
     assert.ok(cls === "safe" || cls === "unknown");
   });
 });
@@ -460,7 +495,9 @@ describe("classifyOperation — unknown tools", () => {
   });
 
   it("WebFetch is unknown (not in safe list)", () => {
-    const [cls] = perm.classifyOperation("WebFetch", { url: "https://example.com" });
+    const [cls] = perm.classifyOperation("WebFetch", {
+      url: "https://example.com",
+    });
     assert.equal(cls, "unknown");
   });
 
@@ -472,44 +509,92 @@ describe("classifyOperation — unknown tools", () => {
 
 describe("makeSystemMessage", () => {
   it("returns a string", () => {
-    const msg = perm.makeSystemMessage("Bash", { command: "curl http://x" }, "\u7406\u7531", "TASK-082", "strict");
+    const msg = perm.makeSystemMessage(
+      "Bash",
+      { command: "curl http://x" },
+      "\u7406\u7531",
+      "TASK-082",
+      "strict",
+    );
     assert.equal(typeof msg, "string");
   });
 
   it("contains the task name", () => {
-    const msg = perm.makeSystemMessage("Bash", { command: "test" }, "reason", "TASK-099", "standard");
+    const msg = perm.makeSystemMessage(
+      "Bash",
+      { command: "test" },
+      "reason",
+      "TASK-099",
+      "standard",
+    );
     assert.ok(msg.includes("TASK-099"));
   });
 
   it("contains the profile", () => {
-    const msg = perm.makeSystemMessage("Bash", { command: "test" }, "reason", "TASK-099", "strict");
+    const msg = perm.makeSystemMessage(
+      "Bash",
+      { command: "test" },
+      "reason",
+      "TASK-099",
+      "strict",
+    );
     assert.ok(msg.includes("strict"));
   });
 
   it("contains the reason", () => {
-    const msg = perm.makeSystemMessage("Bash", { command: "test" }, "\u5B89\u5168\u30D1\u30BF\u30FC\u30F3\u5916", "TASK-099", "standard");
+    const msg = perm.makeSystemMessage(
+      "Bash",
+      { command: "test" },
+      "\u5B89\u5168\u30D1\u30BF\u30FC\u30F3\u5916",
+      "TASK-099",
+      "standard",
+    );
     assert.ok(msg.includes("\u5B89\u5168\u30D1\u30BF\u30FC\u30F3\u5916"));
   });
 
   it("contains Japanese text (kanji/hiragana)", () => {
-    const msg = perm.makeSystemMessage("Edit", { file_path: "/f.js" }, "r", "T", "lite");
+    const msg = perm.makeSystemMessage(
+      "Edit",
+      { file_path: "/f.js" },
+      "r",
+      "T",
+      "lite",
+    );
     // Should contain Japanese characters (profile label, instructions)
     assert.ok(msg.includes("\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB"));
     assert.ok(msg.includes("\u7406\u7531"));
   });
 
   it("contains the tobari veil emoji prefix", () => {
-    const msg = perm.makeSystemMessage("Bash", { command: "x" }, "r", "T", "standard");
+    const msg = perm.makeSystemMessage(
+      "Bash",
+      { command: "x" },
+      "r",
+      "T",
+      "standard",
+    );
     assert.ok(msg.includes("\uD83C\uDFAD"));
   });
 
   it("contains the operation description from describeOperation", () => {
-    const msg = perm.makeSystemMessage("Bash", { command: "curl http://api.example.com" }, "r", "T", "standard");
+    const msg = perm.makeSystemMessage(
+      "Bash",
+      { command: "curl http://api.example.com" },
+      "r",
+      "T",
+      "standard",
+    );
     assert.ok(msg.includes("curl"));
   });
 
   it("contains updatedPermissions guidance text", () => {
-    const msg = perm.makeSystemMessage("Bash", { command: "x" }, "r", "T", "standard");
+    const msg = perm.makeSystemMessage(
+      "Bash",
+      { command: "x" },
+      "r",
+      "T",
+      "standard",
+    );
     assert.ok(msg.includes("\u5E38\u306B\u8A31\u53EF"));
   });
 });
@@ -524,7 +609,11 @@ describe("module exports completeness", () => {
       "handler",
     ];
     for (const fn of expectedFunctions) {
-      assert.equal(typeof perm[fn], "function", `Missing function export: ${fn}`);
+      assert.equal(
+        typeof perm[fn],
+        "function",
+        `Missing function export: ${fn}`,
+      );
     }
   });
 

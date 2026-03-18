@@ -14,11 +14,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const {
-  loadSession,
-  writeEvidence,
-  runHook,
-} = require("./tobari-session.js");
+const { loadSession, writeEvidence, runHook } = require("./tobari-session.js");
 
 const WORK_LOG_BASE_DIR = ".claude/logs/agent-teams";
 
@@ -61,25 +57,25 @@ function buildActiveFeedback(sess, teamName, teammateName, workLogDirExists) {
   parts.push(`[tobari] Current task: ${task}. Evidence has been recorded.`);
   parts.push(
     "Before going idle: " +
-    "(1) Check the shared task list for pending tasks. " +
-    "If all tasks are complete, verify results."
+      "(1) Check the shared task list for pending tasks. " +
+      "If all tasks are complete, verify results.",
   );
 
   if (!workLogDirExists) {
     parts.push(
       `(2) IMPORTANT: The work log directory .claude/logs/agent-teams/${tn}/ ` +
-      "does not exist yet. Create it and write your work log to " +
-      `.claude/logs/agent-teams/${tn}/${mn}.md. ` +
-      "The work log must include: Summary, Tasks Completed, Files Modified, " +
-      "Key Decisions, Communication with Teammates, and Issues Encountered."
+        "does not exist yet. Create it and write your work log to " +
+        `.claude/logs/agent-teams/${tn}/${mn}.md. ` +
+        "The work log must include: Summary, Tasks Completed, Files Modified, " +
+        "Key Decisions, Communication with Teammates, and Issues Encountered.",
     );
   } else {
     parts.push(
       "(2) IMPORTANT: Write your work log to " +
-      `.claude/logs/agent-teams/${tn}/${mn}.md` +
-      " if you have not done so yet. " +
-      "The work log must include: Summary, Tasks Completed, Files Modified, " +
-      "Key Decisions, Communication with Teammates, and Issues Encountered."
+        `.claude/logs/agent-teams/${tn}/${mn}.md` +
+        " if you have not done so yet. " +
+        "The work log must include: Summary, Tasks Completed, Files Modified, " +
+        "Key Decisions, Communication with Teammates, and Issues Encountered.",
     );
   }
 
@@ -138,7 +134,12 @@ function handler(data) {
 
     return {
       hookSpecificOutput: {
-        feedback: buildActiveFeedback(sess, teamName, teammateName, logDirExists),
+        feedback: buildActiveFeedback(
+          sess,
+          teamName,
+          teammateName,
+          logDirExists,
+        ),
       },
     };
   } catch (_) {

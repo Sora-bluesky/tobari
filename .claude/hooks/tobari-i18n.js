@@ -40,7 +40,7 @@ function _detectLang() {
     const sessionPath = path.resolve(
       process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, "..", ".."),
       ".claude",
-      "tobari-session.json"
+      "tobari-session.json",
     );
     if (fs.existsSync(sessionPath)) {
       const session = JSON.parse(fs.readFileSync(sessionPath, "utf8"));

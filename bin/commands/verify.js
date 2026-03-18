@@ -69,7 +69,11 @@ function checkNode() {
     printResult("pass", "Node.js 18+", `v${process.versions.node}`);
     return "pass";
   }
-  printResult("fail", "Node.js 18+", `v${process.versions.node} found, but 18+ required`);
+  printResult(
+    "fail",
+    "Node.js 18+",
+    `v${process.versions.node} found, but 18+ required`,
+  );
   return "fail";
 }
 
@@ -92,14 +96,14 @@ function checkHooksFiles(cwd) {
     printResult(
       "pass",
       "hooks files",
-      `${found}/${REQUIRED_HOOKS.length} present`
+      `${found}/${REQUIRED_HOOKS.length} present`,
     );
     return "pass";
   }
   printResult(
     "fail",
     "hooks files",
-    `${found}/${REQUIRED_HOOKS.length} present, missing: ${missing.join(", ")}`
+    `${found}/${REQUIRED_HOOKS.length} present, missing: ${missing.join(", ")}`,
   );
   return "fail";
 }
@@ -107,7 +111,11 @@ function checkHooksFiles(cwd) {
 function checkSettingsJson(cwd) {
   const settingsPath = path.join(cwd, ".claude", "settings.json");
   if (!fs.existsSync(settingsPath)) {
-    printResult("fail", "settings.json hooks", ".claude/settings.json not found");
+    printResult(
+      "fail",
+      "settings.json hooks",
+      ".claude/settings.json not found",
+    );
     return "fail";
   }
 
@@ -139,7 +147,7 @@ function checkSettingsJson(cwd) {
     printResult(
       "pass",
       "settings.json hooks",
-      `${REQUIRED_HOOK_TYPES.join(" / ")} configured`
+      `${REQUIRED_HOOK_TYPES.join(" / ")} configured`,
     );
     return "pass";
   }
@@ -178,14 +186,20 @@ function checkPrepareScript(cwd) {
     return "warn";
   }
 
-  if (pkg.scripts && pkg.scripts.prepare &&
-      pkg.scripts.prepare.includes("tobari sync")) {
+  if (
+    pkg.scripts &&
+    pkg.scripts.prepare &&
+    pkg.scripts.prepare.includes("tobari sync")
+  ) {
     printResult("pass", "prepare script", '"tobari sync" in scripts.prepare');
     return "pass";
   }
 
-  printResult("warn", "prepare script",
-    'scripts.prepare does not include "tobari sync"');
+  printResult(
+    "warn",
+    "prepare script",
+    'scripts.prepare does not include "tobari sync"',
+  );
   return "warn";
 }
 

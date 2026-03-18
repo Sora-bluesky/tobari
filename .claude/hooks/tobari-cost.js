@@ -26,9 +26,9 @@ const CHARS_PER_TOKEN_ASCII = 4;
 const CHARS_PER_TOKEN_CJK = 1.5;
 
 // Budget thresholds
-const THRESHOLD_LOG = 0.50;
-const THRESHOLD_WARN = 0.80;
-const THRESHOLD_STOP = 1.00;
+const THRESHOLD_LOG = 0.5;
+const THRESHOLD_WARN = 0.8;
+const THRESHOLD_STOP = 1.0;
 
 /**
  * Estimate token count from text using CJK-weighted average.
@@ -48,7 +48,7 @@ function _estimateTokensFromText(text) {
       (cp >= 0x3040 && cp <= 0x309f) || // Hiragana
       (cp >= 0x30a0 && cp <= 0x30ff) || // Katakana
       (cp >= 0x3400 && cp <= 0x4dbf) || // CJK Extension A
-      (cp >= 0xac00 && cp <= 0xd7af)    // Hangul
+      (cp >= 0xac00 && cp <= 0xd7af) // Hangul
     ) {
       cjkCount++;
     }

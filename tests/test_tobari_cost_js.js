@@ -33,15 +33,15 @@ describe("Constants", () => {
   });
 
   it("C3: THRESHOLD_LOG is 0.50", () => {
-    assert.equal(cost.THRESHOLD_LOG, 0.50);
+    assert.equal(cost.THRESHOLD_LOG, 0.5);
   });
 
   it("C4: THRESHOLD_WARN is 0.80", () => {
-    assert.equal(cost.THRESHOLD_WARN, 0.80);
+    assert.equal(cost.THRESHOLD_WARN, 0.8);
   });
 
   it("C5: THRESHOLD_STOP is 1.00", () => {
-    assert.equal(cost.THRESHOLD_STOP, 1.00);
+    assert.equal(cost.THRESHOLD_STOP, 1.0);
   });
 });
 
@@ -127,7 +127,7 @@ describe("estimateTokens", () => {
     assert.ok(out >= 1, "output tokens should be >= 1");
     // Input is JSON.stringify of toolInput, output is the string content
     const expectedInput = cost._estimateTokensFromText(
-      JSON.stringify(toolInput)
+      JSON.stringify(toolInput),
     );
     const expectedOutput = cost._estimateTokensFromText(toolResponse.content);
     assert.equal(inp, expectedInput);
@@ -144,7 +144,7 @@ describe("estimateTokens", () => {
     assert.ok(out >= 1);
     // Array content should be JSON.stringify'd
     const expectedOutput = cost._estimateTokensFromText(
-      JSON.stringify(toolResponse.content)
+      JSON.stringify(toolResponse.content),
     );
     assert.equal(out, expectedOutput);
   });
@@ -218,7 +218,7 @@ describe("calcPercent", () => {
 describe("buildWarningMessage", () => {
   it("W1: below THRESHOLD_STOP returns warning message", () => {
     const usage = { input: 300000, output: 100000, budget: 500000 };
-    const msg = cost.buildWarningMessage(0.80, usage);
+    const msg = cost.buildWarningMessage(0.8, usage);
     // Should contain warning text (not exceeded)
     assert.ok(msg.includes("80.0%"), "should contain percentage");
     // Should mention remaining tokens
@@ -226,46 +226,46 @@ describe("buildWarningMessage", () => {
     // Should contain Japanese text about efficiency
     assert.ok(
       msg.includes("\u52b9\u7387\u7684"),
-      "should contain efficiency advice"
+      "should contain efficiency advice",
     );
   });
 
   it("W2: at THRESHOLD_STOP returns exceeded message", () => {
     const usage = { input: 300000, output: 200000, budget: 500000 };
-    const msg = cost.buildWarningMessage(1.00, usage);
+    const msg = cost.buildWarningMessage(1.0, usage);
     assert.ok(msg.includes("100.0%"), "should contain 100.0%");
     // Should contain exceeded text about completing session
     assert.ok(
       msg.includes("\u4e0a\u9650"),
-      "should contain exceeded indicator"
+      "should contain exceeded indicator",
     );
     assert.ok(
       msg.includes("\u30bb\u30c3\u30b7\u30e7\u30f3"),
-      "should mention session"
+      "should mention session",
     );
   });
 
   it("W3: above THRESHOLD_STOP returns exceeded message", () => {
     const usage = { input: 400000, output: 300000, budget: 500000 };
-    const msg = cost.buildWarningMessage(1.40, usage);
+    const msg = cost.buildWarningMessage(1.4, usage);
     assert.ok(msg.includes("140.0%"), "should contain 140.0%");
     assert.ok(
       msg.includes("\u4e0a\u9650"),
-      "should contain exceeded indicator"
+      "should contain exceeded indicator",
     );
   });
 
   it("W4: message contains Japanese text", () => {
     const usage = { input: 200000, output: 200000, budget: 500000 };
-    const msg = cost.buildWarningMessage(0.80, usage);
+    const msg = cost.buildWarningMessage(0.8, usage);
     // Should contain at least some Japanese characters
     assert.ok(
       msg.includes("\u30c8\u30fc\u30af\u30f3"),
-      "should contain the word 'token' in Japanese"
+      "should contain the word 'token' in Japanese",
     );
     assert.ok(
       msg.includes("\u4e88\u7b97"),
-      "should contain the word 'budget' in Japanese"
+      "should contain the word 'budget' in Japanese",
     );
   });
 });
@@ -307,7 +307,7 @@ describe("Module exports", () => {
     for (const name of expectedExports) {
       assert.ok(
         name in cost,
-        `expected export '${name}' should exist in module`
+        `expected export '${name}' should exist in module`,
       );
     }
 

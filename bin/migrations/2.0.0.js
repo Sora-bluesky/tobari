@@ -106,8 +106,8 @@ function updateGitignore(cwd) {
   }
 
   if (newEntries.length > 0) {
-    const section = "\n# tobari v2.0.0 runtime artifacts\n" +
-      newEntries.join("\n") + "\n";
+    const section =
+      "\n# tobari v2.0.0 runtime artifacts\n" + newEntries.join("\n") + "\n";
     fs.writeFileSync(gitignorePath, content.trimEnd() + section);
   }
 
@@ -121,7 +121,9 @@ function updateGitignore(cwd) {
 function run(cwd) {
   const removed = removePythonHooks(cwd);
   if (removed.length > 0) {
-    console.log(`    Removed ${removed.length} Python hook(s): ${removed.join(", ")}`);
+    console.log(
+      `    Removed ${removed.length} Python hook(s): ${removed.join(", ")}`,
+    );
   }
 
   const added = updateGitignore(cwd);

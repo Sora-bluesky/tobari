@@ -26,7 +26,7 @@ const session = require("../.claude/hooks/tobari-session.js");
 
 function createTmpDir() {
   return fs.mkdtempSync(
-    path.join(os.tmpdir(), "tobari-evidence-failure-test-")
+    path.join(os.tmpdir(), "tobari-evidence-failure-test-"),
   );
 }
 
@@ -220,14 +220,11 @@ describe("handler", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
     assert.ok(fs.existsSync(ledgerPath));
 
-    const lines = fs
-      .readFileSync(ledgerPath, "utf-8")
-      .trim()
-      .split("\n");
+    const lines = fs.readFileSync(ledgerPath, "utf-8").trim().split("\n");
     assert.ok(lines.length >= 1);
     const entry = JSON.parse(lines[lines.length - 1]);
     assert.strictEqual(entry.event, "tool_failed");
@@ -251,12 +248,9 @@ describe("handler", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
-    const lines = fs
-      .readFileSync(ledgerPath, "utf-8")
-      .trim()
-      .split("\n");
+    const lines = fs.readFileSync(ledgerPath, "utf-8").trim().split("\n");
     const entry = JSON.parse(lines[lines.length - 1]);
     assert.strictEqual(entry.profile, "strict");
   });
@@ -275,12 +269,9 @@ describe("handler", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
-    const lines = fs
-      .readFileSync(ledgerPath, "utf-8")
-      .trim()
-      .split("\n");
+    const lines = fs.readFileSync(ledgerPath, "utf-8").trim().split("\n");
     const entry = JSON.parse(lines[lines.length - 1]);
     assert.strictEqual(entry.tool_name, "Edit");
     assert.strictEqual(entry.input_summary.file_path, "/path/to/file.py");
@@ -323,12 +314,9 @@ describe("Edge cases", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
-    const lines = fs
-      .readFileSync(ledgerPath, "utf-8")
-      .trim()
-      .split("\n");
+    const lines = fs.readFileSync(ledgerPath, "utf-8").trim().split("\n");
     const entry = JSON.parse(lines[lines.length - 1]);
     assert.strictEqual(entry.error, "");
   });
@@ -343,12 +331,9 @@ describe("Edge cases", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
-    const lines = fs
-      .readFileSync(ledgerPath, "utf-8")
-      .trim()
-      .split("\n");
+    const lines = fs.readFileSync(ledgerPath, "utf-8").trim().split("\n");
     const entry = JSON.parse(lines[lines.length - 1]);
     assert.strictEqual(entry.event, "tool_failed");
     assert.strictEqual(entry.tool_name, "unknown");

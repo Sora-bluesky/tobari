@@ -43,7 +43,9 @@ function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
   } else {
-    try { fs.unlinkSync(SESSION_PATH); } catch {}
+    try {
+      fs.unlinkSync(SESSION_PATH);
+    } catch {}
   }
   tobariSession._resetCache();
 }
@@ -113,14 +115,19 @@ function gateCallMainThread(toolName, toolInput) {
  * Assert that a gate result is a policy denial.
  */
 function assertPolicyDenial(result, message) {
-  assert.ok(result !== null, message || "Expected denial, got null (pass-through)");
+  assert.ok(
+    result !== null,
+    message || "Expected denial, got null (pass-through)",
+  );
   assert.strictEqual(
     result.hookSpecificOutput.permissionDecision,
     "deny",
     message || "Expected deny decision",
   );
   assert.ok(
-    result.hookSpecificOutput.additionalContext.includes("エージェントポリシー違反"),
+    result.hookSpecificOutput.additionalContext.includes(
+      "エージェントポリシー違反",
+    ),
     message || "Expected agent policy violation message",
   );
 }
@@ -131,7 +138,9 @@ function assertPolicyDenial(result, message) {
 function assertNotPolicyDenial(result, message) {
   if (result === null) return; // pass-through is fine
   assert.ok(
-    !result.hookSpecificOutput.additionalContext.includes("エージェントポリシー違反"),
+    !result.hookSpecificOutput.additionalContext.includes(
+      "エージェントポリシー違反",
+    ),
     message || "Should not be blocked by agent policy",
   );
 }
@@ -142,7 +151,11 @@ function assertNotPolicyDenial(result, message) {
 
 describe("C6-1: Basic policy enforcement", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -152,11 +165,15 @@ describe("C6-1: Basic policy enforcement", () => {
   it("Explore agent denied Edit tool", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("Edit", {
-      file_path: path.join(PROJECT_DIR, "tests", "x.js"),
-      old_string: "a",
-      new_string: "b",
-    }, "Explore");
+    const result = gateCallWithAgent(
+      "Edit",
+      {
+        file_path: path.join(PROJECT_DIR, "tests", "x.js"),
+        old_string: "a",
+        new_string: "b",
+      },
+      "Explore",
+    );
 
     assertPolicyDenial(result);
   });
@@ -164,10 +181,14 @@ describe("C6-1: Basic policy enforcement", () => {
   it("Explore agent denied Write tool", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("Write", {
-      file_path: path.join(PROJECT_DIR, "tests", "x.js"),
-      content: "test content",
-    }, "Explore");
+    const result = gateCallWithAgent(
+      "Write",
+      {
+        file_path: path.join(PROJECT_DIR, "tests", "x.js"),
+        content: "test content",
+      },
+      "Explore",
+    );
 
     assertPolicyDenial(result);
   });
@@ -175,9 +196,13 @@ describe("C6-1: Basic policy enforcement", () => {
   it("Explore agent denied Bash tool", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("Bash", {
-      command: "echo hello",
-    }, "Explore");
+    const result = gateCallWithAgent(
+      "Bash",
+      {
+        command: "echo hello",
+      },
+      "Explore",
+    );
 
     assertPolicyDenial(result);
   });
@@ -185,20 +210,32 @@ describe("C6-1: Basic policy enforcement", () => {
   it("Explore agent allowed Read tool", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("Read", {
-      file_path: path.join(PROJECT_DIR, "tests", "x.js"),
-    }, "Explore");
+    const result = gateCallWithAgent(
+      "Read",
+      {
+        file_path: path.join(PROJECT_DIR, "tests", "x.js"),
+      },
+      "Explore",
+    );
 
     // Read should pass through (null = allowed)
-    assert.strictEqual(result, null, "Read should be allowed for Explore agent");
+    assert.strictEqual(
+      result,
+      null,
+      "Read should be allowed for Explore agent",
+    );
   });
 
   it("Plan agent denied Bash tool", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("Bash", {
-      command: "echo hello",
-    }, "Plan");
+    const result = gateCallWithAgent(
+      "Bash",
+      {
+        command: "echo hello",
+      },
+      "Plan",
+    );
 
     assertPolicyDenial(result);
   });
@@ -206,9 +243,13 @@ describe("C6-1: Basic policy enforcement", () => {
   it("Plan agent allowed Grep tool", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("Grep", {
-      pattern: "test",
-    }, "Plan");
+    const result = gateCallWithAgent(
+      "Grep",
+      {
+        pattern: "test",
+      },
+      "Plan",
+    );
 
     assert.strictEqual(result, null, "Grep should be allowed for Plan agent");
   });
@@ -220,7 +261,11 @@ describe("C6-1: Basic policy enforcement", () => {
 
 describe("C6-2: Privilege escalation attempts", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -234,14 +279,26 @@ describe("C6-2: Privilege escalation attempts", () => {
     // agent types cannot bypass their restrictions.
     saveSession(makeBaseSession());
 
-    const permission = tobariSession.checkAgentToolPermission("default", "Bash");
-    assert.strictEqual(permission.allowed, true,
-      "default policy allows all tools (by design)");
+    const permission = tobariSession.checkAgentToolPermission(
+      "default",
+      "Bash",
+    );
+    assert.strictEqual(
+      permission.allowed,
+      true,
+      "default policy allows all tools (by design)",
+    );
 
     // But this does NOT let an Explore agent bypass by claiming "default"
-    const exploreResult = tobariSession.checkAgentToolPermission("Explore", "Bash");
-    assert.strictEqual(exploreResult.allowed, false,
-      "Explore agent cannot use Bash regardless of default policy");
+    const exploreResult = tobariSession.checkAgentToolPermission(
+      "Explore",
+      "Bash",
+    );
+    assert.strictEqual(
+      exploreResult.allowed,
+      false,
+      "Explore agent cannot use Bash regardless of default policy",
+    );
   });
 
   it("agent with empty string type skips policy check (main thread behavior)", () => {
@@ -284,14 +341,24 @@ describe("C6-2: Privilege escalation attempts", () => {
     saveSession(makeBaseSession());
 
     // "MaliciousAgent" has no policy defined — falls back to "default"
-    const permission = tobariSession.checkAgentToolPermission("MaliciousAgent", "Bash");
-    assert.strictEqual(permission.allowed, true,
-      "Unknown type falls back to default (wildcard)");
+    const permission = tobariSession.checkAgentToolPermission(
+      "MaliciousAgent",
+      "Bash",
+    );
+    assert.strictEqual(
+      permission.allowed,
+      true,
+      "Unknown type falls back to default (wildcard)",
+    );
 
     // When default policy is restrictive, unknown agents are also restricted
     const restrictiveSession = makeBaseSession({
       agent_policies: {
-        default: { allowed_tools: ["Read"], denied_tools: ["Bash"], scope_override: null },
+        default: {
+          allowed_tools: ["Read"],
+          denied_tools: ["Bash"],
+          scope_override: null,
+        },
         Explore: {
           allowed_tools: ["Read", "Grep", "Glob"],
           denied_tools: ["Edit", "Write", "Bash", "NotebookEdit"],
@@ -301,9 +368,15 @@ describe("C6-2: Privilege escalation attempts", () => {
     });
     saveSession(restrictiveSession);
 
-    const restrictedResult = tobariSession.checkAgentToolPermission("MaliciousAgent", "Bash");
-    assert.strictEqual(restrictedResult.allowed, false,
-      "Unknown type with restrictive default is denied Bash");
+    const restrictedResult = tobariSession.checkAgentToolPermission(
+      "MaliciousAgent",
+      "Bash",
+    );
+    assert.strictEqual(
+      restrictedResult.allowed,
+      false,
+      "Unknown type with restrictive default is denied Bash",
+    );
   });
 });
 
@@ -313,7 +386,11 @@ describe("C6-2: Privilege escalation attempts", () => {
 
 describe("C6-3: Policy manipulation", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -331,11 +408,15 @@ describe("C6-3: Policy manipulation", () => {
     assert.strictEqual(policy.scope_override, null);
 
     // Gate should also pass through
-    const result = gateCallWithAgent("Edit", {
-      file_path: path.join(PROJECT_DIR, "tests", "x.js"),
-      old_string: "a",
-      new_string: "b",
-    }, "Explore");
+    const result = gateCallWithAgent(
+      "Edit",
+      {
+        file_path: path.join(PROJECT_DIR, "tests", "x.js"),
+        old_string: "a",
+        new_string: "b",
+      },
+      "Explore",
+    );
 
     assertNotPolicyDenial(result, "No policies = no agent policy blocking");
   });
@@ -350,28 +431,48 @@ describe("C6-3: Policy manipulation", () => {
   });
 
   it("denied_tools takes precedence when tool is in both allowed and denied", () => {
-    saveSession(makeBaseSession({
-      agent_policies: {
-        conflicting: {
-          allowed_tools: ["Read", "Bash", "Edit"],
-          denied_tools: ["Bash", "Edit"],
-          scope_override: null,
+    saveSession(
+      makeBaseSession({
+        agent_policies: {
+          conflicting: {
+            allowed_tools: ["Read", "Bash", "Edit"],
+            denied_tools: ["Bash", "Edit"],
+            scope_override: null,
+          },
         },
-      },
-    }));
+      }),
+    );
 
-    const bashResult = tobariSession.checkAgentToolPermission("conflicting", "Bash");
-    assert.strictEqual(bashResult.allowed, false,
-      "Bash in both lists — denied_tools wins");
+    const bashResult = tobariSession.checkAgentToolPermission(
+      "conflicting",
+      "Bash",
+    );
+    assert.strictEqual(
+      bashResult.allowed,
+      false,
+      "Bash in both lists — denied_tools wins",
+    );
 
-    const editResult = tobariSession.checkAgentToolPermission("conflicting", "Edit");
-    assert.strictEqual(editResult.allowed, false,
-      "Edit in both lists — denied_tools wins");
+    const editResult = tobariSession.checkAgentToolPermission(
+      "conflicting",
+      "Edit",
+    );
+    assert.strictEqual(
+      editResult.allowed,
+      false,
+      "Edit in both lists — denied_tools wins",
+    );
 
     // Read is only in allowed_tools, should be allowed
-    const readResult = tobariSession.checkAgentToolPermission("conflicting", "Read");
-    assert.strictEqual(readResult.allowed, true,
-      "Read only in allowed_tools — should be allowed");
+    const readResult = tobariSession.checkAgentToolPermission(
+      "conflicting",
+      "Read",
+    );
+    assert.strictEqual(
+      readResult.allowed,
+      true,
+      "Read only in allowed_tools — should be allowed",
+    );
   });
 });
 
@@ -381,7 +482,11 @@ describe("C6-3: Policy manipulation", () => {
 
 describe("C6-4: denied_tools precedence", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -389,76 +494,108 @@ describe("C6-4: denied_tools precedence", () => {
   });
 
   it("wildcard allowed + specific denied: denied tool is blocked", () => {
-    saveSession(makeBaseSession({
-      agent_policies: {
-        test_agent: {
-          allowed_tools: ["*"],
-          denied_tools: ["Bash"],
-          scope_override: null,
+    saveSession(
+      makeBaseSession({
+        agent_policies: {
+          test_agent: {
+            allowed_tools: ["*"],
+            denied_tools: ["Bash"],
+            scope_override: null,
+          },
         },
-      },
-    }));
+      }),
+    );
 
-    const bashResult = tobariSession.checkAgentToolPermission("test_agent", "Bash");
-    assert.strictEqual(bashResult.allowed, false,
-      "Bash denied even with wildcard allowed");
+    const bashResult = tobariSession.checkAgentToolPermission(
+      "test_agent",
+      "Bash",
+    );
+    assert.strictEqual(
+      bashResult.allowed,
+      false,
+      "Bash denied even with wildcard allowed",
+    );
 
     // Other tools should still be allowed
-    const readResult = tobariSession.checkAgentToolPermission("test_agent", "Read");
-    assert.strictEqual(readResult.allowed, true,
-      "Read should be allowed (not in denied_tools)");
+    const readResult = tobariSession.checkAgentToolPermission(
+      "test_agent",
+      "Read",
+    );
+    assert.strictEqual(
+      readResult.allowed,
+      true,
+      "Read should be allowed (not in denied_tools)",
+    );
   });
 
   it("explicit allowed + explicit denied for same tool: denied wins", () => {
-    saveSession(makeBaseSession({
-      agent_policies: {
-        test_agent: {
-          allowed_tools: ["Read", "Bash"],
-          denied_tools: ["Bash"],
-          scope_override: null,
+    saveSession(
+      makeBaseSession({
+        agent_policies: {
+          test_agent: {
+            allowed_tools: ["Read", "Bash"],
+            denied_tools: ["Bash"],
+            scope_override: null,
+          },
         },
-      },
-    }));
+      }),
+    );
 
     const result = tobariSession.checkAgentToolPermission("test_agent", "Bash");
-    assert.strictEqual(result.allowed, false,
-      "Bash explicitly in both lists — denied takes precedence");
+    assert.strictEqual(
+      result.allowed,
+      false,
+      "Bash explicitly in both lists — denied takes precedence",
+    );
   });
 
   it("empty allowed + empty denied: tool not in allowed_tools is denied", () => {
-    saveSession(makeBaseSession({
-      agent_policies: {
-        test_agent: {
-          allowed_tools: [],
-          denied_tools: [],
-          scope_override: null,
+    saveSession(
+      makeBaseSession({
+        agent_policies: {
+          test_agent: {
+            allowed_tools: [],
+            denied_tools: [],
+            scope_override: null,
+          },
         },
-      },
-    }));
+      }),
+    );
 
     // With empty allowed_tools (no wildcard), any tool should be denied
     const result = tobariSession.checkAgentToolPermission("test_agent", "Read");
-    assert.strictEqual(result.allowed, false,
-      "Empty allowed_tools (no wildcard) — Read should be denied");
+    assert.strictEqual(
+      result.allowed,
+      false,
+      "Empty allowed_tools (no wildcard) — Read should be denied",
+    );
   });
 
   it("gate handler respects denied_tools with wildcard allowed", () => {
-    saveSession(makeBaseSession({
-      agent_policies: {
-        RestrictedAgent: {
-          allowed_tools: ["*"],
-          denied_tools: ["Bash"],
-          scope_override: null,
+    saveSession(
+      makeBaseSession({
+        agent_policies: {
+          RestrictedAgent: {
+            allowed_tools: ["*"],
+            denied_tools: ["Bash"],
+            scope_override: null,
+          },
         },
+      }),
+    );
+
+    const result = gateCallWithAgent(
+      "Bash",
+      {
+        command: "echo safe",
       },
-    }));
+      "RestrictedAgent",
+    );
 
-    const result = gateCallWithAgent("Bash", {
-      command: "echo safe",
-    }, "RestrictedAgent");
-
-    assertPolicyDenial(result,
-      "Gate should deny Bash for RestrictedAgent despite wildcard allowed");
+    assertPolicyDenial(
+      result,
+      "Gate should deny Bash for RestrictedAgent despite wildcard allowed",
+    );
   });
 });
 
@@ -468,7 +605,11 @@ describe("C6-4: denied_tools precedence", () => {
 
 describe("C6-5: Edge cases", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -482,8 +623,11 @@ describe("C6-5: Edge cases", () => {
     const policy = tobariSession.getAgentPolicy(longType);
 
     // Should fall back to default policy (no matching key)
-    assert.deepStrictEqual(policy.allowed_tools, ["*"],
-      "Very long agent type should fall back to default policy");
+    assert.deepStrictEqual(
+      policy.allowed_tools,
+      ["*"],
+      "Very long agent type should fall back to default policy",
+    );
   });
 
   it("agent type with special characters falls back to default", () => {
@@ -500,60 +644,88 @@ describe("C6-5: Edge cases", () => {
     for (const specialType of specialTypes) {
       const policy = tobariSession.getAgentPolicy(specialType);
       // Should not crash and should fall back to default
-      assert.deepStrictEqual(policy.allowed_tools, ["*"],
-        `Special type "${specialType.slice(0, 30)}" should fall back to default`);
+      assert.deepStrictEqual(
+        policy.allowed_tools,
+        ["*"],
+        `Special type "${specialType.slice(0, 30)}" should fall back to default`,
+      );
     }
   });
 
   it("policy with null in denied_tools array does not crash", () => {
     // Simulate malformed policy with null entries in arrays
-    saveSession(makeBaseSession({
-      agent_policies: {
-        Malformed: {
-          allowed_tools: ["Read", null, "Grep"],
-          denied_tools: [null, "Bash"],
-          scope_override: null,
+    saveSession(
+      makeBaseSession({
+        agent_policies: {
+          Malformed: {
+            allowed_tools: ["Read", null, "Grep"],
+            denied_tools: [null, "Bash"],
+            scope_override: null,
+          },
         },
-      },
-    }));
+      }),
+    );
 
     // Should not throw; denied_tools.includes("Bash") should still work
     const result = tobariSession.checkAgentToolPermission("Malformed", "Bash");
-    assert.strictEqual(result.allowed, false,
-      "Bash should still be denied despite null entries in array");
+    assert.strictEqual(
+      result.allowed,
+      false,
+      "Bash should still be denied despite null entries in array",
+    );
   });
 
   it("policy with undefined values returns safe defaults", () => {
     // Policy object with undefined fields — getAgentPolicy should fill defaults
-    saveSession(makeBaseSession({
-      agent_policies: {
-        Sparse: {
-          // allowed_tools and denied_tools intentionally missing
-          scope_override: null,
+    saveSession(
+      makeBaseSession({
+        agent_policies: {
+          Sparse: {
+            // allowed_tools and denied_tools intentionally missing
+            scope_override: null,
+          },
         },
-      },
-    }));
+      }),
+    );
 
     const policy = tobariSession.getAgentPolicy("Sparse");
-    assert.deepStrictEqual(policy.allowed_tools, ["*"],
-      "Missing allowed_tools defaults to wildcard");
-    assert.deepStrictEqual(policy.denied_tools, [],
-      "Missing denied_tools defaults to empty array");
+    assert.deepStrictEqual(
+      policy.allowed_tools,
+      ["*"],
+      "Missing allowed_tools defaults to wildcard",
+    );
+    assert.deepStrictEqual(
+      policy.denied_tools,
+      [],
+      "Missing denied_tools defaults to empty array",
+    );
   });
 
   it("main thread bypasses all agent policy checks via gate", () => {
     // Even with very restrictive agent policies, main thread is unaffected
-    saveSession(makeBaseSession({
-      agent_policies: {
-        default: { allowed_tools: [], denied_tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"], scope_override: null },
-        Explore: { allowed_tools: [], denied_tools: ["Read", "Edit", "Write", "Bash"], scope_override: null },
-      },
-    }));
+    saveSession(
+      makeBaseSession({
+        agent_policies: {
+          default: {
+            allowed_tools: [],
+            denied_tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"],
+            scope_override: null,
+          },
+          Explore: {
+            allowed_tools: [],
+            denied_tools: ["Read", "Edit", "Write", "Bash"],
+            scope_override: null,
+          },
+        },
+      }),
+    );
 
     // Main thread (no agent_type) should pass through agent policy check
     const result = gateCallMainThread("Bash", { command: "echo hello" });
-    assertNotPolicyDenial(result,
-      "Main thread should never be blocked by agent policy");
+    assertNotPolicyDenial(
+      result,
+      "Main thread should never be blocked by agent policy",
+    );
   });
 });
 
@@ -563,7 +735,11 @@ describe("C6-5: Edge cases", () => {
 
 describe("C6-6: Gate integration — deny response structure", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -573,11 +749,15 @@ describe("C6-6: Gate integration — deny response structure", () => {
   it("deny response includes correct hook event name", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("Edit", {
-      file_path: path.join(PROJECT_DIR, "tests", "x.js"),
-      old_string: "a",
-      new_string: "b",
-    }, "Explore");
+    const result = gateCallWithAgent(
+      "Edit",
+      {
+        file_path: path.join(PROJECT_DIR, "tests", "x.js"),
+        old_string: "a",
+        new_string: "b",
+      },
+      "Explore",
+    );
 
     assert.ok(result !== null);
     assert.strictEqual(result.hookSpecificOutput.hookEventName, "PreToolUse");
@@ -587,26 +767,38 @@ describe("C6-6: Gate integration — deny response structure", () => {
   it("deny response mentions the agent type in context", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("Bash", {
-      command: "echo hello",
-    }, "Plan");
+    const result = gateCallWithAgent(
+      "Bash",
+      {
+        command: "echo hello",
+      },
+      "Plan",
+    );
 
     assert.ok(result !== null);
     const context = result.hookSpecificOutput.additionalContext;
-    assert.ok(context.includes("Plan"),
-      "Deny context should mention the agent type");
+    assert.ok(
+      context.includes("Plan"),
+      "Deny context should mention the agent type",
+    );
   });
 
   it("NotebookEdit denied for Explore agent", () => {
     saveSession(makeBaseSession());
 
-    const result = gateCallWithAgent("NotebookEdit", {
-      notebook_path: path.join(PROJECT_DIR, "tests", "notebook.ipynb"),
-      new_source: "print('hello')",
-    }, "Explore");
+    const result = gateCallWithAgent(
+      "NotebookEdit",
+      {
+        notebook_path: path.join(PROJECT_DIR, "tests", "notebook.ipynb"),
+        new_source: "print('hello')",
+      },
+      "Explore",
+    );
 
-    assertPolicyDenial(result,
-      "NotebookEdit should be denied for Explore agent");
+    assertPolicyDenial(
+      result,
+      "NotebookEdit should be denied for Explore agent",
+    );
   });
 
   it("multiple denied tools all produce policy denial", () => {
@@ -615,17 +807,27 @@ describe("C6-6: Gate integration — deny response structure", () => {
     const deniedToolsForExplore = ["Edit", "Write", "Bash", "NotebookEdit"];
 
     for (const tool of deniedToolsForExplore) {
-      const toolInput = tool === "Bash"
-        ? { command: "echo test" }
-        : tool === "NotebookEdit"
-          ? { notebook_path: path.join(PROJECT_DIR, "tests", "nb.ipynb"), new_source: "x" }
-          : tool === "Write"
-            ? { file_path: path.join(PROJECT_DIR, "tests", "x.js"), content: "x" }
-            : { file_path: path.join(PROJECT_DIR, "tests", "x.js"), old_string: "a", new_string: "b" };
+      const toolInput =
+        tool === "Bash"
+          ? { command: "echo test" }
+          : tool === "NotebookEdit"
+            ? {
+                notebook_path: path.join(PROJECT_DIR, "tests", "nb.ipynb"),
+                new_source: "x",
+              }
+            : tool === "Write"
+              ? {
+                  file_path: path.join(PROJECT_DIR, "tests", "x.js"),
+                  content: "x",
+                }
+              : {
+                  file_path: path.join(PROJECT_DIR, "tests", "x.js"),
+                  old_string: "a",
+                  new_string: "b",
+                };
 
       const result = gateCallWithAgent(tool, toolInput, "Explore");
-      assertPolicyDenial(result,
-        `${tool} should be denied for Explore agent`);
+      assertPolicyDenial(result, `${tool} should be denied for Explore agent`);
     }
   });
 });
@@ -636,7 +838,11 @@ describe("C6-6: Gate integration — deny response structure", () => {
 
 describe("C6-7: Cross-agent isolation", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -647,18 +853,31 @@ describe("C6-7: Cross-agent isolation", () => {
     saveSession(makeBaseSession());
 
     // WebSearch is allowed for Plan but not in Explore's allowed_tools
-    const planResult = gateCallWithAgent("WebSearch", {
-      query: "test",
-    }, "Plan");
-    assert.strictEqual(planResult, null,
-      "WebSearch should be allowed for Plan");
+    const planResult = gateCallWithAgent(
+      "WebSearch",
+      {
+        query: "test",
+      },
+      "Plan",
+    );
+    assert.strictEqual(
+      planResult,
+      null,
+      "WebSearch should be allowed for Plan",
+    );
 
     // WebSearch is not in Explore's allowed_tools
-    const exploreResult = gateCallWithAgent("WebSearch", {
-      query: "test",
-    }, "Explore");
-    assertPolicyDenial(exploreResult,
-      "WebSearch should be denied for Explore (not in allowed_tools)");
+    const exploreResult = gateCallWithAgent(
+      "WebSearch",
+      {
+        query: "test",
+      },
+      "Explore",
+    );
+    assertPolicyDenial(
+      exploreResult,
+      "WebSearch should be denied for Explore (not in allowed_tools)",
+    );
   });
 
   it("different agent IDs with same type get same policy", () => {
@@ -667,20 +886,35 @@ describe("C6-7: Cross-agent isolation", () => {
     const result1 = tobariSession.checkAgentToolPermission("Explore", "Edit");
     const result2 = tobariSession.checkAgentToolPermission("Explore", "Edit");
 
-    assert.strictEqual(result1.allowed, result2.allowed,
-      "Same agent type should get same policy regardless of agent ID");
+    assert.strictEqual(
+      result1.allowed,
+      result2.allowed,
+      "Same agent type should get same policy regardless of agent ID",
+    );
     assert.strictEqual(result1.allowed, false);
   });
 
   it("Plan agent can use WebFetch but Explore cannot", () => {
     saveSession(makeBaseSession());
 
-    const planResult = tobariSession.checkAgentToolPermission("Plan", "WebFetch");
-    assert.strictEqual(planResult.allowed, true,
-      "Plan agent should be allowed WebFetch");
+    const planResult = tobariSession.checkAgentToolPermission(
+      "Plan",
+      "WebFetch",
+    );
+    assert.strictEqual(
+      planResult.allowed,
+      true,
+      "Plan agent should be allowed WebFetch",
+    );
 
-    const exploreResult = tobariSession.checkAgentToolPermission("Explore", "WebFetch");
-    assert.strictEqual(exploreResult.allowed, false,
-      "Explore agent should be denied WebFetch (not in allowed_tools)");
+    const exploreResult = tobariSession.checkAgentToolPermission(
+      "Explore",
+      "WebFetch",
+    );
+    assert.strictEqual(
+      exploreResult.allowed,
+      false,
+      "Explore agent should be denied WebFetch (not in allowed_tools)",
+    );
   });
 });

@@ -104,7 +104,7 @@ describe("handler output structure", () => {
     assert.equal(
       typeof result.hookSpecificOutput.additionalContext,
       "string",
-      "additionalContext should be a string"
+      "additionalContext should be a string",
     );
   });
 
@@ -115,11 +115,11 @@ describe("handler output structure", () => {
     assert.ok(ctx.includes("DESIGN.md"), "should reference DESIGN.md");
     assert.ok(
       ctx.includes(".claude/rules/"),
-      "should reference .claude/rules/"
+      "should reference .claude/rules/",
     );
     assert.ok(
       ctx.includes("tasks/backlog.yaml"),
-      "should reference tasks/backlog.yaml"
+      "should reference tasks/backlog.yaml",
     );
   });
 
@@ -156,7 +156,7 @@ describe("inactive session behavior", () => {
     assert.ok(ctx.includes("compaction"), "should contain compaction text");
     assert.ok(
       !ctx.includes("TOBARI SESSION ACTIVE"),
-      "should NOT contain session active message"
+      "should NOT contain session active message",
     );
   });
 
@@ -166,7 +166,7 @@ describe("inactive session behavior", () => {
     assert.ok(ctx.includes("CLAUDE.md"), "should still reference CLAUDE.md");
     assert.ok(
       ctx.includes("tasks/backlog.yaml"),
-      "should still reference backlog.yaml"
+      "should still reference backlog.yaml",
     );
   });
 });
@@ -197,7 +197,7 @@ describe("active session behavior", () => {
     const ctx = result.hookSpecificOutput.additionalContext;
     assert.ok(
       ctx.includes("TOBARI SESSION ACTIVE"),
-      "should contain TOBARI SESSION ACTIVE"
+      "should contain TOBARI SESSION ACTIVE",
     );
     assert.ok(ctx.includes("TASK-TEST"), "should contain task name");
     assert.ok(ctx.includes("standard"), "should contain profile");
@@ -209,9 +209,12 @@ describe("active session behavior", () => {
     const ctx = result.hookSpecificOutput.additionalContext;
     assert.ok(
       ctx.includes("compaction"),
-      "should contain compaction text even with active session"
+      "should contain compaction text even with active session",
     );
-    assert.ok(ctx.includes("CLAUDE.md"), "should still reference project files");
+    assert.ok(
+      ctx.includes("CLAUDE.md"),
+      "should still reference project files",
+    );
   });
 });
 

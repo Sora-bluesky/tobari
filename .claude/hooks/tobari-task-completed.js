@@ -17,11 +17,7 @@
  * - Evidence includes task_id, task_subject, teammate_name, team_name
  */
 
-const {
-  loadSession,
-  writeEvidence,
-  runHook,
-} = require("./tobari-session.js");
+const { loadSession, writeEvidence, runHook } = require("./tobari-session.js");
 
 /**
  * Default feedback returned when the veil is not active or on error.
@@ -45,17 +41,15 @@ function buildActiveFeedback(taskId, taskSubject, sessionTask) {
 
   parts.push(
     `Task "${taskId}" completed: ${taskSubject}. ` +
-      `[Session: ${sessionTask}] Evidence recorded to audit trail.`
+      `[Session: ${sessionTask}] Evidence recorded to audit trail.`,
   );
 
   parts.push(
-    "(1) Verify your output: run lint, tests, and type checks if applicable."
+    "(1) Verify your output: run lint, tests, and type checks if applicable.",
   );
+  parts.push("(2) Update the shared task list to mark your task as done.");
   parts.push(
-    "(2) Update the shared task list to mark your task as done."
-  );
-  parts.push(
-    "(3) If all team tasks are complete, report to the team lead with a summary of changes."
+    "(3) If all team tasks are complete, report to the team lead with a summary of changes.",
   );
 
   return parts.join(" ");

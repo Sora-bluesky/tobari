@@ -181,13 +181,10 @@ describe("finalizeSession (active)", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
     if (fs.existsSync(ledgerPath)) {
-      const lines = fs
-        .readFileSync(ledgerPath, "utf-8")
-        .trim()
-        .split("\n");
+      const lines = fs.readFileSync(ledgerPath, "utf-8").trim().split("\n");
       const veilEntries = lines
         .map((l) => JSON.parse(l))
         .filter((e) => e.event === "veil_raised");
@@ -305,13 +302,10 @@ describe("raiseVeil", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
     if (fs.existsSync(ledgerPath)) {
-      const lines = fs
-        .readFileSync(ledgerPath, "utf-8")
-        .trim()
-        .split("\n");
+      const lines = fs.readFileSync(ledgerPath, "utf-8").trim().split("\n");
       const veilEntries = lines
         .map((l) => JSON.parse(l))
         .filter((e) => e.event === "veil_raised");
@@ -342,14 +336,14 @@ describe("Integration references", () => {
       ".claude",
       "skills",
       "handoff",
-      "SKILL.md"
+      "SKILL.md",
     );
     if (fs.existsSync(skillPath)) {
       const content = fs.readFileSync(skillPath, "utf-8");
       assert.ok(
         content.includes("finalize_session") ||
           content.includes("finalizeSession"),
-        "handoff SKILL.md should reference finalize_session/finalizeSession"
+        "handoff SKILL.md should reference finalize_session/finalizeSession",
       );
     }
   });
@@ -360,13 +354,13 @@ describe("Integration references", () => {
       "..",
       ".claude",
       "hooks",
-      "tobari-stop.js"
+      "tobari-stop.js",
     );
     if (fs.existsSync(stopJsPath)) {
       const content = fs.readFileSync(stopJsPath, "utf-8");
       assert.ok(
         content.includes("finalizeSession"),
-        "tobari-stop.js should call finalizeSession"
+        "tobari-stop.js should call finalizeSession",
       );
     }
   });

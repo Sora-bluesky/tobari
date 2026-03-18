@@ -35,11 +35,11 @@ Inside the veil, agents move freely. But they cannot escape it.
 
 ## Prerequisites
 
-| Requirement | Version | Purpose |
-|------------|---------|---------|
-| [Node.js](https://nodejs.org/) | 18+ | Hooks (veil organs) runtime, `npx tobari init` |
-| [Git](https://git-scm.com/) | — | Version control (`git init` required) |
-| [Claude Code](https://claude.ai/code) | — | Claude Pro $20/month or higher. No API keys needed |
+| Requirement                           | Version | Purpose                                            |
+| ------------------------------------- | ------- | -------------------------------------------------- |
+| [Node.js](https://nodejs.org/)        | 18+     | Hooks (veil organs) runtime, `npx tobari init`     |
+| [Git](https://git-scm.com/)           | —       | Version control (`git init` required)              |
+| [Claude Code](https://claude.ai/code) | —       | Claude Pro $20/month or higher. No API keys needed |
 
 ## Quick Start
 
@@ -78,10 +78,10 @@ The more you use it, the smarter the veil becomes. It remembers what you've appr
 
 tobari supports multiple languages for hook messages. Set the `TOBARI_LANG` environment variable to change the language:
 
-| Language | Value | Description |
-|----------|-------|-------------|
+| Language | Value | Description                           |
+| -------- | ----- | ------------------------------------- |
 | English  | `en`  | Default. All hook messages in English |
-| Japanese | `ja`  | All hook messages in Japanese |
+| Japanese | `ja`  | All hook messages in Japanese         |
 
 ```bash
 # Use Japanese messages
@@ -188,17 +188,17 @@ When safety conditions are NOT met, Binding **stops execution immediately**. It 
 
 The veil is composed of 9 "organs" that work together to provide autonomous, safe operation:
 
-| Organ     | Name              | Hook                                                        | Role                                                   |
-| --------- | ----------------- | ----------------------------------------------------------- | ------------------------------------------------------ |
-| 🫀 Heart  | Permission Engine | `tobari-gate.js`                                            | Auto-approves safe ops, auto-blocks dangerous ops      |
-| 👁️ Eye    | Observer          | `tobari-evidence.js` / `tobari-evidence-failure.js`         | Records all operations as evidence (success + failure) |
-| 👄 Mouth  | Communicator      | `tobari-permission.js`                                      | Contextual permission dialogs, GitHub PR notifications |
-| 🛡️ Shield | Boundary Guard    | `tobari-injection-guard.js`                                 | Detects secret leaks, blocks boundary violations       |
-| ✋ Hand   | Git Automation    | `tobari-stop.js`                                            | Automates commit, push, PR, merge                      |
-| 🦿 Leg    | Self-Healer       | `tobari-stop.js`                                            | Auto-fixes test failures (up to 3 retries)             |
-| 🧠 Memory | State Keeper      | `tobari-session-start.js` / `tobari-precompact.js`          | Preserves context across sessions                      |
-| 👛 Wallet | Cost Controller   | `tobari-cost.js`                                            | Monitors token usage, warns on budget limits           |
-| 🦠 Immune | Dependency Guard  | `tobari-injection-guard.js`                                 | Detects unauthorized packages, scope violations        |
+| Organ     | Name              | Hook                                                | Role                                                   |
+| --------- | ----------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| 🫀 Heart  | Permission Engine | `tobari-gate.js`                                    | Auto-approves safe ops, auto-blocks dangerous ops      |
+| 👁️ Eye    | Observer          | `tobari-evidence.js` / `tobari-evidence-failure.js` | Records all operations as evidence (success + failure) |
+| 👄 Mouth  | Communicator      | `tobari-permission.js`                              | Contextual permission dialogs, GitHub PR notifications |
+| 🛡️ Shield | Boundary Guard    | `tobari-injection-guard.js`                         | Detects secret leaks, blocks boundary violations       |
+| ✋ Hand   | Git Automation    | `tobari-stop.js`                                    | Automates commit, push, PR, merge                      |
+| 🦿 Leg    | Self-Healer       | `tobari-stop.js`                                    | Auto-fixes test failures (up to 3 retries)             |
+| 🧠 Memory | State Keeper      | `tobari-session-start.js` / `tobari-precompact.js`  | Preserves context across sessions                      |
+| 👛 Wallet | Cost Controller   | `tobari-cost.js`                                    | Monitors token usage, warns on budget limits           |
+| 🦠 Immune | Dependency Guard  | `tobari-injection-guard.js`                         | Detects unauthorized packages, scope violations        |
 
 In addition, **git-guard** (pre-commit/pre-push hooks) provides secret scanning as a final boundary defense.
 

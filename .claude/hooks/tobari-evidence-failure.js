@@ -71,9 +71,7 @@ function _summarizeToolInput(toolName, toolInput) {
   const raw = JSON.stringify(toolInput);
   return {
     raw:
-      raw.length > MAX_RAW_LENGTH
-        ? raw.slice(0, MAX_RAW_LENGTH) + "..."
-        : raw,
+      raw.length > MAX_RAW_LENGTH ? raw.slice(0, MAX_RAW_LENGTH) + "..." : raw,
   };
 }
 

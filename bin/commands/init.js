@@ -20,7 +20,7 @@ module.exports = function init(options) {
   if (update) {
     if (!fs.existsSync(claudeDir)) {
       console.error(
-        "Error: .claude/ directory not found. Run 'tobari init' first."
+        "Error: .claude/ directory not found. Run 'tobari init' first.",
       );
       process.exit(1);
     }
@@ -31,18 +31,18 @@ module.exports = function init(options) {
   // --- Check for existing .claude/ ---
   if (fs.existsSync(claudeDir) && !force) {
     const hasGate = fs.existsSync(
-      path.join(claudeDir, "hooks", "tobari-gate.js")
+      path.join(claudeDir, "hooks", "tobari-gate.js"),
     );
     if (hasGate) {
       console.error(
         "tobari is already set up in this project.\n" +
           "Use 'tobari init --update' to update hooks to the latest version.\n" +
-          "Use 'tobari init --force' to overwrite all configuration."
+          "Use 'tobari init --force' to overwrite all configuration.",
       );
     } else {
       console.error(
         "An existing .claude/ directory was found.\n" +
-          "Use 'tobari init --force' to install tobari (existing hooks/permissions will be merged)."
+          "Use 'tobari init --force' to install tobari (existing hooks/permissions will be merged).",
       );
     }
     process.exit(1);
@@ -88,10 +88,10 @@ function deployCLAUDEmd(cwd) {
     const templateTarget = path.join(cwd, "CLAUDE.md.tobari");
     fs.copyFileSync(templateClaude, templateTarget);
     console.log(
-      "\nCLAUDE.md already exists. Template saved as CLAUDE.md.tobari"
+      "\nCLAUDE.md already exists. Template saved as CLAUDE.md.tobari",
     );
     console.log(
-      "Please merge the template content into your existing CLAUDE.md manually."
+      "Please merge the template content into your existing CLAUDE.md manually.",
     );
   } else {
     fs.copyFileSync(templateClaude, targetClaude);

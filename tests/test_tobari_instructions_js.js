@@ -76,7 +76,11 @@ describe("collectCurrentHashes", () => {
       const hashes = instructionsHook.collectCurrentHashes();
       assert.ok("CLAUDE.md" in hashes, "Should include CLAUDE.md");
       assert.equal(Object.keys(hashes).length, 1, "Should only have CLAUDE.md");
-      assert.equal(hashes["CLAUDE.md"].length, 64, "Hash should be 64-char hex");
+      assert.equal(
+        hashes["CLAUDE.md"].length,
+        64,
+        "Hash should be 64-char hex",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -99,7 +103,11 @@ describe("collectCurrentHashes", () => {
       const hashes = instructionsHook.collectCurrentHashes();
       assert.ok("CLAUDE.md" in hashes);
       assert.ok(".claude/rules/coding.md" in hashes);
-      assert.equal(Object.keys(hashes).length, 2, "Should not include subdirectory");
+      assert.equal(
+        Object.keys(hashes).length,
+        2,
+        "Should not include subdirectory",
+      );
       // Verify no key contains 'subdir'
       for (const key of Object.keys(hashes)) {
         assert.ok(!key.includes("subdir"), "Should skip subdirectory entries");
@@ -123,7 +131,11 @@ describe("collectCurrentHashes", () => {
 
       const hashes = instructionsHook.collectCurrentHashes();
       assert.ok("CLAUDE.md" in hashes);
-      assert.equal(Object.keys(hashes).length, 1, "Empty rules dir yields only CLAUDE.md");
+      assert.equal(
+        Object.keys(hashes).length,
+        1,
+        "Empty rules dir yields only CLAUDE.md",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -146,7 +158,11 @@ describe("collectCurrentHashes", () => {
       });
 
       const hashes = instructionsHook.collectCurrentHashes();
-      assert.equal(Object.keys(hashes).length, 4, "Should have CLAUDE.md + 3 rules");
+      assert.equal(
+        Object.keys(hashes).length,
+        4,
+        "Should have CLAUDE.md + 3 rules",
+      );
       assert.ok("CLAUDE.md" in hashes);
       assert.ok(".claude/rules/alpha.md" in hashes);
       assert.ok(".claude/rules/bravo.md" in hashes);
@@ -171,8 +187,16 @@ describe("collectCurrentHashes", () => {
       fs.writeFileSync(path.join(tmpDir, "CLAUDE.md"), "main", "utf8");
       const rulesDir = path.join(tmpDir, ".claude", "rules");
       fs.mkdirSync(rulesDir, { recursive: true });
-      fs.writeFileSync(path.join(rulesDir, "readable.md"), "good content", "utf8");
-      fs.writeFileSync(path.join(rulesDir, "locked.md"), "locked content", "utf8");
+      fs.writeFileSync(
+        path.join(rulesDir, "readable.md"),
+        "good content",
+        "utf8",
+      );
+      fs.writeFileSync(
+        path.join(rulesDir, "locked.md"),
+        "locked content",
+        "utf8",
+      );
 
       // Make file unreadable (Unix only — on Windows this test degrades gracefully)
       if (process.platform !== "win32") {
@@ -187,7 +211,7 @@ describe("collectCurrentHashes", () => {
         // On Unix, locked.md should be absent
         assert.ok(
           !(".claude/rules/locked.md" in hashes),
-          "Unreadable file should be skipped"
+          "Unreadable file should be skipped",
         );
         assert.equal(Object.keys(hashes).length, 2);
         // Restore permissions for cleanup
@@ -252,8 +276,10 @@ describe("saveHashes", () => {
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
 
       const inputHashes = {
-        "CLAUDE.md": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
-        ".claude/rules/lang.md": "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5",
+        "CLAUDE.md":
+          "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+        ".claude/rules/lang.md":
+          "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5",
       };
 
       instructionsHook.saveHashes(inputHashes);
@@ -276,7 +302,10 @@ describe("saveHashes", () => {
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
 
       const first = { "CLAUDE.md": "hash_v1" };
-      const second = { "CLAUDE.md": "hash_v2", ".claude/rules/new.md": "hash_new" };
+      const second = {
+        "CLAUDE.md": "hash_v2",
+        ".claude/rules/new.md": "hash_new",
+      };
 
       instructionsHook.saveHashes(first);
       instructionsHook.saveHashes(second);
@@ -319,7 +348,10 @@ describe("loadStoredHashes", () => {
 
       const logsDir = path.join(tmpDir, ".claude", "logs");
       fs.mkdirSync(logsDir, { recursive: true });
-      const statePath = path.join(logsDir, instructionsHook.HASH_STATE_FILENAME);
+      const statePath = path.join(
+        logsDir,
+        instructionsHook.HASH_STATE_FILENAME,
+      );
       fs.writeFileSync(statePath, "{ this is not valid json !!!", "utf8");
 
       const result = instructionsHook.loadStoredHashes();
@@ -337,13 +369,32 @@ describe("loadStoredHashes", () => {
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
 
       const expected = {
-        "CLAUDE.md": "aabbccdd" + "11223344" + "aabbccdd" + "11223344" + "aabbccdd" + "11223344" + "aabbccdd" + "11223344",
-        ".claude/rules/test.md": "eeff0011" + "22334455" + "eeff0011" + "22334455" + "eeff0011" + "22334455" + "eeff0011" + "22334455",
+        "CLAUDE.md":
+          "aabbccdd" +
+          "11223344" +
+          "aabbccdd" +
+          "11223344" +
+          "aabbccdd" +
+          "11223344" +
+          "aabbccdd" +
+          "11223344",
+        ".claude/rules/test.md":
+          "eeff0011" +
+          "22334455" +
+          "eeff0011" +
+          "22334455" +
+          "eeff0011" +
+          "22334455" +
+          "eeff0011" +
+          "22334455",
       };
 
       const logsDir = path.join(tmpDir, ".claude", "logs");
       fs.mkdirSync(logsDir, { recursive: true });
-      const statePath = path.join(logsDir, instructionsHook.HASH_STATE_FILENAME);
+      const statePath = path.join(
+        logsDir,
+        instructionsHook.HASH_STATE_FILENAME,
+      );
       fs.writeFileSync(statePath, JSON.stringify(expected), "utf8");
 
       const result = instructionsHook.loadStoredHashes();
@@ -363,7 +414,11 @@ describe("loadStoredHashes", () => {
       const data = { "CLAUDE.md": "abcd".repeat(16) };
       instructionsHook.saveHashes(data);
       const loaded = instructionsHook.loadStoredHashes();
-      assert.deepEqual(loaded, data, "loadStoredHashes should return what saveHashes wrote");
+      assert.deepEqual(
+        loaded,
+        data,
+        "loadStoredHashes should return what saveHashes wrote",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -485,14 +540,21 @@ describe("handler (integration)", () => {
 
       // Add a new rule file
       const rulesDir = path.join(tmpDir, ".claude", "rules");
-      fs.writeFileSync(path.join(rulesDir, "new-rule.md"), "brand new rule", "utf8");
+      fs.writeFileSync(
+        path.join(rulesDir, "new-rule.md"),
+        "brand new rule",
+        "utf8",
+      );
 
       // Second run — should detect addition
       const result = instructionsHook.handler({});
       assert.notEqual(result, null, "Should detect added file");
       const ctx = result.hookSpecificOutput.additionalContext;
       assert.ok(ctx.includes("Added"), "Warning should mention Added");
-      assert.ok(ctx.includes("new-rule.md"), "Warning should mention the added file");
+      assert.ok(
+        ctx.includes("new-rule.md"),
+        "Warning should mention the added file",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -526,7 +588,10 @@ describe("handler (integration)", () => {
       assert.notEqual(result, null, "Should detect removed file");
       const ctx = result.hookSpecificOutput.additionalContext;
       assert.ok(ctx.includes("Removed"), "Warning should mention Removed");
-      assert.ok(ctx.includes("remove-me.md"), "Warning should mention the removed file");
+      assert.ok(
+        ctx.includes("remove-me.md"),
+        "Warning should mention the removed file",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -554,7 +619,11 @@ describe("handler (integration)", () => {
 
       // Modify CLAUDE.md, add a new rule, remove one rule
       fs.writeFileSync(path.join(tmpDir, "CLAUDE.md"), "modified doc", "utf8");
-      fs.writeFileSync(path.join(rulesDir, "added-rule.md"), "new content", "utf8");
+      fs.writeFileSync(
+        path.join(rulesDir, "added-rule.md"),
+        "new content",
+        "utf8",
+      );
       fs.unlinkSync(path.join(rulesDir, "delete-target.md"));
 
       // Second run
@@ -562,7 +631,10 @@ describe("handler (integration)", () => {
       assert.notEqual(result, null);
       const ctx = result.hookSpecificOutput.additionalContext;
 
-      assert.ok(ctx.includes("RULE FILE CHANGE DETECTED"), "Should have change header");
+      assert.ok(
+        ctx.includes("RULE FILE CHANGE DETECTED"),
+        "Should have change header",
+      );
       assert.ok(ctx.includes("Modified"), "Should include Modified label");
       assert.ok(ctx.includes("Added"), "Should include Added label");
       assert.ok(ctx.includes("Removed"), "Should include Removed label");
@@ -594,21 +666,36 @@ describe("handler (integration)", () => {
       instructionsHook.handler({});
 
       // Read evidence ledger
-      const evidencePath = path.join(tmpDir, ".claude", "logs", "evidence-ledger.jsonl");
+      const evidencePath = path.join(
+        tmpDir,
+        ".claude",
+        "logs",
+        "evidence-ledger.jsonl",
+      );
       if (fs.existsSync(evidencePath)) {
         const lines = fs.readFileSync(evidencePath, "utf8").trim().split("\n");
         // Find the instructions_changed entry
         const instrEntry = lines
           .map((l) => {
-            try { return JSON.parse(l); } catch (_) { return null; }
+            try {
+              return JSON.parse(l);
+            } catch (_) {
+              return null;
+            }
           })
           .filter(Boolean)
           .find((e) => e.event === "instructions_changed");
 
         if (instrEntry) {
-          assert.ok("file_count" in instrEntry, "Evidence should include file_count");
+          assert.ok(
+            "file_count" in instrEntry,
+            "Evidence should include file_count",
+          );
           assert.equal(typeof instrEntry.file_count, "number");
-          assert.ok(instrEntry.file_count >= 1, "file_count should be at least 1");
+          assert.ok(
+            instrEntry.file_count >= 1,
+            "file_count should be at least 1",
+          );
         }
         // Note: If writeEvidence is mocked or ledger format differs, we still pass
       }
@@ -640,7 +727,7 @@ describe("handler (integration)", () => {
       assert.notEqual(result, null);
       assert.equal(
         result.hookSpecificOutput.hookEventName,
-        "InstructionsLoaded"
+        "InstructionsLoaded",
       );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
@@ -671,11 +758,11 @@ describe("handler (integration)", () => {
       const ctx = result.hookSpecificOutput.additionalContext;
       assert.ok(
         ctx.includes("Verify these changes are intentional"),
-        "Should prompt verification"
+        "Should prompt verification",
       );
       assert.ok(
         ctx.includes("Evidence has been recorded"),
-        "Should mention evidence recording"
+        "Should mention evidence recording",
       );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
@@ -700,7 +787,7 @@ describe("getHashStatePath", () => {
         customDir,
         ".claude",
         "logs",
-        instructionsHook.HASH_STATE_FILENAME
+        instructionsHook.HASH_STATE_FILENAME,
       );
       assert.equal(result, expected);
     } finally {
@@ -711,7 +798,7 @@ describe("getHashStatePath", () => {
   it("state filename is instructions-hashes.json", () => {
     assert.equal(
       instructionsHook.HASH_STATE_FILENAME,
-      "instructions-hashes.json"
+      "instructions-hashes.json",
     );
   });
 
@@ -719,7 +806,7 @@ describe("getHashStatePath", () => {
     const result = instructionsHook.getHashStatePath();
     assert.ok(
       result.endsWith(instructionsHook.HASH_STATE_FILENAME),
-      "Path should end with the state filename"
+      "Path should end with the state filename",
     );
   });
 });
@@ -762,7 +849,11 @@ describe("hashFile (edge cases)", () => {
 
       const hash1 = instructionsHook.hashFile(file1);
       const hash2 = instructionsHook.hashFile(file2);
-      assert.notEqual(hash1, hash2, "Different content should produce different hashes");
+      assert.notEqual(
+        hash1,
+        hash2,
+        "Different content should produce different hashes",
+      );
     } finally {
       if (tmpDir) cleanupTmpDir(tmpDir);
     }

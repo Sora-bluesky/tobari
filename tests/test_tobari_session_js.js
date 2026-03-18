@@ -116,11 +116,13 @@ describe("withFileLock", () => {
 
     assert.throws(
       () => mod.withFileLock(target, () => {}, 200),
-      (err) => err.message.includes("lock timeout")
+      (err) => err.message.includes("lock timeout"),
     );
 
     // Cleanup
-    try { fs.unlinkSync(lockFile); } catch (_) {}
+    try {
+      fs.unlinkSync(lockFile);
+    } catch (_) {}
   });
 
   it("L3: lock released on exception", () => {
@@ -129,8 +131,11 @@ describe("withFileLock", () => {
     const lockFile = target + ".lock";
 
     assert.throws(
-      () => mod.withFileLock(target, () => { throw new Error("test error"); }),
-      (err) => err.message === "test error"
+      () =>
+        mod.withFileLock(target, () => {
+          throw new Error("test error");
+        }),
+      (err) => err.message === "test error",
     );
 
     // Lock should be released — verify by re-acquiring
@@ -189,7 +194,7 @@ describe("readModifyWriteSession", () => {
     fs.writeFileSync(
       path.join(claudeDir, "tobari-session.json"),
       "not valid json{{{",
-      "utf8"
+      "utf8",
     );
     const result = mod.readModifyWriteSession(() => {});
     assert.equal(result, false);
@@ -283,7 +288,11 @@ describe("refactored functions", () => {
     // Session file should NOT be modified by updateTokenUsage
     const sessionPath = path.join(tmpDir, ".claude", "tobari-session.json");
     const sessionData = JSON.parse(fs.readFileSync(sessionPath, "utf8"));
-    assert.equal(sessionData.token_usage.input, 100, "session token_usage unchanged");
+    assert.equal(
+      sessionData.token_usage.input,
+      100,
+      "session token_usage unchanged",
+    );
   });
 
   it("L9b: updateTokenUsage returns null when no session", () => {
@@ -322,7 +331,12 @@ describe("writeEvidence", () => {
     });
     assert.equal(result, true);
 
-    const ledgerPath = path.join(tmpDir, ".claude", "logs", "evidence-ledger.jsonl");
+    const ledgerPath = path.join(
+      tmpDir,
+      ".claude",
+      "logs",
+      "evidence-ledger.jsonl",
+    );
     const lines = fs.readFileSync(ledgerPath, "utf8").trim().split("\n");
     assert.equal(lines.length, 1);
 
@@ -338,7 +352,12 @@ describe("writeEvidence", () => {
       mod.writeEvidence({ event: `evt_${i}` });
     }
 
-    const ledgerPath = path.join(tmpDir, ".claude", "logs", "evidence-ledger.jsonl");
+    const ledgerPath = path.join(
+      tmpDir,
+      ".claude",
+      "logs",
+      "evidence-ledger.jsonl",
+    );
     const lines = fs.readFileSync(ledgerPath, "utf8").trim().split("\n");
     assert.equal(lines.length, 5);
 
@@ -351,7 +370,10 @@ describe("writeEvidence", () => {
     // Verify chain linking (entry[1]._prev_hash === hash(entry[0] line))
     const crypto = require("crypto");
     const entry1 = JSON.parse(lines[1]);
-    const expectedHash = crypto.createHash("sha256").update(lines[0], "utf8").digest("hex");
+    const expectedHash = crypto
+      .createHash("sha256")
+      .update(lines[0], "utf8")
+      .digest("hex");
     assert.equal(entry1._prev_hash, expectedHash);
   });
 });
@@ -524,7 +546,7 @@ describe("buildContextOutput", () => {
     const output = mod.buildContextOutput(
       "Intro.",
       "Task={task} Profile={profile}",
-      "Inactive."
+      "Inactive.",
     );
     assert.ok(output.hookSpecificOutput);
     const ctx = output.hookSpecificOutput.additionalContext;
@@ -600,7 +622,10 @@ describe("getWebhookConfig", () => {
     assert.equal(mod.getWebhookConfig(null), null);
     assert.equal(mod.getWebhookConfig({}), null);
     assert.equal(mod.getWebhookConfig({ notification: {} }), null);
-    assert.equal(mod.getWebhookConfig({ notification: { webhook_url: "" } }), null);
+    assert.equal(
+      mod.getWebhookConfig({ notification: { webhook_url: "" } }),
+      null,
+    );
   });
 
   it("W2: returns trimmed URL", () => {

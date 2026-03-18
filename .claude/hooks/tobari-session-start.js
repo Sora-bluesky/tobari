@@ -84,7 +84,7 @@ function handler(_data) {
       "The veil is down -- all operations are under Hook governance. " +
       "Read .claude/tobari-session.json for full session contract.",
     "No active tobari session. " +
-      "Use /tobari <feature> to lower the veil and start a governed session."
+      "Use /tobari <feature> to lower the veil and start a governed session.",
   );
 
   // A3: World-writable directory audit

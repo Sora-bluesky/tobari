@@ -31,11 +31,11 @@ tobari は AI エージェントに **帳（結界）** をおろす。帳の内
 
 ## Prerequisites
 
-| 必要なもの | バージョン | 用途 |
-|-----------|-----------|------|
-| [Node.js](https://nodejs.org/) | 18+ | Hooks（帳の器官）の動作、`npx tobari init` の実行 |
-| [Git](https://git-scm.com/) | — | バージョン管理（`git init` 済みであること） |
-| [Claude Code](https://claude.ai/code) | — | Claude Pro $20/月 以上。API キーは不要 |
+| 必要なもの                            | バージョン | 用途                                              |
+| ------------------------------------- | ---------- | ------------------------------------------------- |
+| [Node.js](https://nodejs.org/)        | 18+        | Hooks（帳の器官）の動作、`npx tobari init` の実行 |
+| [Git](https://git-scm.com/)           | —          | バージョン管理（`git init` 済みであること）       |
+| [Claude Code](https://claude.ai/code) | —          | Claude Pro $20/月 以上。API キーは不要            |
 
 ## Quick Start
 
@@ -77,10 +77,10 @@ npx tobari init --update
 
 tobari の Hook メッセージは多言語に対応しています。`TOBARI_LANG` 環境変数で言語を切り替えられます:
 
-| 言語 | 値 | 説明 |
-|------|-----|------|
-| 英語 | `en` | デフォルト。全メッセージが英語で表示される |
-| 日本語 | `ja` | 全メッセージが日本語で表示される |
+| 言語   | 値   | 説明                                       |
+| ------ | ---- | ------------------------------------------ |
+| 英語   | `en` | デフォルト。全メッセージが英語で表示される |
+| 日本語 | `ja` | 全メッセージが日本語で表示される           |
 
 ```bash
 # 日本語メッセージを使用
@@ -201,31 +201,31 @@ Binding はガバナンス統制レイヤです。ルール・ゲート・契約
 
 ## Skills
 
-| Skill                    | Command           | Description                    |
-| ------------------------ | ----------------- | ------------------------------ |
-| 帳をおろす               | `/tobari`         | 帳をおろしてプロジェクト開始   |
-| 並列実装                 | `/team-implement` | Agent Teams で並列実装         |
-| 並列レビュー             | `/team-review`    | Agent Teams で並列レビュー     |
-| 計画策定                 | `/plan`           | 設計計画を策定                 |
-| テスト駆動開発           | `/tdd`            | RED-GREEN-REFACTOR サイクル    |
-| コード簡素化             | `/simplify`       | コードの複雑性を削減           |
-| セッション引き継ぎ       | `/handoff`        | セッション状態を保存・引き継ぎ |
+| Skill              | Command           | Description                    |
+| ------------------ | ----------------- | ------------------------------ |
+| 帳をおろす         | `/tobari`         | 帳をおろしてプロジェクト開始   |
+| 並列実装           | `/team-implement` | Agent Teams で並列実装         |
+| 並列レビュー       | `/team-review`    | Agent Teams で並列レビュー     |
+| 計画策定           | `/plan`           | 設計計画を策定                 |
+| テスト駆動開発     | `/tdd`            | RED-GREEN-REFACTOR サイクル    |
+| コード簡素化       | `/simplify`       | コードの複雑性を削減           |
+| セッション引き継ぎ | `/handoff`        | セッション状態を保存・引き継ぎ |
 
 ## Hooks
 
 帳は9つの「器官」で構成されています。それぞれが協調し、ユーザーが操作の詳細を気にせず済む状態を作ります。
 
-| 器官    | 名前         | Hook                                                        | 役割                                           |
-| ------- | ------------ | ----------------------------------------------------------- | ---------------------------------------------- |
-| 🫀 心臓 | 権限判定     | `tobari-gate.js`                                            | 安全な操作を自動承認、危険な操作を自動ブロック |
-| 👁️ 目   | 観測・記録   | `tobari-evidence.js` / `tobari-evidence-failure.js`         | 全操作を証跡として記録（成功 + 失敗）          |
-| 👄 口   | 対話・通知   | `tobari-permission.js`                                      | 確認ダイアログの文脈付加、GitHub PR 完了通知   |
-| 🛡️ 盾   | 境界防御     | `tobari-injection-guard.js`                                 | 秘密情報の漏洩検出、境界違反のブロック         |
-| ✋ 手   | Git 自動操作 | `tobari-stop.js`                                            | commit → push → PR → merge の自動化            |
-| 🦿 脚   | 自己修復     | `tobari-stop.js`                                            | テスト失敗時の自動修正（最大3回試行）          |
-| 🧠 記憶 | 状態維持     | `tobari-session-start.js` / `tobari-precompact.js`          | セッション横断の文脈保持                       |
-| 👛 財布 | コスト制御   | `tobari-cost.js`                                            | トークン消費の監視・警告                       |
-| 🦠 免疫 | 依存防御     | `tobari-injection-guard.js`                                 | 不正パッケージ・スコープ逸脱の検出             |
+| 器官    | 名前         | Hook                                                | 役割                                           |
+| ------- | ------------ | --------------------------------------------------- | ---------------------------------------------- |
+| 🫀 心臓 | 権限判定     | `tobari-gate.js`                                    | 安全な操作を自動承認、危険な操作を自動ブロック |
+| 👁️ 目   | 観測・記録   | `tobari-evidence.js` / `tobari-evidence-failure.js` | 全操作を証跡として記録（成功 + 失敗）          |
+| 👄 口   | 対話・通知   | `tobari-permission.js`                              | 確認ダイアログの文脈付加、GitHub PR 完了通知   |
+| 🛡️ 盾   | 境界防御     | `tobari-injection-guard.js`                         | 秘密情報の漏洩検出、境界違反のブロック         |
+| ✋ 手   | Git 自動操作 | `tobari-stop.js`                                    | commit → push → PR → merge の自動化            |
+| 🦿 脚   | 自己修復     | `tobari-stop.js`                                    | テスト失敗時の自動修正（最大3回試行）          |
+| 🧠 記憶 | 状態維持     | `tobari-session-start.js` / `tobari-precompact.js`  | セッション横断の文脈保持                       |
+| 👛 財布 | コスト制御   | `tobari-cost.js`                                    | トークン消費の監視・警告                       |
+| 🦠 免疫 | 依存防御     | `tobari-injection-guard.js`                         | 不正パッケージ・スコープ逸脱の検出             |
 
 加えて、git-guard（pre-commit / pre-push フック）が秘密情報のスキャンを担当します。
 

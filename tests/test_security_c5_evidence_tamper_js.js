@@ -333,11 +333,7 @@ describe("C5: HMAC verification", () => {
 
     assert.ok(hmacA, "hmacA should exist");
     assert.ok(hmacB, "hmacB should exist");
-    assert.notEqual(
-      hmacA,
-      hmacB,
-      "HMACs with different keys should differ",
-    );
+    assert.notEqual(hmacA, hmacB, "HMACs with different keys should differ");
   });
 });
 
@@ -613,11 +609,7 @@ describe("C5: Edge cases", () => {
 
     // Nested keys are also sorted
     const middleKeys = Object.keys(parsed.middle);
-    assert.deepEqual(
-      middleKeys,
-      ["a_key", "z_key"],
-      "Nested keys are sorted",
-    );
+    assert.deepEqual(middleKeys, ["a_key", "z_key"], "Nested keys are sorted");
 
     // Array order is preserved (not sorted)
     assert.deepEqual(parsed.numbers, [3, 1, 2], "Array order preserved");

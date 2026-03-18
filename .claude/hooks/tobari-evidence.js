@@ -257,7 +257,10 @@ function cliVerify() {
       entry = JSON.parse(rawLine);
     } catch (_) {
       errors.push(`Entry ${i}: invalid JSON`);
-      prevHash = crypto.createHash("sha256").update(rawLine, "utf8").digest("hex");
+      prevHash = crypto
+        .createHash("sha256")
+        .update(rawLine, "utf8")
+        .digest("hex");
       continue;
     }
 
@@ -265,7 +268,7 @@ function cliVerify() {
     const actualIndex = entry._chain_index;
     if (actualIndex != null && actualIndex !== i) {
       errors.push(
-        `Entry ${i}: chain_index mismatch (expected ${i}, got ${actualIndex})`
+        `Entry ${i}: chain_index mismatch (expected ${i}, got ${actualIndex})`,
       );
     }
 
@@ -292,7 +295,10 @@ function cliVerify() {
       }
     }
 
-    prevHash = crypto.createHash("sha256").update(rawLine, "utf8").digest("hex");
+    prevHash = crypto
+      .createHash("sha256")
+      .update(rawLine, "utf8")
+      .digest("hex");
   }
 
   if (errors.length > 0) {
@@ -321,7 +327,7 @@ if (require.main === module) {
   } else if (command) {
     process.stderr.write(`Unknown command: ${command}\n`);
     process.stderr.write(
-      "Usage: node tobari-evidence.js [summary|quality-gates|verify]\n"
+      "Usage: node tobari-evidence.js [summary|quality-gates|verify]\n",
     );
     process.exit(1);
   } else {

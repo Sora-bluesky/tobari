@@ -438,7 +438,7 @@ describe("handler", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
     assert.equal(fs.existsSync(ledgerPath), false);
   });
@@ -458,7 +458,7 @@ describe("handler", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
     assert.ok(fs.existsSync(ledgerPath));
 
@@ -494,7 +494,7 @@ describe("handler", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
     const lines = fs.readFileSync(ledgerPath, "utf8").trim().split("\n");
     const entry = JSON.parse(lines[0]);
@@ -511,7 +511,7 @@ describe("handler", () => {
       tmpDir,
       ".claude",
       "logs",
-      "evidence-ledger.jsonl"
+      "evidence-ledger.jsonl",
     );
     const lines = fs
       .readFileSync(ledgerPath, "utf8")
@@ -545,21 +545,18 @@ describe("Module exports", () => {
       assert.equal(
         typeof evidence[name],
         "function",
-        `Expected ${name} to be a function`
+        `Expected ${name} to be a function`,
       );
     }
   });
 
   it("E2: all expected constants are exported", () => {
-    const expectedConstants = [
-      "MAX_SUMMARY_LENGTH",
-      "MAX_RESPONSE_LENGTH",
-    ];
+    const expectedConstants = ["MAX_SUMMARY_LENGTH", "MAX_RESPONSE_LENGTH"];
     for (const name of expectedConstants) {
       assert.equal(
         typeof evidence[name],
         "number",
-        `Expected ${name} to be a number`
+        `Expected ${name} to be a number`,
       );
     }
   });

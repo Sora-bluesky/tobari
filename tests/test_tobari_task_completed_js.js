@@ -29,7 +29,7 @@ const EVIDENCE_PATH = path.join(
   PROJECT_DIR,
   ".claude",
   "logs",
-  "evidence-ledger.jsonl"
+  "evidence-ledger.jsonl",
 );
 let originalContent = null;
 
@@ -42,7 +42,9 @@ function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
   } else {
-    try { fs.unlinkSync(SESSION_PATH); } catch {}
+    try {
+      fs.unlinkSync(SESSION_PATH);
+    } catch {}
   }
   tobariSession._resetCache();
 }
@@ -116,14 +118,14 @@ describe("DEFAULT_FEEDBACK constant", () => {
   it("contains 'Task completed'", () => {
     assert.ok(
       taskCompleted.DEFAULT_FEEDBACK.includes("Task completed"),
-      "DEFAULT_FEEDBACK should contain 'Task completed'"
+      "DEFAULT_FEEDBACK should contain 'Task completed'",
     );
   });
 
   it("contains 'Verify your output'", () => {
     assert.ok(
       taskCompleted.DEFAULT_FEEDBACK.includes("Verify your output"),
-      "DEFAULT_FEEDBACK should contain 'Verify your output'"
+      "DEFAULT_FEEDBACK should contain 'Verify your output'",
     );
   });
 });
@@ -137,15 +139,12 @@ describe("buildActiveFeedback", () => {
     const feedback = taskCompleted.buildActiveFeedback(
       "task-abc",
       "Implement feature X",
-      "session-main"
+      "session-main",
     );
-    assert.ok(
-      feedback.includes("task-abc"),
-      "feedback should include task_id"
-    );
+    assert.ok(feedback.includes("task-abc"), "feedback should include task_id");
     assert.ok(
       feedback.includes("Implement feature X"),
-      "feedback should include task_subject"
+      "feedback should include task_subject",
     );
   });
 
@@ -153,11 +152,11 @@ describe("buildActiveFeedback", () => {
     const feedback = taskCompleted.buildActiveFeedback(
       "task-def",
       "Fix bug Y",
-      "my-session-task"
+      "my-session-task",
     );
     assert.ok(
       feedback.includes("my-session-task"),
-      "feedback should include session task name"
+      "feedback should include session task name",
     );
   });
 
@@ -165,11 +164,11 @@ describe("buildActiveFeedback", () => {
     const feedback = taskCompleted.buildActiveFeedback(
       "task-ghi",
       "Refactor Z",
-      "session-refactor"
+      "session-refactor",
     );
     assert.ok(
       feedback.includes("Evidence recorded to audit trail"),
-      "feedback should mention evidence recording"
+      "feedback should mention evidence recording",
     );
   });
 
@@ -177,19 +176,19 @@ describe("buildActiveFeedback", () => {
     const feedback = taskCompleted.buildActiveFeedback(
       "task-jkl",
       "Test task",
-      "session-test"
+      "session-test",
     );
     assert.ok(
       feedback.includes("Verify your output"),
-      "feedback should include verify instruction"
+      "feedback should include verify instruction",
     );
     assert.ok(
       feedback.includes("Update the shared task list"),
-      "feedback should include update instruction"
+      "feedback should include update instruction",
     );
     assert.ok(
       feedback.includes("report to the team lead"),
-      "feedback should include report instruction"
+      "feedback should include report instruction",
     );
   });
 });
@@ -200,7 +199,11 @@ describe("buildActiveFeedback", () => {
 
 describe("handler — veil not active", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -223,7 +226,7 @@ describe("handler — veil not active", () => {
     assert.ok(result !== null);
     assert.strictEqual(
       result.hookSpecificOutput.feedback,
-      taskCompleted.DEFAULT_FEEDBACK
+      taskCompleted.DEFAULT_FEEDBACK,
     );
   });
 
@@ -246,7 +249,7 @@ describe("handler — veil not active", () => {
     assert.strictEqual(
       linesAfter,
       linesBefore,
-      "Evidence ledger should not grow when veil is inactive"
+      "Evidence ledger should not grow when veil is inactive",
     );
   });
 });
@@ -257,7 +260,11 @@ describe("handler — veil not active", () => {
 
 describe("handler — veil active", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -281,11 +288,11 @@ describe("handler — veil active", () => {
     const feedback = result.hookSpecificOutput.feedback;
     assert.ok(
       feedback.includes("task-active-x"),
-      "feedback should include task_id"
+      "feedback should include task_id",
     );
     assert.ok(
       feedback.includes("Active feature implementation"),
-      "feedback should include task_subject"
+      "feedback should include task_subject",
     );
   });
 
@@ -305,7 +312,7 @@ describe("handler — veil active", () => {
     const feedback = result.hookSpecificOutput.feedback;
     assert.ok(
       feedback.includes("custom-session-task"),
-      "feedback should include session task name"
+      "feedback should include session task name",
     );
   });
 
@@ -325,7 +332,7 @@ describe("handler — veil active", () => {
     const feedback = result.hookSpecificOutput.feedback;
     assert.ok(
       feedback.includes("Evidence recorded"),
-      "feedback should mention evidence recording"
+      "feedback should mention evidence recording",
     );
   });
 
@@ -347,7 +354,7 @@ describe("handler — veil active", () => {
     const linesAfter = getEvidenceLineCount();
     assert.ok(
       linesAfter > linesBefore,
-      "Evidence ledger should have a new entry"
+      "Evidence ledger should have a new entry",
     );
 
     const lastEntry = getLastEvidenceEntry();
@@ -366,7 +373,11 @@ describe("handler — veil active", () => {
 
 describe("handler — error handling (fail-open)", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -390,7 +401,7 @@ describe("handler — error handling (fail-open)", () => {
     assert.ok(result !== null);
     assert.strictEqual(
       result.hookSpecificOutput.feedback,
-      taskCompleted.DEFAULT_FEEDBACK
+      taskCompleted.DEFAULT_FEEDBACK,
     );
   });
 
@@ -419,7 +430,11 @@ describe("handler — error handling (fail-open)", () => {
 
 describe("handler — missing/default fields", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -443,7 +458,7 @@ describe("handler — missing/default fields", () => {
     const feedback = result.hookSpecificOutput.feedback;
     assert.ok(
       feedback.includes("unknown"),
-      "feedback should use 'unknown' as default task_id"
+      "feedback should use 'unknown' as default task_id",
     );
   });
 
@@ -487,7 +502,7 @@ describe("handler — missing/default fields", () => {
     const linesAfter = getEvidenceLineCount();
     assert.ok(
       linesAfter > linesBefore,
-      "Evidence should be recorded even with missing fields"
+      "Evidence should be recorded even with missing fields",
     );
 
     const lastEntry = getLastEvidenceEntry();
@@ -495,12 +510,12 @@ describe("handler — missing/default fields", () => {
     assert.strictEqual(
       lastEntry.teammate_name,
       "unknown",
-      "teammate_name should default to 'unknown'"
+      "teammate_name should default to 'unknown'",
     );
     assert.strictEqual(
       lastEntry.team_name,
       "unknown",
-      "team_name should default to 'unknown'"
+      "team_name should default to 'unknown'",
     );
   });
 

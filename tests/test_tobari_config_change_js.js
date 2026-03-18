@@ -23,7 +23,8 @@ const os = require("os");
 const crypto = require("crypto");
 
 // Preserve original PROJECT_DIR to restore after each test
-const ORIGINAL_PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, "..");
+const ORIGINAL_PROJECT_DIR =
+  process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, "..");
 
 const configChangeHook = require("../.claude/hooks/tobari-config-change.js");
 
@@ -100,7 +101,11 @@ describe("A7-readSettings: missing directory", () => {
       // Do NOT create .claude/ directory
 
       const result = configChangeHook.readSettings();
-      assert.equal(result, null, "Should return null when directory is missing");
+      assert.equal(
+        result,
+        null,
+        "Should return null when directory is missing",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -115,14 +120,28 @@ describe("A7-readSettings: valid JSON", () => {
       tmpDir = createTmpDir();
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
 
-      const settingsObj = { hooks: { enabled: true }, permissions: { allow: [] } };
+      const settingsObj = {
+        hooks: { enabled: true },
+        permissions: { allow: [] },
+      };
       createSettingsFile(tmpDir, settingsObj);
 
       const result = configChangeHook.readSettings();
-      assert.notEqual(result, null, "Should return non-null for valid settings");
+      assert.notEqual(
+        result,
+        null,
+        "Should return non-null for valid settings",
+      );
       assert.equal(typeof result.raw, "string", "raw should be a string");
-      assert.equal(typeof result.parsed, "object", "parsed should be an object");
-      assert.deepEqual(Object.keys(result.parsed).sort(), ["hooks", "permissions"]);
+      assert.equal(
+        typeof result.parsed,
+        "object",
+        "parsed should be an object",
+      );
+      assert.deepEqual(Object.keys(result.parsed).sort(), [
+        "hooks",
+        "permissions",
+      ]);
       assert.equal(result.parsed.hooks.enabled, true);
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
@@ -160,7 +179,11 @@ describe("A7-saveConfigHash: directory creation", () => {
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
 
       const logsDir = path.join(tmpDir, ".claude", "logs");
-      assert.equal(fs.existsSync(logsDir), false, "logs dir should not exist initially");
+      assert.equal(
+        fs.existsSync(logsDir),
+        false,
+        "logs dir should not exist initially",
+      );
 
       configChangeHook.saveConfigHash("abc123def456", ["hooks"]);
 
@@ -179,21 +202,38 @@ describe("A7-saveConfigHash: correct structure", () => {
       tmpDir = createTmpDir();
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
 
-      const testHash = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2";
+      const testHash =
+        "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2";
       const testKeys = ["hooks", "permissions", "env"];
 
       configChangeHook.saveConfigHash(testHash, testKeys);
 
       const hashPath = configChangeHook.getConfigHashPath();
-      assert.equal(fs.existsSync(hashPath), true, "config hash file should exist");
+      assert.equal(
+        fs.existsSync(hashPath),
+        true,
+        "config hash file should exist",
+      );
 
       const stored = JSON.parse(fs.readFileSync(hashPath, "utf8"));
       assert.equal(stored.hash, testHash, "hash should match");
-      assert.deepEqual(stored.snapshot_keys, testKeys, "snapshot_keys should match");
-      assert.equal(typeof stored.updated_at, "string", "updated_at should be a string");
+      assert.deepEqual(
+        stored.snapshot_keys,
+        testKeys,
+        "snapshot_keys should match",
+      );
+      assert.equal(
+        typeof stored.updated_at,
+        "string",
+        "updated_at should be a string",
+      );
       // Verify updated_at is a valid ISO date
       const parsedDate = new Date(stored.updated_at);
-      assert.equal(isNaN(parsedDate.getTime()), false, "updated_at should be valid ISO date");
+      assert.equal(
+        isNaN(parsedDate.getTime()),
+        false,
+        "updated_at should be valid ISO date",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -209,7 +249,9 @@ describe("A7-saveConfigHash: correct structure", () => {
       configChangeHook.saveConfigHash("first_hash_value", ["keyA"]);
       configChangeHook.saveConfigHash("second_hash_value", ["keyA", "keyB"]);
 
-      const stored = JSON.parse(fs.readFileSync(configChangeHook.getConfigHashPath(), "utf8"));
+      const stored = JSON.parse(
+        fs.readFileSync(configChangeHook.getConfigHashPath(), "utf8"),
+      );
       assert.equal(stored.hash, "second_hash_value");
       assert.deepEqual(stored.snapshot_keys, ["keyA", "keyB"]);
     } finally {
@@ -252,7 +294,7 @@ describe("A7-loadStoredConfigHash: invalid JSON", () => {
       fs.writeFileSync(
         path.join(logsDir, configChangeHook.CONFIG_HASH_FILENAME),
         "not-valid-json{{{",
-        "utf8"
+        "utf8",
       );
 
       const result = configChangeHook.loadStoredConfigHash();
@@ -282,7 +324,7 @@ describe("A7-loadStoredConfigHash: correct data", () => {
       fs.writeFileSync(
         path.join(logsDir, configChangeHook.CONFIG_HASH_FILENAME),
         JSON.stringify(stateData),
-        "utf8"
+        "utf8",
       );
 
       const result = configChangeHook.loadStoredConfigHash();
@@ -325,7 +367,11 @@ describe("A7-loadStoredConfigHash: correct data", () => {
 describe("A7-detectKeyChanges: edge cases", () => {
   it("handles null oldKeys gracefully (treats as empty)", () => {
     const result = configChangeHook.detectKeyChanges(null, ["hooks", "env"]);
-    assert.deepEqual(result.added, ["hooks", "env"], "All new keys should be added");
+    assert.deepEqual(
+      result.added,
+      ["hooks", "env"],
+      "All new keys should be added",
+    );
     assert.deepEqual(result.removed, [], "No keys should be removed");
   });
 
@@ -400,18 +446,29 @@ describe("A7-handler: no changes on second run", () => {
       tmpDir = createTmpDir();
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
 
-      const settingsObj = { hooks: { enabled: true }, permissions: { mode: "ask" } };
+      const settingsObj = {
+        hooks: { enabled: true },
+        permissions: { mode: "ask" },
+      };
       createSettingsFile(tmpDir, settingsObj);
       // Ensure logs dir exists for hash state
       fs.mkdirSync(path.join(tmpDir, ".claude", "logs"), { recursive: true });
 
       // First run (baseline)
       const firstResult = configChangeHook.handler({});
-      assert.equal(firstResult, null, "First run should return null (baseline)");
+      assert.equal(
+        firstResult,
+        null,
+        "First run should return null (baseline)",
+      );
 
       // Second run with same settings (no changes)
       const secondResult = configChangeHook.handler({});
-      assert.equal(secondResult, null, "Should return null when settings unchanged");
+      assert.equal(
+        secondResult,
+        null,
+        "Should return null when settings unchanged",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -440,7 +497,7 @@ describe("A7-handler: warning includes added keys", () => {
       fs.writeFileSync(
         settingsPath,
         JSON.stringify({ hooks: {}, new_feature: true, debug_mode: false }),
-        "utf8"
+        "utf8",
       );
 
       // Second run
@@ -448,7 +505,10 @@ describe("A7-handler: warning includes added keys", () => {
       assert.notEqual(result, null, "Should detect config change");
 
       const ctx = result.hookSpecificOutput.additionalContext;
-      assert.ok(ctx.includes("CONFIG CHANGE DETECTED"), "Should contain change heading");
+      assert.ok(
+        ctx.includes("CONFIG CHANGE DETECTED"),
+        "Should contain change heading",
+      );
       assert.ok(ctx.includes("New keys"), "Should mention new keys");
       assert.ok(ctx.includes("new_feature"), "Should list new_feature key");
       assert.ok(ctx.includes("debug_mode"), "Should list debug_mode key");
@@ -481,18 +541,17 @@ describe("A7-handler: warning includes removed keys", () => {
       configChangeHook.handler({});
 
       // Remove keys
-      fs.writeFileSync(
-        settingsPath,
-        JSON.stringify({ hooks: {} }),
-        "utf8"
-      );
+      fs.writeFileSync(settingsPath, JSON.stringify({ hooks: {} }), "utf8");
 
       // Second run
       const result = configChangeHook.handler({});
       assert.notEqual(result, null, "Should detect config change");
 
       const ctx = result.hookSpecificOutput.additionalContext;
-      assert.ok(ctx.includes("CONFIG CHANGE DETECTED"), "Should contain change heading");
+      assert.ok(
+        ctx.includes("CONFIG CHANGE DETECTED"),
+        "Should contain change heading",
+      );
       assert.ok(ctx.includes("Removed keys"), "Should mention removed keys");
       assert.ok(ctx.includes("permissions"), "Should list permissions key");
       assert.ok(ctx.includes("env"), "Should list env key");
@@ -525,7 +584,7 @@ describe("A7-handler: evidence recording", () => {
       fs.writeFileSync(
         settingsPath,
         JSON.stringify({ hooks: {}, added_section: {} }),
-        "utf8"
+        "utf8",
       );
 
       // Second run (should write evidence)
@@ -534,25 +593,47 @@ describe("A7-handler: evidence recording", () => {
 
       // Check evidence ledger
       const evidencePath = path.join(logsDir, "evidence-ledger.jsonl");
-      assert.equal(fs.existsSync(evidencePath), true, "Evidence ledger should exist");
+      assert.equal(
+        fs.existsSync(evidencePath),
+        true,
+        "Evidence ledger should exist",
+      );
 
-      const evidenceLines = fs.readFileSync(evidencePath, "utf8")
+      const evidenceLines = fs
+        .readFileSync(evidencePath, "utf8")
         .trim()
         .split("\n")
         .map((line) => JSON.parse(line));
 
       // Find the config_changed entry
-      const configEntry = evidenceLines.find((e) => e.event === "config_changed");
-      assert.notEqual(configEntry, undefined, "Should have config_changed evidence entry");
-      assert.equal(typeof configEntry.settings_hash, "string", "Should have settings_hash");
-      assert.equal(typeof configEntry.previous_hash, "string", "Should have previous_hash");
+      const configEntry = evidenceLines.find(
+        (e) => e.event === "config_changed",
+      );
+      assert.notEqual(
+        configEntry,
+        undefined,
+        "Should have config_changed evidence entry",
+      );
+      assert.equal(
+        typeof configEntry.settings_hash,
+        "string",
+        "Should have settings_hash",
+      );
+      assert.equal(
+        typeof configEntry.previous_hash,
+        "string",
+        "Should have previous_hash",
+      );
       assert.notEqual(
         configEntry.settings_hash,
         configEntry.previous_hash,
-        "Hashes should differ"
+        "Hashes should differ",
       );
       assert.ok(configEntry.key_changes, "Should have key_changes");
-      assert.ok(Array.isArray(configEntry.top_level_keys), "Should have top_level_keys");
+      assert.ok(
+        Array.isArray(configEntry.top_level_keys),
+        "Should have top_level_keys",
+      );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -579,7 +660,7 @@ describe("A7-handler: evidence recording", () => {
       fs.writeFileSync(
         settingsPath,
         JSON.stringify({ hooks: {}, fresh_key: "newly_added" }),
-        "utf8"
+        "utf8",
       );
 
       // Second run
@@ -587,20 +668,23 @@ describe("A7-handler: evidence recording", () => {
 
       // Parse evidence
       const evidencePath = path.join(logsDir, "evidence-ledger.jsonl");
-      const evidenceLines = fs.readFileSync(evidencePath, "utf8")
+      const evidenceLines = fs
+        .readFileSync(evidencePath, "utf8")
         .trim()
         .split("\n")
         .map((line) => JSON.parse(line));
 
-      const configEntry = evidenceLines.find((e) => e.event === "config_changed");
+      const configEntry = evidenceLines.find(
+        (e) => e.event === "config_changed",
+      );
       assert.notEqual(configEntry, undefined);
       assert.ok(
         configEntry.key_changes.added.includes("fresh_key"),
-        "key_changes.added should include fresh_key"
+        "key_changes.added should include fresh_key",
       );
       assert.ok(
         configEntry.key_changes.removed.includes("old_key"),
-        "key_changes.removed should include old_key"
+        "key_changes.removed should include old_key",
       );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = ORIGINAL_PROJECT_DIR;
@@ -627,12 +711,19 @@ describe("A7-hashContent: additional", () => {
   it("produces different hashes for different content", () => {
     const h1 = configChangeHook.hashContent("content alpha");
     const h2 = configChangeHook.hashContent("content bravo");
-    assert.notEqual(h1, h2, "Different content should produce different hashes");
+    assert.notEqual(
+      h1,
+      h2,
+      "Different content should produce different hashes",
+    );
   });
 
   it("matches manual SHA-256 computation", () => {
     const input = '{"hooks":{},"permissions":{}}';
-    const expected = crypto.createHash("sha256").update(input, "utf8").digest("hex");
+    const expected = crypto
+      .createHash("sha256")
+      .update(input, "utf8")
+      .digest("hex");
     const actual = configChangeHook.hashContent(input);
     assert.equal(actual, expected);
   });

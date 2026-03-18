@@ -92,7 +92,9 @@ function deployWithMerge(cwd, options = {}) {
       }
     }
     if (verbose) {
-      console.log(`  Syncing skills...      ${TOBARI_SKILLS.length} skills (tobari-managed only)`);
+      console.log(
+        `  Syncing skills...      ${TOBARI_SKILLS.length} skills (tobari-managed only)`,
+      );
     }
   }
 
@@ -144,7 +146,7 @@ function mergeSettingsCore(existing, template) {
         merged.hooks[hookType] = hookEntries;
       } else {
         const existingCommands = new Set(
-          merged.hooks[hookType].map((e) => e.command)
+          merged.hooks[hookType].map((e) => e.command),
         );
         for (const entry of hookEntries) {
           if (!existingCommands.has(entry.command)) {
@@ -158,7 +160,9 @@ function mergeSettingsCore(existing, template) {
   // Merge permissions: add without duplicating
   if (template.permissions) {
     if (!merged.permissions) merged.permissions = {};
-    for (const [permType, permEntries] of Object.entries(template.permissions)) {
+    for (const [permType, permEntries] of Object.entries(
+      template.permissions,
+    )) {
       if (!merged.permissions[permType]) {
         merged.permissions[permType] = permEntries;
       } else if (Array.isArray(permEntries)) {
@@ -209,9 +213,11 @@ function mergeSettingsJson(cwd, options = {}) {
 
   fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2) + "\n");
   if (verbose) {
-    console.log(settingsExists
-      ? "  Merging settings.json  (customizations preserved)"
-      : "  Merging settings.json  (created from template)");
+    console.log(
+      settingsExists
+        ? "  Merging settings.json  (customizations preserved)"
+        : "  Merging settings.json  (created from template)",
+    );
   }
 }
 
@@ -257,7 +263,7 @@ function setRunShPermissions(cwd) {
     } catch {
       console.warn(
         "WARNING: Could not set executable permission on _run.sh. " +
-          "You may need to run: chmod +x .claude/hooks/_run.sh"
+          "You may need to run: chmod +x .claude/hooks/_run.sh",
       );
     }
   }
@@ -286,8 +292,11 @@ function addPrepareScript(cwd) {
 
   const TOBARI_SYNC = "tobari sync";
 
-  if (pkg.scripts && pkg.scripts.prepare &&
-      pkg.scripts.prepare.includes(TOBARI_SYNC)) {
+  if (
+    pkg.scripts &&
+    pkg.scripts.prepare &&
+    pkg.scripts.prepare.includes(TOBARI_SYNC)
+  ) {
     return false;
   }
 
@@ -358,7 +367,11 @@ function compareDirectories(srcDir, destDir) {
  */
 function computeMergedSettings(cwd) {
   const settingsPath = path.join(cwd, ".claude", "settings.json");
-  const templateSettingsPath = path.join(TEMPLATE_DIR, ".claude", "settings.json");
+  const templateSettingsPath = path.join(
+    TEMPLATE_DIR,
+    ".claude",
+    "settings.json",
+  );
 
   if (!fs.existsSync(templateSettingsPath)) return null;
 
@@ -409,19 +422,27 @@ function checkDrift(cwd) {
   // 1. Hooks
   const hooksResult = compareDirectories(
     path.join(templateClaudeDir, "hooks"),
-    path.join(claudeDir, "hooks")
+    path.join(claudeDir, "hooks"),
   );
   const hooksTotal = countFilesRecursive(path.join(templateClaudeDir, "hooks"));
-  const hooksDiff = formatDiff(hooksResult.missing, hooksResult.modified, hooksTotal);
+  const hooksDiff = formatDiff(
+    hooksResult.missing,
+    hooksResult.modified,
+    hooksTotal,
+  );
   categories.push({ name: "hooks", ...hooksDiff });
 
   // 2. Rules
   const rulesResult = compareDirectories(
     path.join(templateClaudeDir, "rules"),
-    path.join(claudeDir, "rules")
+    path.join(claudeDir, "rules"),
   );
   const rulesTotal = countFilesRecursive(path.join(templateClaudeDir, "rules"));
-  const rulesDiff = formatDiff(rulesResult.missing, rulesResult.modified, rulesTotal);
+  const rulesDiff = formatDiff(
+    rulesResult.missing,
+    rulesResult.modified,
+    rulesTotal,
+  );
   categories.push({ name: "rules", ...rulesDiff });
 
   // 3. Skills (tobari-managed only)
@@ -438,39 +459,52 @@ function checkDrift(cwd) {
       skillModified.push(...result.modified.map((f) => skill + "/" + f));
     }
   }
-  const skillsDiff = skillMissing.length + skillModified.length === 0
-    ? { status: "ok", detail: `${TOBARI_SKILLS.length} skills in sync` }
-    : (() => {
-        hasDrift = true;
-        const diffs = [
-          ...skillMissing.map((f) => f + " (missing)"),
-          ...skillModified,
-        ];
-        const shown = diffs.slice(0, 5);
-        const extra = diffs.length > 5 ? ` +${diffs.length - 5} more` : "";
-        return {
-          status: "drift",
-          detail: `${diffs.length} files differ: ${shown.join(", ")}${extra}`,
-        };
-      })();
+  const skillsDiff =
+    skillMissing.length + skillModified.length === 0
+      ? { status: "ok", detail: `${TOBARI_SKILLS.length} skills in sync` }
+      : (() => {
+          hasDrift = true;
+          const diffs = [
+            ...skillMissing.map((f) => f + " (missing)"),
+            ...skillModified,
+          ];
+          const shown = diffs.slice(0, 5);
+          const extra = diffs.length > 5 ? ` +${diffs.length - 5} more` : "";
+          return {
+            status: "drift",
+            detail: `${diffs.length} files differ: ${shown.join(", ")}${extra}`,
+          };
+        })();
   categories.push({ name: "skills", ...skillsDiff });
 
   // 4. Agents
   const agentsResult = compareDirectories(
     path.join(templateClaudeDir, "agents"),
-    path.join(claudeDir, "agents")
+    path.join(claudeDir, "agents"),
   );
-  const agentsTotal = countFilesRecursive(path.join(templateClaudeDir, "agents"));
-  const agentsDiff = formatDiff(agentsResult.missing, agentsResult.modified, agentsTotal);
+  const agentsTotal = countFilesRecursive(
+    path.join(templateClaudeDir, "agents"),
+  );
+  const agentsDiff = formatDiff(
+    agentsResult.missing,
+    agentsResult.modified,
+    agentsTotal,
+  );
   categories.push({ name: "agents", ...agentsDiff });
 
   // 5. Commands
   const commandsResult = compareDirectories(
     path.join(templateClaudeDir, "commands"),
-    path.join(claudeDir, "commands")
+    path.join(claudeDir, "commands"),
   );
-  const commandsTotal = countFilesRecursive(path.join(templateClaudeDir, "commands"));
-  const commandsDiff = formatDiff(commandsResult.missing, commandsResult.modified, commandsTotal);
+  const commandsTotal = countFilesRecursive(
+    path.join(templateClaudeDir, "commands"),
+  );
+  const commandsDiff = formatDiff(
+    commandsResult.missing,
+    commandsResult.modified,
+    commandsTotal,
+  );
   categories.push({ name: "commands", ...commandsDiff });
 
   // 6. Settings.json
@@ -530,9 +564,9 @@ function checkDrift(cwd) {
  */
 function countFiles(dir) {
   try {
-    return fs.readdirSync(dir).filter((f) =>
-      fs.statSync(path.join(dir, f)).isFile()
-    ).length;
+    return fs
+      .readdirSync(dir)
+      .filter((f) => fs.statSync(path.join(dir, f)).isFile()).length;
   } catch {
     return 0;
   }

@@ -6,10 +6,10 @@ tobari への貢献に興味を持っていただきありがとうございま�
 
 ### Prerequisites
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| [Node.js](https://nodejs.org/) | 18+ | CLI / Hooks / テスト実行 |
-| [Git](https://git-scm.com/) | -- | バージョン管理 |
+| Tool                           | Version | Purpose                  |
+| ------------------------------ | ------- | ------------------------ |
+| [Node.js](https://nodejs.org/) | 18+     | CLI / Hooks / テスト実行 |
+| [Git](https://git-scm.com/)    | --      | バージョン管理           |
 
 ### Getting Started
 
@@ -73,14 +73,14 @@ npm test
 
 [Conventional Commits](https://www.conventionalcommits.org/) に準拠:
 
-| Prefix | Usage |
-|--------|-------|
-| `feat:` | 新機能 |
-| `fix:` | バグ修正 |
-| `docs:` | ドキュメント |
+| Prefix      | Usage            |
+| ----------- | ---------------- |
+| `feat:`     | 新機能           |
+| `fix:`      | バグ修正         |
+| `docs:`     | ドキュメント     |
 | `refactor:` | リファクタリング |
-| `test:` | テスト追加・修正 |
-| `chore:` | ビルド・設定 |
+| `test:`     | テスト追加・修正 |
+| `chore:`    | ビルド・設定     |
 
 ### JavaScript (CLI / Hooks)
 
