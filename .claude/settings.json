@@ -95,6 +95,28 @@
         ]
       }
     ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-subagent-start.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-user-prompt.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PreCompact": [
       {
         "matcher": "auto",
@@ -107,6 +129,29 @@
         ]
       }
     ],
+    "PostCompact": [
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-postcompact.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-session-end.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PostToolUseFailure": [
       {
         "matcher": "Bash|Edit|Write|NotebookEdit|Read|Grep|Glob|WebFetch|WebSearch|Task",
@@ -114,7 +159,8 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence-failure.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "async": true
           }
         ]
       }
@@ -126,7 +172,8 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "async": true
           }
         ]
       },
@@ -146,7 +193,8 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-cost.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "async": true
           }
         ]
       },
@@ -174,48 +222,48 @@
       "Task(*)",
       "Skill(*)",
       "TodoWrite(*)",
-      "Bash(cat:*)",
-      "Bash(ls:*)",
-      "Bash(find:*)",
-      "Bash(grep:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(wc:*)",
-      "Bash(sort:*)",
-      "Bash(uniq:*)",
-      "Bash(diff:*)",
-      "Bash(echo:*)",
-      "Bash(pwd:*)",
-      "Bash(cd:*)",
-      "Bash(mkdir:*)",
-      "Bash(touch:*)",
-      "Bash(cp:*)",
-      "Bash(mv:*)",
-      "Bash(chmod:*)",
-      "Bash(git:*)",
-      "Bash(gh:*)",
-      "Bash(pwsh:*)",
-      "Bash(powershell:*)",
-      "Bash(python:*)",
-      "Bash(python3:*)",
-      "Bash(node:*)",
-      "Bash(npm:*)",
-      "Bash(npx:*)",
-      "Bash(curl:*)",
-      "Bash(wget:*)",
-      "Bash(jq:*)",
-      "Bash(sed:*)",
-      "Bash(awk:*)",
-      "Bash(xargs:*)",
-      "Bash(tree:*)",
-      "Bash(which:*)",
-      "Bash(type:*)",
-      "Bash(env:*)",
-      "Bash(export:*)",
-      "Bash(source:*)",
-      "Bash(docker:*)",
-      "Bash(docker-compose:*)",
-      "Bash(for:*)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(sort *)",
+      "Bash(uniq *)",
+      "Bash(diff *)",
+      "Bash(echo *)",
+      "Bash(pwd *)",
+      "Bash(cd *)",
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(chmod *)",
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(pwsh *)",
+      "Bash(powershell *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(node *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(jq *)",
+      "Bash(sed *)",
+      "Bash(awk *)",
+      "Bash(xargs *)",
+      "Bash(tree *)",
+      "Bash(which *)",
+      "Bash(type *)",
+      "Bash(env *)",
+      "Bash(export *)",
+      "Bash(source *)",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
+      "Bash(for *)",
       "Bash(do)",
       "Bash(then)",
       "Bash(else)",
