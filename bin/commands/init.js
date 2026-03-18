@@ -77,22 +77,40 @@ module.exports = function init(options) {
   printSuccess();
 };
 
+/**
+ * Deploy CLAUDE.md to the target project.
+ *
+ * - No existing CLAUDE.md → copy template as-is
+ * - Existing CLAUDE.md without tobari section → append template
+ * - Existing CLAUDE.md with tobari section → skip (already present)
+ */
 function deployCLAUDEmd(cwd) {
   const templateClaude = path.join(TEMPLATE_DIR, "templates", "CLAUDE.md");
   const targetClaude = path.join(cwd, "CLAUDE.md");
 
   if (!fs.existsSync(templateClaude)) return;
 
+  const templateContent = fs.readFileSync(templateClaude, "utf8");
+  const TOBARI_MARKER = "# tobari";
+
   if (fs.existsSync(targetClaude)) {
-    // Don't overwrite existing CLAUDE.md
-    const templateTarget = path.join(cwd, "CLAUDE.md.tobari");
-    fs.copyFileSync(templateClaude, templateTarget);
-    console.log(
-      "\nCLAUDE.md already exists. Template saved as CLAUDE.md.tobari",
+    const existing = fs.readFileSync(targetClaude, "utf8");
+
+    if (existing.includes(TOBARI_MARKER)) {
+      console.log(
+        "\nCLAUDE.md already contains tobari configuration. Skipped.",
+      );
+      return;
+    }
+
+    // Append tobari section to existing CLAUDE.md
+    const separator = existing.endsWith("\n") ? "\n" : "\n\n";
+    fs.writeFileSync(
+      targetClaude,
+      existing + separator + templateContent,
+      "utf8",
     );
-    console.log(
-      "Please merge the template content into your existing CLAUDE.md manually.",
-    );
+    console.log("\ntobari configuration appended to existing CLAUDE.md.");
   } else {
     fs.copyFileSync(templateClaude, targetClaude);
   }

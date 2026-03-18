@@ -462,6 +462,31 @@ function handler(data) {
   const [isFailure, failureSummary] = detectTestFailure(transcript);
 
   if (!isFailure) {
+    // Auto-trigger: suggest /tobari-immune if deny count exceeds threshold
+    try {
+      const summary = tobariSession.summarizeEvidence();
+      const denyCount =
+        (summary && summary.events && summary.events.tool_denied) || 0;
+      const IMMUNE_THRESHOLD = 3;
+
+      if (
+        denyCount >= IMMUNE_THRESHOLD &&
+        !tobariSession.getAutoTriggerState("immune_triggered")
+      ) {
+        tobariSession.setAutoTriggerFired("immune_triggered");
+        tobariSession.writeEvidence({
+          event: "immune_suggestion",
+          deny_count: denyCount,
+          task: task,
+        });
+        return {
+          decision: "block",
+          reason: t("stop.immune_suggestion", { denyCount }),
+        };
+      }
+    } catch (_) {
+      // fail-open: auto-trigger errors never block normal stop
+    }
     return null;
   }
 

@@ -197,5 +197,13 @@
   "session_end.gates": "Gates passed: {passed}",
   "session_end.incomplete_gates": "Incomplete gates: {gates}",
   "session_end.duration_unknown": "unknown",
-  "session_end.none": "none"
+  "session_end.none": "none",
+  "session_end.handoff_suggestion": "Consider running /handoff to record session information for the next session.",
+  "stage.auto_trigger.stg0_plan": "Requirements confirmed (STG0 passed). Next: run /plan to create an implementation plan.",
+  "stage.auto_trigger.stg1_implement": "Design completed (STG1 passed). Next: run /tdd for TDD implementation, or /team-implement for parallel implementation.",
+  "stage.auto_trigger.stg2_review": "Implementation completed (STG2 passed). Next: run /simplify to simplify code, then /team-review to start review.",
+  "stage.auto_trigger.stg3_coverage_commit": "Verification completed (STG3 passed). Run /test-coverage-improver to check coverage, then commit your changes.",
+  "stage.auto_trigger.stg5_docs_pr": "Commit completed (STG5 passed). Run /docs-sync to check document consistency, then create a PR.",
+  "stage.auto_trigger.stg6_checkpoint": "All gates completed (STG6 passed). Run /checkpointing to save session records.",
+  "stop.immune_suggestion": "Tobari blocked {denyCount} operations. Consider running /tobari-immune to analyze attack patterns and strengthen defenses. Continue working after execution."
 }

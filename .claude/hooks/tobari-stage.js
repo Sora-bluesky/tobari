@@ -40,6 +40,29 @@ const VALID_STATUSES = new Set(["pending", "in_progress", "done"]);
 
 const BACKLOG_FILENAME = "tasks/backlog.yaml";
 
+/**
+ * Map of completed gates to suggested next skills.
+ * Each entry has a trigger name (for dedup) and an i18n message key.
+ * STG4 is omitted — it is skipped in Lite profile and has no dedicated skill.
+ */
+const GATE_SKILL_MAP = {
+  STG0: { trigger: "stg0_plan", key: "stage.auto_trigger.stg0_plan" },
+  STG1: {
+    trigger: "stg1_implement",
+    key: "stage.auto_trigger.stg1_implement",
+  },
+  STG2: { trigger: "stg2_review", key: "stage.auto_trigger.stg2_review" },
+  STG3: {
+    trigger: "stg3_coverage_commit",
+    key: "stage.auto_trigger.stg3_coverage_commit",
+  },
+  STG5: { trigger: "stg5_docs_pr", key: "stage.auto_trigger.stg5_docs_pr" },
+  STG6: {
+    trigger: "stg6_checkpoint",
+    key: "stage.auto_trigger.stg6_checkpoint",
+  },
+};
+
 // ---------------------------------------------------------------------------
 // Optional js-yaml (used for verification only, not required)
 // ---------------------------------------------------------------------------
@@ -949,6 +972,20 @@ function advanceGate(taskId, gate) {
     ? t("stage.next_gate", { nextGate })
     : t("stage.all_gates_done");
 
+  // Auto-trigger: suggest next skill based on completed gate
+  let suggestedAction = null;
+  const mapping = GATE_SKILL_MAP[gate];
+  if (mapping) {
+    try {
+      if (!tobariSession.getAutoTriggerState(mapping.trigger)) {
+        tobariSession.setAutoTriggerFired(mapping.trigger);
+        suggestedAction = t(mapping.key);
+      }
+    } catch (_) {
+      // fail-open: auto-trigger errors never block gate advancement
+    }
+  }
+
   return _advanceResult({
     success: true,
     gate,
@@ -959,6 +996,7 @@ function advanceGate(taskId, gate) {
     message: `${gate} → done. ${nextMsg}`,
     evidence_data: evidenceData,
     skipped: shouldSkip,
+    suggested_action: suggestedAction,
   });
 }
 
@@ -1123,6 +1161,7 @@ module.exports = {
   // Constants
   GATE_ORDER,
   GATE_SKIP_RULES,
+  GATE_SKILL_MAP,
   VALID_STATUSES,
   BACKLOG_FILENAME,
 

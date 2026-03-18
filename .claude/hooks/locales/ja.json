@@ -197,5 +197,13 @@
   "session_end.gates": "通過ゲート: {passed}",
   "session_end.incomplete_gates": "未完了ゲート: {gates}",
   "session_end.duration_unknown": "不明",
-  "session_end.none": "なし"
+  "session_end.none": "なし",
+  "session_end.handoff_suggestion": "次のセッションに引き継ぐため、/handoff でセッション情報を記録することを推奨します。",
+  "stage.auto_trigger.stg0_plan": "要件が確定しました（STG0 通過）。次のステップとして /plan を実行して実装計画を作成してください。",
+  "stage.auto_trigger.stg1_implement": "設計が完了しました（STG1 通過）。次のステップとして /tdd で TDD 実装を開始するか、/team-implement で並列実装を開始してください。",
+  "stage.auto_trigger.stg2_review": "実装が完了しました（STG2 通過）。次のステップとして /simplify でコードを簡素化した後、/team-review でレビューを開始してください。",
+  "stage.auto_trigger.stg3_coverage_commit": "検証が完了しました（STG3 通過）。/test-coverage-improver でカバレッジを確認した後、変更をコミットしてください。",
+  "stage.auto_trigger.stg5_docs_pr": "コミットが完了しました（STG5 通過）。/docs-sync でドキュメント整合性を確認した後、PR を作成してください。",
+  "stage.auto_trigger.stg6_checkpoint": "全ゲートが完了しました（STG6 通過）。/checkpointing でセッション記録を保存してください。",
+  "stop.immune_suggestion": "帳が {denyCount} 件の操作をブロックしました。/tobari-immune を実行して攻撃パターンを分析し、防御を強化することを推奨します。実行後、作業を続けてください。"
 }

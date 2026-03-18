@@ -1198,6 +1198,46 @@ function setRetryCount(count) {
 }
 
 // ---------------------------------------------------------------------------
+// Auto-Trigger State Management
+// ---------------------------------------------------------------------------
+
+/**
+ * Check whether an auto-trigger has already fired.
+ *
+ * @param {string} triggerName - e.g. "stg2_review", "immune_triggered"
+ * @returns {boolean} True if already fired, false otherwise.
+ */
+function getAutoTriggerState(triggerName) {
+  const session = loadSession();
+  if (!session || !session.auto_triggers) return false;
+  return session.auto_triggers[triggerName] === true;
+}
+
+/**
+ * Mark an auto-trigger as fired (prevents duplicate triggers).
+ *
+ * @param {string} triggerName
+ * @returns {boolean} True on success.
+ */
+function setAutoTriggerFired(triggerName) {
+  return readModifyWriteSession((data) => {
+    if (!data.auto_triggers) data.auto_triggers = {};
+    data.auto_triggers[triggerName] = true;
+  });
+}
+
+/**
+ * Reset all auto-trigger flags (called on new session start).
+ *
+ * @returns {boolean} True on success.
+ */
+function resetAutoTriggers() {
+  return readModifyWriteSession((data) => {
+    data.auto_triggers = {};
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Notification Utilities
 // ---------------------------------------------------------------------------
 
@@ -1715,6 +1755,11 @@ module.exports = {
   // Self-Repair
   getRetryCount,
   setRetryCount,
+
+  // Auto-Trigger
+  getAutoTriggerState,
+  setAutoTriggerFired,
+  resetAutoTriggers,
 
   // Notification
   getWebhookConfig,

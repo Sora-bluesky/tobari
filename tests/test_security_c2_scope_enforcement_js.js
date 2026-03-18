@@ -751,6 +751,33 @@ describe("C2: Bash scope bypass resistance — handler integration", () => {
     assertAllow(result, "git commands should be allowed");
   });
 
+  it("allows gh commands via handler (scope exclusion)", () => {
+    const result = gate.handler({
+      tool_name: "Bash",
+      tool_input: { command: "gh pr create --title 'fix: scope'" },
+    });
+    assertAllow(result, "gh commands should be allowed");
+  });
+
+  it("allows gh api commands via handler", () => {
+    const result = gate.handler({
+      tool_name: "Bash",
+      tool_input: { command: "gh api repos/owner/repo/pulls" },
+    });
+    assertAllow(result, "gh api commands should be allowed");
+  });
+
+  it("allows gh with leading whitespace via handler", () => {
+    const result = gate.handler({
+      tool_name: "Bash",
+      tool_input: { command: "  gh release list" },
+    });
+    assertAllow(
+      result,
+      "gh commands with leading whitespace should be allowed",
+    );
+  });
+
   it("allows Bash read commands without scope check", () => {
     const result = gate.handler({
       tool_name: "Bash",

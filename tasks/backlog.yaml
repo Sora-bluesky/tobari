@@ -2,7 +2,7 @@
   phase: "P3"
   title: "CI/CD 再構築（release-please導入、テストCI更新、マイグレーションスクリプト）"
   priority: "P1"
-  status: "in-progress"
+  status: "done"
   owner: "Claude Code"
   acceptance:
     - "release-please 設定ファイル3つが .github/ に存在する"
@@ -10,39 +10,41 @@
     - "cross-platform-test.yml に node --test --test-concurrency=1 tests/*.js が含まれている"
     - "bin/migrations/2.0.0.js が存在し version, description, run をエクスポートしている"
     - "既存テストがパスする"
-  evidence: []
+  evidence:
+    - "PR #27 merged, v2.0.0 released"
   stage_status:
     STG0: "done"
-    STG1: "pending"
-    STG2: "pending"
-    STG3: "pending"
-    STG4: "pending"
-    STG5: "pending"
-    STG6: "pending"
-  next_action: "実装開始"
-  updated_at: "2026-03-10"
+    STG1: "done"
+    STG2: "done"
+    STG3: "done"
+    STG4: "done"
+    STG5: "done"
+    STG6: "done"
+  next_action: "完了"
+  updated_at: "2026-03-11"
 
 - id: "TASK-002"
   phase: "P4"
   title: "CI修正: node --test フラグ順序修正"
   priority: "P1"
-  status: "in-progress"
+  status: "done"
   owner: "Claude Code"
   acceptance:
     - "node --test --test-concurrency=1 tests/*.js の順序になっている"
     - "ローカルでテストコマンドが正常に実行できる"
-  evidence: []
+  evidence:
+    - "PR #27 merged, CI passes on macOS + Ubuntu"
   stage_status:
     STG0: "done"
-    STG6: "pending"
-  next_action: "cross-platform-test.yml 修正"
+    STG6: "done"
+  next_action: "完了"
   updated_at: "2026-03-11"
 
 - id: "TASK-003"
   phase: "P5"
   title: "v2.2.0 自己進化・免疫システム + セキュリティ強化"
   priority: "P0"
-  status: "in-progress"
+  status: "done"
   owner: "Claude Code"
   acceptance:
     - "/tobari-immune が evidence-ledger から bypass パターンを検出できる"
@@ -55,6 +57,36 @@
     - "evidence 記録が async で動作する"
     - "README に Adaptive Security セクションが存在する"
     - "既存テスト 1013件 + 新規テスト全パス"
+  evidence:
+    - "PR #34 merged, v2.2.0 released"
+    - "CI passes on macOS + Ubuntu"
+  stage_status:
+    STG0: "done"
+    STG1: "done"
+    STG2: "done"
+    STG3: "done"
+    STG4: "done"
+    STG5: "done"
+    STG6: "done"
+  next_action: "完了"
+  updated_at: "2026-03-18"
+
+- id: "TASK-004"
+  phase: "P5"
+  title: "v2.3.0 スキル自動トリガー + gh スコープ除外 + CLAUDE.md最適化"
+  priority: "P1"
+  status: "in-progress"
+  owner: "Claude Code"
+  acceptance:
+    - "gh コマンドがスコープチェックで偽陽性を起こさない"
+    - "advanceGate() が全ゲート（STG0-STG6）で適切な suggested_action を返す"
+    - "同じ提案が2度発火しない（auto_triggers フラグで制御）"
+    - "deny 3件以上で /tobari-immune が1回だけ提案される"
+    - "SessionEnd で未完了ゲートがあればハンドオフ提案が stdout に出る"
+    - "全テスト（既存 + 新規）がパスする"
+    - "CLAUDE.md が llms.txt 仕様に準拠し .claude/rules/ との重複が排除されている"
+    - "package.json の version が 2.3.0 になっている"
+    - "README にスキル自動トリガー機能が記載されている"
   evidence: []
   stage_status:
     STG0: "done"
@@ -64,5 +96,5 @@
     STG4: "pending"
     STG5: "pending"
     STG6: "pending"
-  next_action: "Phase 1A: /tobari-immune スキル作成"
+  next_action: "実装開始"
   updated_at: "2026-03-18"
