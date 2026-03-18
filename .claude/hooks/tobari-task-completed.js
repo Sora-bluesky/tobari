@@ -51,6 +51,10 @@ function buildActiveFeedback(taskId, taskSubject, sessionTask) {
   parts.push(
     "(3) If all team tasks are complete, report to the team lead with a summary of changes.",
   );
+  parts.push(
+    "(4) After all tasks are done, run integration tests: " +
+      "`node --test --test-concurrency=1 tests/` to verify no regressions.",
+  );
 
   return parts.join(" ");
 }

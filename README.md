@@ -55,6 +55,7 @@ npx tobari init
 
 ```bash
 # --force: Merges existing settings.json (auto-backup created)
+# Existing CLAUDE.md is preserved -- tobari config is appended automatically
 npx tobari init --force
 
 # --update: Updates hooks only (rules/skills untouched)
@@ -207,6 +208,28 @@ The veil is composed of 13 "organs" that work together to provide autonomous, sa
 | 🧪 Evolve  | Self-Evolution    | `/tobari-evolve` skill                              | Tracks official API changes, auto-upgrades             |
 
 In addition, **git-guard** (pre-commit/pre-push hooks) provides secret scanning as a final boundary defense.
+
+## Skill Auto-Trigger
+
+After lowering the veil (`/tobari`), tobari automatically suggests the next skill to run as you advance through STG gates. No manual invocation needed -- the system guides you through the entire workflow.
+
+| Gate Completed | Suggested Skill                       | Purpose                                    |
+| -------------- | ------------------------------------- | ------------------------------------------ |
+| STG0           | `/plan`                               | Create implementation plan                 |
+| STG1           | `/tdd` or `/team-implement`           | Start TDD or parallel implementation       |
+| STG2           | `/simplify` then `/team-review`       | Simplify code, then review                 |
+| STG3           | `/test-coverage-improver` then commit | Check coverage, then commit                |
+| STG5           | `/docs-sync` then create PR           | Verify docs consistency, then create PR    |
+| STG6           | `/checkpointing`                      | Save session records and discover patterns |
+
+Additionally, event-based triggers fire automatically:
+
+| Event      | Condition        | Action                                         |
+| ---------- | ---------------- | ---------------------------------------------- |
+| Stop       | 3+ denied ops    | Suggests `/tobari-immune` for defense analysis |
+| SessionEnd | Incomplete gates | Suggests `/handoff` for session continuity     |
+
+All suggestions are advisory -- they appear in the output but the user (or LLM) decides whether to follow them. Each suggestion fires only once per session to prevent noise.
 
 ## Adaptive Security
 

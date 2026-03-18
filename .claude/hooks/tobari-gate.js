@@ -571,13 +571,14 @@ function checkSecretInBash(command) {
  * Check if a Bash command writes to a protected directory.
  * Reuses checkProtectedDirectory for each extracted write target.
  *
- * Git commands are excluded — git manages its own .git/ writes,
- * and commit messages often contain special characters that trigger
- * false positives in write pattern detection.
+ * Git and gh commands are excluded — git manages its own .git/ writes,
+ * gh operates on remote GitHub API, and both have commit messages or
+ * arguments that often contain special characters triggering false
+ * positives in write pattern detection.
  */
 function checkBashProtectedDirectory(command) {
-  // Git commands are managed by destructive pattern detection, not scope
-  if (/^\s*git\s+/.test(command)) return null;
+  // Git/gh commands are managed by destructive pattern detection, not scope
+  if (/^\s*(?:git|gh)\s+/.test(command)) return null;
 
   const targets = extractBashWriteTargets(command);
 
@@ -594,8 +595,8 @@ function checkBashProtectedDirectory(command) {
  * Extracts potential write targets and validates each against isPathInScope.
  */
 function checkBashScope(command) {
-  // Git commands are managed by destructive pattern detection, not scope
-  if (/^\s*git\s+/.test(command)) return null;
+  // Git/gh commands are managed by destructive pattern detection, not scope
+  if (/^\s*(?:git|gh)\s+/.test(command)) return null;
 
   const scope = tobariSession.getScope();
   if (!scope) return null;

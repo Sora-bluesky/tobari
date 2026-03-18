@@ -155,6 +155,11 @@ function handler(data) {
     parts.push(gateWarning);
   }
 
+  // Auto-trigger: suggest handoff if gates are incomplete
+  if (incompleteGates.length > 0) {
+    parts.push(t("session_end.handoff_suggestion"));
+  }
+
   // SessionEnd hooks output plain text to stdout
   process.stdout.write(parts.join("\n") + "\n");
   return null;
