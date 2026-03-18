@@ -75,7 +75,7 @@
   phase: "P5"
   title: "v2.3.0 スキル自動トリガー + gh スコープ除外 + CLAUDE.md最適化"
   priority: "P1"
-  status: "in-progress"
+  status: "done"
   owner: "Claude Code"
   acceptance:
     - "gh コマンドがスコープチェックで偽陽性を起こさない"
@@ -87,14 +87,16 @@
     - "CLAUDE.md が llms.txt 仕様に準拠し .claude/rules/ との重複が排除されている"
     - "package.json の version が 2.3.0 になっている"
     - "README にスキル自動トリガー機能が記載されている"
-  evidence: []
+  evidence:
+    - "PR #36 merged, v2.3.0 released"
+    - "1016 tests pass (0 failures)"
   stage_status:
     STG0: "done"
-    STG1: "pending"
-    STG2: "pending"
-    STG3: "pending"
-    STG4: "pending"
-    STG5: "pending"
-    STG6: "pending"
-  next_action: "実装開始"
+    STG1: "done"
+    STG2: "done"
+    STG3: "done"
+    STG4: "done"
+    STG5: "done"
+    STG6: "done"
+  next_action: "完了"
   updated_at: "2026-03-18"
