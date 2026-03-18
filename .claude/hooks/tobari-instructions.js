@@ -15,10 +15,7 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const {
-  writeEvidence,
-  runHook,
-} = require("./tobari-session.js");
+const { writeEvidence, runHook } = require("./tobari-session.js");
 
 const HASH_STATE_FILENAME = "instructions-hashes.json";
 

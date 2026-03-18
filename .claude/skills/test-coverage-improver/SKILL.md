@@ -39,12 +39,12 @@ Analyzes existing tests, identifies coverage gaps, and suggests the most impactf
 
 Rank suggested tests by impact:
 
-| Priority | Criteria |
-|----------|----------|
-| HIGH | Security-related hooks (gate, injection-guard) without edge case tests |
-| HIGH | Core modules (session, stage) with missing error path tests |
-| MEDIUM | Utility modules with partial coverage |
-| LOW | Already well-tested modules needing only edge cases |
+| Priority | Criteria                                                               |
+| -------- | ---------------------------------------------------------------------- |
+| HIGH     | Security-related hooks (gate, injection-guard) without edge case tests |
+| HIGH     | Core modules (session, stage) with missing error path tests            |
+| MEDIUM   | Utility modules with partial coverage                                  |
+| LOW      | Already well-tested modules needing only edge cases                    |
 
 ### Step 4: Skeleton Generation
 
@@ -67,6 +67,7 @@ describe("{module} - {scenario}", () => {
 ### Step 5: Report
 
 Output:
+
 1. Coverage summary table (module / test count / coverage level / priority)
 2. Top 5 recommended tests to add (with skeletons)
 3. Estimated effort (LOW / MEDIUM / HIGH per test)

@@ -164,8 +164,9 @@ function _parseBacklogYaml(content) {
       if (!currentTask[currentMapKey]) {
         currentTask[currentMapKey] = {};
       }
-      currentTask[currentMapKey][nestedMapMatch[1]] =
-        _parseYamlValue(nestedMapMatch[2]);
+      currentTask[currentMapKey][nestedMapMatch[1]] = _parseYamlValue(
+        nestedMapMatch[2],
+      );
       currentListKey = null;
       continue;
     }
@@ -176,9 +177,7 @@ function _parseBacklogYaml(content) {
       if (!Array.isArray(currentTask[currentListKey])) {
         currentTask[currentListKey] = [];
       }
-      currentTask[currentListKey].push(
-        _parseYamlValue(nestedListMatch[1])
-      );
+      currentTask[currentListKey].push(_parseYamlValue(nestedListMatch[1]));
       continue;
     }
 
@@ -285,7 +284,7 @@ function _updateStageStatusLine(taskId, gate, newStatus) {
 
     // Find the task block
     const taskIdPattern = new RegExp(
-      "^  - id:\\s*\"?" + _escapeRegExp(taskId) + "\"?\\s*$"
+      '^  - id:\\s*"?' + _escapeRegExp(taskId) + '"?\\s*$',
     );
     let taskLineIdx = -1;
     for (let i = 0; i < lines.length; i++) {
@@ -301,7 +300,7 @@ function _updateStageStatusLine(taskId, gate, newStatus) {
 
     // Find the gate line within this task's stage_status block
     const gatePattern = new RegExp(
-      "^(\\s+)" + _escapeRegExp(gate) + ':\\s*"([^"]*)"'
+      "^(\\s+)" + _escapeRegExp(gate) + ':\\s*"([^"]*)"',
     );
     let gateLineIdx = -1;
     for (let i = taskLineIdx + 1; i < lines.length; i++) {
@@ -337,8 +336,7 @@ function _updateStageStatusLine(taskId, gate, newStatus) {
       fs.writeFileSync(backlogPath, originalContent, "utf8");
       return false;
     }
-    const actualStatus =
-      task.stage_status && task.stage_status[gate];
+    const actualStatus = task.stage_status && task.stage_status[gate];
     if (actualStatus !== newStatus) {
       // Rollback
       fs.writeFileSync(backlogPath, originalContent, "utf8");
@@ -470,8 +468,8 @@ function _checkStg0(taskId, taskData, session) {
       session
         ? "tobari-session.json exists and active=true"
         : "no active session",
-      "file_check"
-    )
+      "file_check",
+    ),
   );
 
   // 2. Contract populated (requirements + dod)
@@ -479,14 +477,16 @@ function _checkStg0(taskId, taskData, session) {
   const requirements = contract.requirements || {};
   const dod = contract.dod || [];
   const hasContract =
-    Array.isArray(requirements.do) && requirements.do.length > 0 && dod.length > 0;
+    Array.isArray(requirements.do) &&
+    requirements.do.length > 0 &&
+    dod.length > 0;
   conditions.push(
     _condition(
       "contract_populated",
       hasContract,
       `requirements.do=${(requirements.do || []).length} items, dod=${dod.length} items`,
-      "file_check"
-    )
+      "file_check",
+    ),
   );
 
   // 3. Profile selected
@@ -496,8 +496,8 @@ function _checkStg0(taskId, taskData, session) {
       "profile_selected",
       !!profile,
       profile ? `profile=${profile}` : "no profile",
-      "file_check"
-    )
+      "file_check",
+    ),
   );
 
   const allSatisfied = conditions.every((c) => c.satisfied);
@@ -529,14 +529,12 @@ function _checkStg1(taskId, taskData, session, profile) {
       "design_evidence_exists",
       hasEvidence,
       `evidence entries: ${evidenceList.length}`,
-      "file_check"
-    )
+      "file_check",
+    ),
   );
 
   const allSatisfied = conditions.every((c) => c.satisfied);
-  const failReason = allSatisfied
-    ? null
-    : t("stage.stg1_fail");
+  const failReason = allSatisfied ? null : t("stage.stg1_fail");
 
   return _dodResult("STG1", allSatisfied, conditions, failReason);
 }
@@ -552,14 +550,12 @@ function _checkStg2(taskId, taskData, session, profile) {
       "implementation_evidence",
       hasImplEvidence,
       `evidence entries: ${evidenceList.length}`,
-      "file_check"
-    )
+      "file_check",
+    ),
   );
 
   const allSatisfied = conditions.every((c) => c.satisfied);
-  const failReason = allSatisfied
-    ? null
-    : t("stage.stg2_fail");
+  const failReason = allSatisfied ? null : t("stage.stg2_fail");
 
   return _dodResult("STG2", allSatisfied, conditions, failReason);
 }
@@ -570,12 +566,18 @@ function _checkStg3(taskId, taskData, session, profile) {
   const evidenceList = taskData.evidence || [];
 
   const verificationKeywords = [
-    "test", "lint", "verify", "verification", "check", "pass", "PASS",
+    "test",
+    "lint",
+    "verify",
+    "verification",
+    "check",
+    "pass",
+    "PASS",
   ];
   const hasVerification = evidenceList.some((e) =>
     verificationKeywords.some((kw) =>
-      String(e).toLowerCase().includes(kw.toLowerCase())
-    )
+      String(e).toLowerCase().includes(kw.toLowerCase()),
+    ),
   );
   conditions.push(
     _condition(
@@ -584,14 +586,12 @@ function _checkStg3(taskId, taskData, session, profile) {
       hasVerification
         ? "verification evidence found"
         : "no verification evidence",
-      "file_check"
-    )
+      "file_check",
+    ),
   );
 
   const allSatisfied = conditions.every((c) => c.satisfied);
-  const failReason = allSatisfied
-    ? null
-    : t("stage.stg3_fail");
+  const failReason = allSatisfied ? null : t("stage.stg3_fail");
 
   return _dodResult("STG3", allSatisfied, conditions, failReason);
 }
@@ -608,24 +608,30 @@ function _checkStg4(taskId, taskData, session, profile) {
   const evidenceList = taskData.evidence || [];
 
   const ciKeywords = [
-    "CI", "PR #", "PR#", "workflow", "actions", "green",
-    "boundary-check", "task-breakdown-sync", "merged",
+    "CI",
+    "PR #",
+    "PR#",
+    "workflow",
+    "actions",
+    "green",
+    "boundary-check",
+    "task-breakdown-sync",
+    "merged",
   ];
   const hasCi = evidenceList.some((e) =>
-    ciKeywords.some((kw) => String(e).toLowerCase().includes(kw.toLowerCase()))
+    ciKeywords.some((kw) => String(e).toLowerCase().includes(kw.toLowerCase())),
   );
 
   // Fallback: if no CI configured, STG3 results substitute (.5)
-  const stg3Status =
-    taskData.stage_status && taskData.stage_status.STG3;
+  const stg3Status = taskData.stage_status && taskData.stage_status.STG3;
   if (!hasCi && stg3Status === "done") {
     conditions.push(
       _condition(
         "ci_substitute_stg3",
         true,
         "CI not configured; STG3 results substitute (.5)",
-        "auto"
-      )
+        "auto",
+      ),
     );
   } else {
     conditions.push(
@@ -633,15 +639,13 @@ function _checkStg4(taskId, taskData, session, profile) {
         "ci_evidence",
         hasCi,
         hasCi ? "CI evidence found" : "no CI evidence",
-        "file_check"
-      )
+        "file_check",
+      ),
     );
   }
 
   const allSatisfied = conditions.every((c) => c.satisfied);
-  const failReason = allSatisfied
-    ? null
-    : t("stage.stg4_fail");
+  const failReason = allSatisfied ? null : t("stage.stg4_fail");
 
   return _dodResult("STG4", allSatisfied, conditions, failReason);
 }
@@ -654,24 +658,20 @@ function _checkStg5(taskId, taskData, session, profile) {
   const commitKeywords = ["commit", "push", "git"];
   const hasCommit = evidenceList.some((e) =>
     commitKeywords.some((kw) =>
-      String(e).toLowerCase().includes(kw.toLowerCase())
-    )
+      String(e).toLowerCase().includes(kw.toLowerCase()),
+    ),
   );
   conditions.push(
     _condition(
       "commit_push_evidence",
       hasCommit,
-      hasCommit
-        ? "commit/push evidence found"
-        : "no commit/push evidence",
-      "file_check"
-    )
+      hasCommit ? "commit/push evidence found" : "no commit/push evidence",
+      "file_check",
+    ),
   );
 
   const allSatisfied = conditions.every((c) => c.satisfied);
-  const failReason = allSatisfied
-    ? null
-    : t("stage.stg5_fail");
+  const failReason = allSatisfied ? null : t("stage.stg5_fail");
 
   return _dodResult("STG5", allSatisfied, conditions, failReason);
 }
@@ -683,21 +683,19 @@ function _checkStg6(taskId, taskData, session, profile) {
 
   const prKeywords = ["PR #", "PR#", "merged", "merge"];
   const hasPr = evidenceList.some((e) =>
-    prKeywords.some((kw) => String(e).includes(kw))
+    prKeywords.some((kw) => String(e).includes(kw)),
   );
   conditions.push(
     _condition(
       "pr_merge_evidence",
       hasPr,
       hasPr ? "PR/merge evidence found" : "no PR/merge evidence",
-      "file_check"
-    )
+      "file_check",
+    ),
   );
 
   const allSatisfied = conditions.every((c) => c.satisfied);
-  const failReason = allSatisfied
-    ? null
-    : t("stage.stg6_fail");
+  const failReason = allSatisfied ? null : t("stage.stg6_fail");
 
   return _dodResult("STG6", allSatisfied, conditions, failReason);
 }
@@ -759,22 +757,12 @@ function checkDod(taskId, gate) {
 
   const tasks = _loadBacklog();
   if (!tasks) {
-    return _dodResult(
-      gate,
-      false,
-      [],
-      t("stage.backlog_not_found")
-    );
+    return _dodResult(gate, false, [], t("stage.backlog_not_found"));
   }
 
   const task = _findTask(tasks, taskId);
   if (!task) {
-    return _dodResult(
-      gate,
-      false,
-      [],
-      t("stage.task_not_found", { taskId })
-    );
+    return _dodResult(gate, false, [], t("stage.task_not_found", { taskId }));
   }
 
   const session = tobariSession.loadSession();
@@ -782,12 +770,7 @@ function checkDod(taskId, gate) {
 
   const checker = _DOD_CHECKERS[gate];
   if (!checker) {
-    return _dodResult(
-      gate,
-      false,
-      [],
-      t("stage.checker_missing", { gate })
-    );
+    return _dodResult(gate, false, [], t("stage.checker_missing", { gate }));
   }
 
   return checker(taskId, task, session, profile);
@@ -1058,7 +1041,7 @@ function _outputJson(data) {
 function _printUsage() {
   process.stderr.write(
     "Usage: node tobari-stage.js <command> <task_id> [gate]\n" +
-      "Commands: advance, check, summary, next\n"
+      "Commands: advance, check, summary, next\n",
   );
 }
 
@@ -1075,7 +1058,9 @@ function main() {
   switch (command) {
     case "advance": {
       if (args.length < 3) {
-        process.stderr.write("Usage: node tobari-stage.js advance <task_id> <gate>\n");
+        process.stderr.write(
+          "Usage: node tobari-stage.js advance <task_id> <gate>\n",
+        );
         process.exit(1);
       }
       const gate = args[2];
@@ -1086,7 +1071,9 @@ function main() {
     }
     case "check": {
       if (args.length < 3) {
-        process.stderr.write("Usage: node tobari-stage.js check <task_id> <gate>\n");
+        process.stderr.write(
+          "Usage: node tobari-stage.js check <task_id> <gate>\n",
+        );
         process.exit(1);
       }
       const gate = args[2];

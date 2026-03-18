@@ -78,7 +78,11 @@ function lintPython(filePath, projectDir, relPath) {
   const issues = [];
 
   // Run ruff format
-  let result = runCommand("uv", ["run", "ruff", "format", filePath], projectDir);
+  let result = runCommand(
+    "uv",
+    ["run", "ruff", "format", filePath],
+    projectDir,
+  );
   if (result.code === -1) return []; // uv not found, skip all Python linting
   if (result.code !== 0) {
     issues.push(`ruff format failed:\n${result.stderr || result.stdout}`);
@@ -88,7 +92,7 @@ function lintPython(filePath, projectDir, relPath) {
   result = runCommand(
     "uv",
     ["run", "ruff", "check", "--fix", filePath],
-    projectDir
+    projectDir,
   );
   if (result.code !== 0) {
     const output = result.stdout || result.stderr;
@@ -146,7 +150,7 @@ function lintPowershell(filePath, projectDir, relPath) {
   const safePath = escapePowershellString(filePath);
   if (!safePath) {
     process.stderr.write(
-      `[lint-on-save] WARNING: Unsafe path rejected for PSScriptAnalyzer: ${relPath}\n`
+      `[lint-on-save] WARNING: Unsafe path rejected for PSScriptAnalyzer: ${relPath}\n`,
     );
     return [];
   }
@@ -158,19 +162,19 @@ function lintPowershell(filePath, projectDir, relPath) {
       "-Command",
       `Invoke-ScriptAnalyzer -Path '${safePath}' -Severity Warning,Error`,
     ],
-    projectDir
+    projectDir,
   );
 
   if (result.code === -1) return []; // pwsh not found, skip
   if (result.code === 0 && result.stdout.trim()) {
     process.stderr.write(
-      `[lint-on-save] PSScriptAnalyzer issues in ${relPath}:\n`
+      `[lint-on-save] PSScriptAnalyzer issues in ${relPath}:\n`,
     );
     process.stderr.write(result.stdout + "\n");
     issues.push(result.stdout);
   } else if (result.code === 0) {
     process.stdout.write(
-      `[lint-on-save] OK: ${relPath} passed PSScriptAnalyzer\n`
+      `[lint-on-save] OK: ${relPath} passed PSScriptAnalyzer\n`,
     );
   }
 
@@ -189,13 +193,12 @@ function handler(data) {
   if (!filePath) return;
   if (!validatePath(filePath)) {
     process.stderr.write(
-      `[lint-on-save] WARNING: Invalid path rejected: ${filePath}\n`
+      `[lint-on-save] WARNING: Invalid path rejected: ${filePath}\n`,
     );
     return;
   }
 
-  const projectDir =
-    process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
   let relPath;
   if (filePath.startsWith(projectDir)) {

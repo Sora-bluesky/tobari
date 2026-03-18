@@ -111,7 +111,7 @@ describe("handler output structure", () => {
     assert.equal(
       typeof result.hookSpecificOutput.additionalContext,
       "string",
-      "additionalContext should be a string"
+      "additionalContext should be a string",
     );
   });
 
@@ -119,17 +119,14 @@ describe("handler output structure", () => {
     const result = sessionStartMod.handler({});
     const ctx = result.hookSpecificOutput.additionalContext;
     assert.ok(ctx.includes("CLAUDE.md"), "should reference CLAUDE.md");
-    assert.ok(
-      ctx.includes("DESIGN.md"),
-      "should reference DESIGN.md"
-    );
+    assert.ok(ctx.includes("DESIGN.md"), "should reference DESIGN.md");
     assert.ok(
       ctx.includes(".claude/rules/"),
-      "should reference .claude/rules/"
+      "should reference .claude/rules/",
     );
     assert.ok(
       ctx.includes("tasks/backlog.yaml"),
-      "should reference tasks/backlog.yaml"
+      "should reference tasks/backlog.yaml",
     );
   });
 
@@ -165,7 +162,7 @@ describe("inactive session behavior", () => {
     const ctx = result.hookSpecificOutput.additionalContext;
     assert.ok(
       ctx.includes("No active tobari session"),
-      "should contain inactive session message"
+      "should contain inactive session message",
     );
   });
 
@@ -174,7 +171,7 @@ describe("inactive session behavior", () => {
     const ctx = result.hookSpecificOutput.additionalContext;
     assert.ok(
       !ctx.includes("TOBARI VEIL ACTIVE"),
-      "should NOT contain veil active message when no session"
+      "should NOT contain veil active message when no session",
     );
   });
 });
@@ -205,16 +202,10 @@ describe("active session behavior", () => {
     const ctx = result.hookSpecificOutput.additionalContext;
     assert.ok(
       ctx.includes("TOBARI VEIL ACTIVE"),
-      "should contain TOBARI VEIL ACTIVE"
+      "should contain TOBARI VEIL ACTIVE",
     );
-    assert.ok(
-      ctx.includes("TASK-TEST"),
-      "should contain task name"
-    );
-    assert.ok(
-      ctx.includes("standard"),
-      "should contain profile"
-    );
+    assert.ok(ctx.includes("TASK-TEST"), "should contain task name");
+    assert.ok(ctx.includes("standard"), "should contain profile");
   });
 
   it("A2: when session active, does not contain inactive message", () => {
@@ -223,7 +214,7 @@ describe("active session behavior", () => {
     const ctx = result.hookSpecificOutput.additionalContext;
     assert.ok(
       !ctx.includes("No active tobari session"),
-      "should NOT contain inactive message when session is active"
+      "should NOT contain inactive message when session is active",
     );
   });
 });
@@ -254,15 +245,15 @@ describe("raised veil behavior", () => {
     const ctx = result.hookSpecificOutput.additionalContext;
     assert.ok(
       ctx.includes("NOTICE"),
-      "should contain NOTICE about raised veil"
+      "should contain NOTICE about raised veil",
     );
     assert.ok(
       ctx.includes("veil was raised"),
-      "should mention veil was raised"
+      "should mention veil was raised",
     );
     assert.ok(
       ctx.includes("TASK-RAISED"),
-      "should contain the task name from raised session"
+      "should contain the task name from raised session",
     );
   });
 
@@ -270,14 +261,8 @@ describe("raised veil behavior", () => {
     createRaisedSession(tmpDir);
     const result = sessionStartMod.handler({});
     const ctx = result.hookSpecificOutput.additionalContext;
-    assert.ok(
-      ctx.includes("task complete"),
-      "should contain raised reason"
-    );
-    assert.ok(
-      ctx.includes("2026-03-06"),
-      "should contain raised timestamp"
-    );
+    assert.ok(ctx.includes("task complete"), "should contain raised reason");
+    assert.ok(ctx.includes("2026-03-06"), "should contain raised timestamp");
   });
 });
 
@@ -307,7 +292,12 @@ describe("evidence ledger recording", () => {
     createActiveSession(tmpDir);
     sessionStartMod.handler({});
 
-    const ledgerPath = path.join(tmpDir, ".claude", "logs", "evidence-ledger.jsonl");
+    const ledgerPath = path.join(
+      tmpDir,
+      ".claude",
+      "logs",
+      "evidence-ledger.jsonl",
+    );
     assert.ok(fs.existsSync(ledgerPath), "evidence ledger should be created");
 
     const lines = fs.readFileSync(ledgerPath, "utf8").trim().split("\n");
@@ -317,7 +307,10 @@ describe("evidence ledger recording", () => {
     assert.equal(entry.event, "session_start", "event should be session_start");
     assert.equal(entry.task, "TASK-TEST", "task should match session");
     assert.equal(entry.profile, "standard", "profile should match session");
-    assert.ok(Array.isArray(entry.gates_passed), "gates_passed should be an array");
+    assert.ok(
+      Array.isArray(entry.gates_passed),
+      "gates_passed should be an array",
+    );
     assert.ok(entry.timestamp, "should have a timestamp");
   });
 
@@ -325,11 +318,20 @@ describe("evidence ledger recording", () => {
     // No session file created — veil is inactive
     sessionStartMod.handler({});
 
-    const ledgerPath = path.join(tmpDir, ".claude", "logs", "evidence-ledger.jsonl");
+    const ledgerPath = path.join(
+      tmpDir,
+      ".claude",
+      "logs",
+      "evidence-ledger.jsonl",
+    );
     const exists = fs.existsSync(ledgerPath);
     if (exists) {
       const content = fs.readFileSync(ledgerPath, "utf8").trim();
-      assert.equal(content, "", "evidence ledger should be empty when veil is inactive");
+      assert.equal(
+        content,
+        "",
+        "evidence ledger should be empty when veil is inactive",
+      );
     }
   });
 
@@ -337,11 +339,20 @@ describe("evidence ledger recording", () => {
     createRaisedSession(tmpDir);
     sessionStartMod.handler({});
 
-    const ledgerPath = path.join(tmpDir, ".claude", "logs", "evidence-ledger.jsonl");
+    const ledgerPath = path.join(
+      tmpDir,
+      ".claude",
+      "logs",
+      "evidence-ledger.jsonl",
+    );
     const exists = fs.existsSync(ledgerPath);
     if (exists) {
       const content = fs.readFileSync(ledgerPath, "utf8").trim();
-      assert.equal(content, "", "evidence ledger should be empty when veil is raised");
+      assert.equal(
+        content,
+        "",
+        "evidence ledger should be empty when veil is raised",
+      );
     }
   });
 });

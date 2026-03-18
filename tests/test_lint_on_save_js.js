@@ -69,14 +69,14 @@ describe("escapePowershellString", () => {
   it("P1: normal string passes through", () => {
     assert.strictEqual(
       lint.escapePowershellString("C:\\path\\to\\file.ps1"),
-      "C:\\path\\to\\file.ps1"
+      "C:\\path\\to\\file.ps1",
     );
   });
 
   it("P2: single quotes are doubled", () => {
     assert.strictEqual(
       lint.escapePowershellString("it's a test"),
-      "it''s a test"
+      "it''s a test",
     );
   });
 
@@ -104,7 +104,11 @@ describe("runCommand", () => {
   });
 
   it("R1: successful command returns code 0", () => {
-    const result = lint.runCommand("node", ["-e", "console.log('hello')"], tmpDir);
+    const result = lint.runCommand(
+      "node",
+      ["-e", "console.log('hello')"],
+      tmpDir,
+    );
     assert.strictEqual(result.code, 0);
     assert.ok(result.stdout.includes("hello"));
   });
@@ -115,11 +119,7 @@ describe("runCommand", () => {
   });
 
   it("R3: missing command returns code -1", () => {
-    const result = lint.runCommand(
-      "nonexistent_command_12345",
-      [],
-      tmpDir
-    );
+    const result = lint.runCommand("nonexistent_command_12345", [], tmpDir);
     assert.strictEqual(result.code, -1);
     assert.ok(result.stderr.includes("Command not found"));
   });
@@ -128,7 +128,7 @@ describe("runCommand", () => {
     const result = lint.runCommand(
       "node",
       ["-e", "console.log('test output')"],
-      tmpDir
+      tmpDir,
     );
     assert.strictEqual(result.code, 0);
     assert.ok(result.stdout.includes("test output"));

@@ -41,8 +41,10 @@ function compareSemver(a, b) {
  * Can be overridden via TOBARI_MIGRATIONS_DIR env var for testing.
  */
 function getMigrationsDir() {
-  return process.env.TOBARI_MIGRATIONS_DIR ||
-    path.join(__dirname, "..", "migrations");
+  return (
+    process.env.TOBARI_MIGRATIONS_DIR ||
+    path.join(__dirname, "..", "migrations")
+  );
 }
 
 /**
@@ -58,7 +60,8 @@ function discoverMigrations() {
     return [];
   }
 
-  const files = fs.readdirSync(migrationsDir)
+  const files = fs
+    .readdirSync(migrationsDir)
     .filter((f) => f.endsWith(".js") && f !== "index.js");
 
   const migrations = [];
@@ -105,9 +108,10 @@ function runMigrations(cwd, fromVersion, toVersion, options = {}) {
   const allMigrations = discoverMigrations();
 
   // Filter: fromVersion < migration.version <= toVersion
-  const applicable = allMigrations.filter((m) =>
-    compareSemver(m.version, effectiveFrom) > 0 &&
-    compareSemver(m.version, toVersion) <= 0
+  const applicable = allMigrations.filter(
+    (m) =>
+      compareSemver(m.version, effectiveFrom) > 0 &&
+      compareSemver(m.version, toVersion) <= 0,
   );
 
   if (applicable.length === 0) {
@@ -130,8 +134,8 @@ function runMigrations(cwd, fromVersion, toVersion, options = {}) {
     } catch (e) {
       console.error(
         `\nError: Migration to v${migration.version} failed: ${e.message}\n` +
-        "Migration was interrupted. Your .claude/ directory may be in a partial state.\n" +
-        "Run 'tobari sync --force' after resolving the issue."
+          "Migration was interrupted. Your .claude/ directory may be in a partial state.\n" +
+          "Run 'tobari sync --force' after resolving the issue.",
       );
       process.exit(1);
     }

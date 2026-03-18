@@ -598,29 +598,29 @@ PreToolUse Hook: Edit/Write(path)
 
 ### Hooks 構成
 
-| Hook                      | イベント             | 器官              | 役割                                                           | 追加     |
-| ------------------------- | -------------------- | ----------------- | -------------------------------------------------------------- | -------- |
-| `tobari-gate`             | PreToolUse           | 🫀 心臓 + 🦠 免疫 | 帳の判定（allow / deny / ask）+ 依存・スコープ検査             | v1.0.0   |
-| `tobari-evidence`         | PostToolUse          | 👁️ 目             | 全操作（成功時）を JSONL に記録 + CLI クエリ                   | v1.0.0   |
-| `tobari-evidence-failure` | PostToolUseFailure   | 👁️‍🗨️ 傷目         | ツール失敗を JSONL に記録（残す柱の穴塞ぎ）                    | v1.0.0   |
-| `tobari-cost`             | PostToolUse (async)  | 👛 財布           | トークン消費の集計・警告（tobari-cost-state.json に記録）      | v1.0.0   |
-| `tobari-permission`       | PermissionRequest    | 👄 口             | 権限ダイアログに文脈付加 + 永続ルール学習                      | v1.0.0   |
-| `tobari-stop`             | Stop                 | ✋ 手             | テスト失敗時の自己修復（Circuit Breaker）                      | v1.0.0   |
-| `tobari-session-start`    | SessionStart         | 🧠 記憶           | tobari-session.json の読み込み・コンテキスト注入 + A3 安全検査 | v1.0.0   |
-| `tobari-precompact`       | PreCompact           | 🧠 記憶           | コンパクション前の状態退避                                     | v1.0.0   |
-| `tobari-injection-guard`  | PostToolUse          | 🛡️ 盾            | プロンプトインジェクション検出（9カテゴリ / 34パターン）       | v1.1.0   |
-| `tobari-stage`            | (CLI / ライブラリ)   | —                 | STG ゲート自動遷移 + DoD 検証 + backlog.yaml 更新              | v1.1.0   |
-| `tobari-instructions`     | InstructionsLoaded   | 🛡️ 盾            | ルールファイルのハッシュ変更検出（A6 改竄検知）                | v1.2.0   |
-| `tobari-config-change`    | ConfigChange         | 🛡️ 盾            | settings.json のハッシュ変更検出（A7 設定改竄検知）            | v1.2.0   |
-| `tobari-teammate-idle`    | TeammateIdle         | —                 | Agent Teams メンバーのアイドル時ガイダンス（T1）               | v1.3.0   |
-| `tobari-task-completed`   | TaskCompleted        | —                 | Agent Teams タスク完了時の証跡記録 + フィードバック（T2）      | v1.3.0   |
-| `lint-on-save`            | PostToolUse          | —                 | Edit / Write 後にリンター・フォーマッター自動実行              | v1.1.0   |
+| Hook                      | イベント            | 器官              | 役割                                                           | 追加   |
+| ------------------------- | ------------------- | ----------------- | -------------------------------------------------------------- | ------ |
+| `tobari-gate`             | PreToolUse          | 🫀 心臓 + 🦠 免疫 | 帳の判定（allow / deny / ask）+ 依存・スコープ検査             | v1.0.0 |
+| `tobari-evidence`         | PostToolUse         | 👁️ 目             | 全操作（成功時）を JSONL に記録 + CLI クエリ                   | v1.0.0 |
+| `tobari-evidence-failure` | PostToolUseFailure  | 👁️‍🗨️ 傷目           | ツール失敗を JSONL に記録（残す柱の穴塞ぎ）                    | v1.0.0 |
+| `tobari-cost`             | PostToolUse (async) | 👛 財布           | トークン消費の集計・警告（tobari-cost-state.json に記録）      | v1.0.0 |
+| `tobari-permission`       | PermissionRequest   | 👄 口             | 権限ダイアログに文脈付加 + 永続ルール学習                      | v1.0.0 |
+| `tobari-stop`             | Stop                | ✋ 手             | テスト失敗時の自己修復（Circuit Breaker）                      | v1.0.0 |
+| `tobari-session-start`    | SessionStart        | 🧠 記憶           | tobari-session.json の読み込み・コンテキスト注入 + A3 安全検査 | v1.0.0 |
+| `tobari-precompact`       | PreCompact          | 🧠 記憶           | コンパクション前の状態退避                                     | v1.0.0 |
+| `tobari-injection-guard`  | PostToolUse         | 🛡️ 盾             | プロンプトインジェクション検出（9カテゴリ / 34パターン）       | v1.1.0 |
+| `tobari-stage`            | (CLI / ライブラリ)  | —                 | STG ゲート自動遷移 + DoD 検証 + backlog.yaml 更新              | v1.1.0 |
+| `tobari-instructions`     | InstructionsLoaded  | 🛡️ 盾             | ルールファイルのハッシュ変更検出（A6 改竄検知）                | v1.2.0 |
+| `tobari-config-change`    | ConfigChange        | 🛡️ 盾             | settings.json のハッシュ変更検出（A7 設定改竄検知）            | v1.2.0 |
+| `tobari-teammate-idle`    | TeammateIdle        | —                 | Agent Teams メンバーのアイドル時ガイダンス（T1）               | v1.3.0 |
+| `tobari-task-completed`   | TaskCompleted       | —                 | Agent Teams タスク完了時の証跡記録 + フィードバック（T2）      | v1.3.0 |
+| `lint-on-save`            | PostToolUse         | —                 | Edit / Write 後にリンター・フォーマッター自動実行              | v1.1.0 |
 
 #### 共有モジュール（Hook ではないが全 Hook の基盤）
 
-| モジュール          | 役割                                                      | 追加   |
-| ------------------- | --------------------------------------------------------- | ------ |
-| `tobari-session.js` | tobari-session.json の読み書き。全 Hook の共通基盤        | v1.0.0 |
+| モジュール          | 役割                                                       | 追加   |
+| ------------------- | ---------------------------------------------------------- | ------ |
+| `tobari-session.js` | tobari-session.json の読み書き。全 Hook の共通基盤         | v1.0.0 |
 | `tobari-i18n.js`    | 国際化モジュール。t(key, params) で en / ja メッセージ解決 | v1.4.0 |
 
 ### `/tobari` のフロー
@@ -720,9 +720,9 @@ PreToolUse Hook: Edit/Write(path)
 
 ## 11. 更新履歴
 
-| Date       | Content                                                                                                                                                                                                                                                                                                            |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-02-25 | 初版作成。タグライン・冒頭文・UX・実装設計を確定                                                                                                                                                                                                                                                                   |
-| 2026-02-25 | v2: Claude Code 専用設計に移行。PreToolUse permissionDecision による承認制御、Discord 遠隔承認、学習する帳、境界防御モデルを追加。マルチエージェント（Codex/Gemini CLI）依存を削除                                                                                                                                 |
+| Date       | Content                                                                                                                                                                                                                                                                                                                       |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-02-25 | 初版作成。タグライン・冒頭文・UX・実装設計を確定                                                                                                                                                                                                                                                                              |
+| 2026-02-25 | v2: Claude Code 専用設計に移行。PreToolUse permissionDecision による承認制御、Discord 遠隔承認、学習する帳、境界防御モデルを追加。マルチエージェント（Codex/Gemini CLI）依存を削除                                                                                                                                            |
 | 2026-02-25 | v3: 全身設計（9器官）追加。tobari アイデンティティ定義（tobari = エージェント、Claude Code = 実行エンジン）。手（Git 自動操作）、脚（自己修復）、記憶（状態維持）、財布（コスト制御）、免疫（依存・スコープ防御）を新設。Discord 通知の UX 改善（Git 用語排除、URL 提示）。初回セットアップ（オンボーディング）セクション追加 |
-| 2026-02-25 | v4: 通知アーキテクチャ修正。Discord を必須双方向承認から除外し、オプション緊急 Webhook に格下げ。承認=ネイティブ権限ダイアログ（PC前提）、完了=GitHub PR（GitHub Mobile）、学習=updatedPermissions（自動）、緊急=Webhook（任意）。Discord アカウント要件を削除。tobari-discord → tobari-permission にリネーム      |
+| 2026-02-25 | v4: 通知アーキテクチャ修正。Discord を必須双方向承認から除外し、オプション緊急 Webhook に格下げ。承認=ネイティブ権限ダイアログ（PC前提）、完了=GitHub PR（GitHub Mobile）、学習=updatedPermissions（自動）、緊急=Webhook（任意）。Discord アカウント要件を削除。tobari-discord → tobari-permission にリネーム                 |

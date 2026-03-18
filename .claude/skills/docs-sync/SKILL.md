@@ -47,11 +47,11 @@ Checks that documentation accurately reflects the current codebase. Detects drif
 
 Output a summary table:
 
-| Area | Status | Issues |
-|------|--------|--------|
+| Area      | Status     | Issues  |
+| --------- | ---------- | ------- |
 | Hook docs | OK / DRIFT | details |
-| README | OK / DRIFT | details |
-| Manifest | OK / DRIFT | details |
+| README    | OK / DRIFT | details |
+| Manifest  | OK / DRIFT | details |
 
 For each DRIFT item, provide a specific fix suggestion.
 

@@ -37,7 +37,9 @@ function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
   } else {
-    try { fs.unlinkSync(SESSION_PATH); } catch {}
+    try {
+      fs.unlinkSync(SESSION_PATH);
+    } catch {}
   }
   tobariSession._resetCache();
 }
@@ -77,7 +79,7 @@ describe("buildDefaultFeedback", () => {
     const feedback = teammateIdle.buildDefaultFeedback("my-team", "worker-a");
     assert.ok(
       feedback.includes("Before going idle"),
-      "Should contain 'Before going idle' guidance"
+      "Should contain 'Before going idle' guidance",
     );
   });
 
@@ -85,15 +87,15 @@ describe("buildDefaultFeedback", () => {
     const feedback = teammateIdle.buildDefaultFeedback("alpha-team", "bot-one");
     assert.ok(
       feedback.includes("alpha-team"),
-      "Should include team_name in path"
+      "Should include team_name in path",
     );
     assert.ok(
       feedback.includes("bot-one"),
-      "Should include teammate_name in path"
+      "Should include teammate_name in path",
     );
     assert.ok(
       feedback.includes(".claude/logs/agent-teams/alpha-team/bot-one.md"),
-      "Should include full work log path"
+      "Should include full work log path",
     );
   });
 
@@ -101,11 +103,11 @@ describe("buildDefaultFeedback", () => {
     const feedback = teammateIdle.buildDefaultFeedback("", "");
     assert.ok(
       feedback.includes("{team-name}"),
-      "Should use {team-name} placeholder"
+      "Should use {team-name} placeholder",
     );
     assert.ok(
       feedback.includes("{your-teammate-name}"),
-      "Should use {your-teammate-name} placeholder"
+      "Should use {your-teammate-name} placeholder",
     );
   });
 });
@@ -121,11 +123,11 @@ describe("buildActiveFeedback", () => {
       sess,
       "team-a",
       "worker-b",
-      true
+      true,
     );
     assert.ok(
       feedback.includes("implement-feature-x"),
-      "Should include the task name from the session"
+      "Should include the task name from the session",
     );
   });
 
@@ -135,11 +137,11 @@ describe("buildActiveFeedback", () => {
       sess,
       "team-a",
       "worker-b",
-      true
+      true,
     );
     assert.ok(
       feedback.includes("Evidence has been recorded"),
-      "Should confirm evidence recording"
+      "Should confirm evidence recording",
     );
   });
 
@@ -149,11 +151,11 @@ describe("buildActiveFeedback", () => {
       sess,
       "team-a",
       "worker-b",
-      false
+      false,
     );
     assert.ok(
       feedback.includes("does not exist yet"),
-      "Should mention that work log directory does not exist yet"
+      "Should mention that work log directory does not exist yet",
     );
   });
 
@@ -163,11 +165,11 @@ describe("buildActiveFeedback", () => {
       sess,
       "team-a",
       "worker-b",
-      true
+      true,
     );
     assert.ok(
       !feedback.includes("does not exist yet"),
-      "Should not mention non-existence when directory exists"
+      "Should not mention non-existence when directory exists",
     );
   });
 });
@@ -205,10 +207,7 @@ describe("workLogDirExists", () => {
   });
 
   it("returns true when directory exists", () => {
-    const baseDir = path.join(
-      PROJECT_DIR,
-      teammateIdle.WORK_LOG_BASE_DIR
-    );
+    const baseDir = path.join(PROJECT_DIR, teammateIdle.WORK_LOG_BASE_DIR);
     const teamName = "test-team-dir-check";
     tempTeamDir = path.join(baseDir, teamName);
 
@@ -226,7 +225,11 @@ describe("workLogDirExists", () => {
 
 describe("handler — veil not active", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -247,7 +250,7 @@ describe("handler — veil not active", () => {
     assert.ok(result.hookSpecificOutput, "Should have hookSpecificOutput");
     assert.ok(
       result.hookSpecificOutput.feedback.includes("Before going idle"),
-      "Should return default feedback"
+      "Should return default feedback",
     );
   });
 
@@ -273,7 +276,7 @@ describe("handler — veil not active", () => {
     assert.strictEqual(
       countAfter,
       countBefore,
-      "Evidence count should not increase when veil is inactive"
+      "Evidence count should not increase when veil is inactive",
     );
   });
 });
@@ -284,7 +287,11 @@ describe("handler — veil not active", () => {
 
 describe("handler — veil active", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -305,7 +312,7 @@ describe("handler — veil active", () => {
     assert.ok(result.hookSpecificOutput, "Should have hookSpecificOutput");
     assert.ok(
       result.hookSpecificOutput.feedback.includes("deploy-feature-y"),
-      "Enhanced feedback should contain the task name"
+      "Enhanced feedback should contain the task name",
     );
   });
 
@@ -322,7 +329,7 @@ describe("handler — veil active", () => {
 
     assert.ok(
       result.hookSpecificOutput.feedback.includes("Evidence has been recorded"),
-      "Active feedback should confirm evidence recording"
+      "Active feedback should confirm evidence recording",
     );
   });
 
@@ -347,7 +354,7 @@ describe("handler — veil active", () => {
 
     assert.ok(
       countAfter > countBefore,
-      "Evidence count should increase after handler call"
+      "Evidence count should increase after handler call",
     );
 
     // Check the last entry has the correct event type
@@ -355,17 +362,17 @@ describe("handler — veil active", () => {
     assert.strictEqual(
       lastEntry.event,
       "teammate_idle",
-      "Evidence entry should have event='teammate_idle'"
+      "Evidence entry should have event='teammate_idle'",
     );
     assert.strictEqual(
       lastEntry.teammate_name,
       "evidence-worker",
-      "Evidence entry should record teammate_name"
+      "Evidence entry should record teammate_name",
     );
     assert.strictEqual(
       lastEntry.team_name,
       "evidence-team",
-      "Evidence entry should record team_name"
+      "Evidence entry should record team_name",
     );
   });
 });
@@ -376,7 +383,11 @@ describe("handler — veil active", () => {
 
 describe("handler — error handling (fail-open)", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -398,7 +409,7 @@ describe("handler — error handling (fail-open)", () => {
     assert.ok(result.hookSpecificOutput, "Should have hookSpecificOutput");
     assert.ok(
       result.hookSpecificOutput.feedback.includes("Before going idle"),
-      "Should return default feedback on error"
+      "Should return default feedback on error",
     );
   });
 
@@ -425,7 +436,11 @@ describe("handler — error handling (fail-open)", () => {
 
 describe("handler — empty/missing fields", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -444,11 +459,11 @@ describe("handler — empty/missing fields", () => {
     assert.ok(result.hookSpecificOutput, "Should have hookSpecificOutput");
     assert.ok(
       typeof result.hookSpecificOutput.feedback === "string",
-      "Feedback should be a string"
+      "Feedback should be a string",
     );
     assert.ok(
       result.hookSpecificOutput.feedback.length > 0,
-      "Feedback should not be empty"
+      "Feedback should not be empty",
     );
   });
 
@@ -467,7 +482,7 @@ describe("handler — empty/missing fields", () => {
     assert.ok(
       result.hookSpecificOutput.feedback.includes("{team-name}") ||
         result.hookSpecificOutput.feedback.includes("{your-teammate-name}"),
-      "Should use placeholder names when fields are empty"
+      "Should use placeholder names when fields are empty",
     );
   });
 
@@ -483,7 +498,7 @@ describe("handler — empty/missing fields", () => {
     assert.ok(result.hookSpecificOutput, "Should have hookSpecificOutput");
     assert.ok(
       result.hookSpecificOutput.feedback.includes("Before going idle"),
-      "Should return default feedback"
+      "Should return default feedback",
     );
   });
 });

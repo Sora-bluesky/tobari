@@ -44,7 +44,7 @@ describe("tobari-stop.js constants", () => {
     assert.ok(Array.isArray(stop.FAILURE_PATTERNS));
     assert.ok(
       stop.FAILURE_PATTERNS.length >= 11,
-      `Expected >= 11, got ${stop.FAILURE_PATTERNS.length}`
+      `Expected >= 11, got ${stop.FAILURE_PATTERNS.length}`,
     );
     for (const p of stop.FAILURE_PATTERNS) {
       assert.ok(p instanceof RegExp, `Expected RegExp, got ${typeof p}`);
@@ -61,13 +61,19 @@ describe("tobari-stop.js constants", () => {
 
   it("FAILURE_PATTERNS are case-insensitive", () => {
     for (const p of stop.FAILURE_PATTERNS) {
-      assert.ok(p.flags.includes("i"), `Pattern ${p} should be case-insensitive`);
+      assert.ok(
+        p.flags.includes("i"),
+        `Pattern ${p} should be case-insensitive`,
+      );
     }
   });
 
   it("SUCCESS_PATTERNS are case-insensitive", () => {
     for (const p of stop.SUCCESS_PATTERNS) {
-      assert.ok(p.flags.includes("i"), `Pattern ${p} should be case-insensitive`);
+      assert.ok(
+        p.flags.includes("i"),
+        `Pattern ${p} should be case-insensitive`,
+      );
     }
   });
 });
@@ -99,10 +105,7 @@ describe("_extractText", () => {
   });
 
   it("array of mixed strings and objects", () => {
-    const input = [
-      "plain",
-      { type: "text", text: "structured" },
-    ];
+    const input = ["plain", { type: "text", text: "structured" }];
     assert.equal(stop._extractText(input), "plain\nstructured");
   });
 
@@ -216,14 +219,18 @@ describe("detectTestFailure — failure detection", () => {
   });
 
   it("transcript with AssertionError (typo preserved) returns [true, summary]", () => {
-    const transcript = [{ content: "AssertionError: expected true, got false" }];
+    const transcript = [
+      { content: "AssertionError: expected true, got false" },
+    ];
     const [isFailure, summary] = stop.detectTestFailure(transcript);
     assert.equal(isFailure, true);
     assert.ok(summary.includes("AssertionError"));
   });
 
   it("transcript with '\u30c6\u30b9\u30c8\u5931\u6557' returns [true, summary]", () => {
-    const transcript = [{ content: "\u30c6\u30b9\u30c8\u5931\u6557\u3057\u307e\u3057\u305f" }];
+    const transcript = [
+      { content: "\u30c6\u30b9\u30c8\u5931\u6557\u3057\u307e\u3057\u305f" },
+    ];
     const [isFailure, summary] = stop.detectTestFailure(transcript);
     assert.equal(isFailure, true);
     assert.ok(summary.length > 0);
@@ -254,7 +261,9 @@ describe("detectTestFailure — failure detection", () => {
   });
 
   it("transcript with 'Traceback' returns [true, summary]", () => {
-    const transcript = [{ content: "Traceback (most recent call last):\n  File..." }];
+    const transcript = [
+      { content: "Traceback (most recent call last):\n  File..." },
+    ];
     const [isFailure, summary] = stop.detectTestFailure(transcript);
     assert.equal(isFailure, true);
   });
@@ -295,14 +304,20 @@ describe("detectTestFailure — success detection", () => {
   });
 
   it("transcript with '\u30c6\u30b9\u30c8\u6210\u529f' returns [false, '']", () => {
-    const transcript = [{ content: "\u30c6\u30b9\u30c8\u304c\u6210\u529f\u3057\u307e\u3057\u305f" }];
+    const transcript = [
+      {
+        content: "\u30c6\u30b9\u30c8\u304c\u6210\u529f\u3057\u307e\u3057\u305f",
+      },
+    ];
     const [isFailure, summary] = stop.detectTestFailure(transcript);
     assert.equal(isFailure, false);
     assert.equal(summary, "");
   });
 
   it("transcript with '\u4fee\u6b63\u5b8c\u4e86' returns [false, '']", () => {
-    const transcript = [{ content: "\u4fee\u6b63\u5b8c\u4e86\u3057\u307e\u3057\u305f" }];
+    const transcript = [
+      { content: "\u4fee\u6b63\u5b8c\u4e86\u3057\u307e\u3057\u305f" },
+    ];
     const [isFailure, summary] = stop.detectTestFailure(transcript);
     assert.equal(isFailure, false);
     assert.equal(summary, "");
@@ -369,12 +384,7 @@ describe("detectTestFailure — mixed ordering (most recent wins)", () => {
 
 describe("detectTestFailure — edge cases", () => {
   it("non-dict entries are skipped", () => {
-    const transcript = [
-      "just a string",
-      42,
-      null,
-      { content: "5 passed" },
-    ];
+    const transcript = ["just a string", 42, null, { content: "5 passed" }];
     const [isFailure, summary] = stop.detectTestFailure(transcript);
     assert.equal(isFailure, false);
     assert.equal(summary, "");
@@ -395,9 +405,7 @@ describe("detectTestFailure — edge cases", () => {
   });
 
   it("entry with content array is handled", () => {
-    const transcript = [
-      { content: [{ type: "text", text: "3 failed" }] },
-    ];
+    const transcript = [{ content: [{ type: "text", text: "3 failed" }] }];
     const [isFailure, summary] = stop.detectTestFailure(transcript);
     assert.equal(isFailure, true);
   });
@@ -477,10 +485,22 @@ describe("_makeRepairInstruction", () => {
   it("is in Japanese", () => {
     const result = stop._makeRepairInstruction(0, "error", "task");
     // Check for known Japanese text fragments
-    assert.ok(result.includes("\u30c6\u30b9\u30c8\u5931\u6557"), "Should contain '\u30c6\u30b9\u30c8\u5931\u6557'");
-    assert.ok(result.includes("\u81ea\u52d5\u4fee\u5fa9"), "Should contain '\u81ea\u52d5\u4fee\u5fa9'");
-    assert.ok(result.includes("\u30a8\u30e9\u30fc\u30e1\u30c3\u30bb\u30fc\u30b8"), "Should contain '\u30a8\u30e9\u30fc\u30e1\u30c3\u30bb\u30fc\u30b8'");
-    assert.ok(result.includes("\u6839\u672c\u539f\u56e0"), "Should contain '\u6839\u672c\u539f\u56e0'");
+    assert.ok(
+      result.includes("\u30c6\u30b9\u30c8\u5931\u6557"),
+      "Should contain '\u30c6\u30b9\u30c8\u5931\u6557'",
+    );
+    assert.ok(
+      result.includes("\u81ea\u52d5\u4fee\u5fa9"),
+      "Should contain '\u81ea\u52d5\u4fee\u5fa9'",
+    );
+    assert.ok(
+      result.includes("\u30a8\u30e9\u30fc\u30e1\u30c3\u30bb\u30fc\u30b8"),
+      "Should contain '\u30a8\u30e9\u30fc\u30e1\u30c3\u30bb\u30fc\u30b8'",
+    );
+    assert.ok(
+      result.includes("\u6839\u672c\u539f\u56e0"),
+      "Should contain '\u6839\u672c\u539f\u56e0'",
+    );
   });
 
   it("contains structured repair steps (1, 2, 3)", () => {
@@ -500,7 +520,7 @@ describe("_makeCircuitBreakerMessage", () => {
     const result = stop._makeCircuitBreakerMessage("error", "task");
     assert.ok(
       result.includes(`${stop.MAX_RETRIES}/${stop.MAX_RETRIES}`),
-      "Should contain 3/3"
+      "Should contain 3/3",
     );
   });
 
@@ -517,7 +537,10 @@ describe("_makeCircuitBreakerMessage", () => {
 
   it("is in Japanese", () => {
     const result = stop._makeCircuitBreakerMessage("error", "task");
-    assert.ok(result.includes("\u81ea\u5df1\u4fee\u5fa9"), "Should contain '\u81ea\u5df1\u4fee\u5fa9'");
+    assert.ok(
+      result.includes("\u81ea\u5df1\u4fee\u5fa9"),
+      "Should contain '\u81ea\u5df1\u4fee\u5fa9'",
+    );
     assert.ok(result.includes("\u9650\u754c"), "Should contain '\u9650\u754c'");
     assert.ok(result.includes("\u624b\u52d5"), "Should contain '\u624b\u52d5'");
     assert.ok(result.includes("\u5bfe\u5fdc"), "Should contain '\u5bfe\u5fdc'");
@@ -573,7 +596,9 @@ describe("_buildEvidenceItems", () => {
     assert.ok(items.find((i) => i.type === "tool_denied" && i.count === 10));
     assert.ok(items.find((i) => i.type === "tool_failed" && i.count === 3));
     assert.ok(items.find((i) => i.type === "stop_audit" && i.count === 5));
-    assert.ok(items.find((i) => i.type === "self_repair_attempt" && i.count === 1));
+    assert.ok(
+      items.find((i) => i.type === "self_repair_attempt" && i.count === 1),
+    );
     assert.ok(items.find((i) => i.type === "total_entries" && i.count === 150));
   });
 
@@ -611,7 +636,11 @@ describe("_buildEvidenceItems", () => {
       quality_gate_counts: { blocking: 0, high: 0 },
     });
     const qg = items.find((i) => i.type === "quality_gates");
-    assert.equal(qg, undefined, "should not include quality_gates when both are 0");
+    assert.equal(
+      qg,
+      undefined,
+      "should not include quality_gates when both are 0",
+    );
   });
 
   it("omits event types with 0 count", () => {
@@ -624,12 +653,12 @@ describe("_buildEvidenceItems", () => {
     assert.equal(
       items.find((i) => i.type === "session_start"),
       undefined,
-      "should not include session_start when not in events"
+      "should not include session_start when not in events",
     );
     assert.equal(
       items.find((i) => i.type === "tool_denied"),
       undefined,
-      "should not include tool_denied when not in events"
+      "should not include tool_denied when not in events",
     );
   });
 });
@@ -674,17 +703,38 @@ describe("_updateSessionEvidence", () => {
     fs.writeFileSync(sessionPath, JSON.stringify(sessionData) + "\n", "utf8");
 
     // Write some evidence entries to ledger
-    const ledgerPath = path.join(tmpDir, ".claude", "logs", "evidence-ledger.jsonl");
+    const ledgerPath = path.join(
+      tmpDir,
+      ".claude",
+      "logs",
+      "evidence-ledger.jsonl",
+    );
     const entries = [
-      { event: "session_start", task: "test-task", timestamp: "2026-01-01T00:00:00Z" },
-      { event: "tool_complete", tool_name: "Read", timestamp: "2026-01-01T00:00:01Z" },
-      { event: "tool_complete", tool_name: "Read", timestamp: "2026-01-01T00:00:02Z" },
-      { event: "tool_denied", tool_name: "Write", timestamp: "2026-01-01T00:00:03Z" },
+      {
+        event: "session_start",
+        task: "test-task",
+        timestamp: "2026-01-01T00:00:00Z",
+      },
+      {
+        event: "tool_complete",
+        tool_name: "Read",
+        timestamp: "2026-01-01T00:00:01Z",
+      },
+      {
+        event: "tool_complete",
+        tool_name: "Read",
+        timestamp: "2026-01-01T00:00:02Z",
+      },
+      {
+        event: "tool_denied",
+        tool_name: "Write",
+        timestamp: "2026-01-01T00:00:03Z",
+      },
     ];
     fs.writeFileSync(
       ledgerPath,
       entries.map((e) => JSON.stringify(e)).join("\n") + "\n",
-      "utf8"
+      "utf8",
     );
 
     // Call _updateSessionEvidence
@@ -699,7 +749,9 @@ describe("_updateSessionEvidence", () => {
     assert.ok(totalItem, "should have total_entries");
     assert.equal(totalItem.count, 4, "should count all 4 ledger entries");
 
-    const sessionStartItem = updated.evidence.find((i) => i.type === "session_start");
+    const sessionStartItem = updated.evidence.find(
+      (i) => i.type === "session_start",
+    );
     assert.ok(sessionStartItem, "should have session_start item");
     assert.equal(sessionStartItem.count, 1);
   });
@@ -742,14 +794,28 @@ describe("module exports completeness", () => {
       "handler",
     ];
     for (const fn of expectedFunctions) {
-      assert.equal(typeof stop[fn], "function", `Missing function export: ${fn}`);
+      assert.equal(
+        typeof stop[fn],
+        "function",
+        `Missing function export: ${fn}`,
+      );
     }
   });
 
   it("exports all expected constants", () => {
-    assert.equal(typeof stop.MAX_RETRIES, "number", "MAX_RETRIES should be a number");
-    assert.ok(Array.isArray(stop.FAILURE_PATTERNS), "FAILURE_PATTERNS should be an array");
-    assert.ok(Array.isArray(stop.SUCCESS_PATTERNS), "SUCCESS_PATTERNS should be an array");
+    assert.equal(
+      typeof stop.MAX_RETRIES,
+      "number",
+      "MAX_RETRIES should be a number",
+    );
+    assert.ok(
+      Array.isArray(stop.FAILURE_PATTERNS),
+      "FAILURE_PATTERNS should be an array",
+    );
+    assert.ok(
+      Array.isArray(stop.SUCCESS_PATTERNS),
+      "SUCCESS_PATTERNS should be an array",
+    );
   });
 
   it("exports exactly the expected set of keys", () => {

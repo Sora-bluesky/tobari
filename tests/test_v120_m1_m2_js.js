@@ -92,19 +92,19 @@ describe("A1: Protected Directory Deny", () => {
     let tmpDir;
     try {
       tmpDir = createTmpDir();
-      createSessionFile(tmpDir, makeActiveSession({ include: ["src/"], exclude: [] }));
+      createSessionFile(
+        tmpDir,
+        makeActiveSession({ include: ["src/"], exclude: [] }),
+      );
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
       tobariSession._resetCache();
 
       const result = gate.checkProtectedDirectory(
         path.join(tmpDir, ".git", "config"),
-        "Edit"
+        "Edit",
       );
       assert.notEqual(result, null, "Should deny .git/ writes");
-      assert.equal(
-        result.hookSpecificOutput.permissionDecision,
-        "deny"
-      );
+      assert.equal(result.hookSpecificOutput.permissionDecision, "deny");
     } finally {
       process.env.CLAUDE_PROJECT_DIR = PROJECT_DIR;
       tobariSession._resetCache();
@@ -116,19 +116,19 @@ describe("A1: Protected Directory Deny", () => {
     let tmpDir;
     try {
       tmpDir = createTmpDir();
-      createSessionFile(tmpDir, makeActiveSession({ include: ["src/"], exclude: [] }));
+      createSessionFile(
+        tmpDir,
+        makeActiveSession({ include: ["src/"], exclude: [] }),
+      );
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
       tobariSession._resetCache();
 
       const result = gate.checkProtectedDirectory(
         path.join(tmpDir, ".claude", "hooks", "malicious.js"),
-        "Write"
+        "Write",
       );
       assert.notEqual(result, null, "Should deny .claude/hooks/ writes");
-      assert.equal(
-        result.hookSpecificOutput.permissionDecision,
-        "deny"
-      );
+      assert.equal(result.hookSpecificOutput.permissionDecision, "deny");
     } finally {
       process.env.CLAUDE_PROJECT_DIR = PROJECT_DIR;
       tobariSession._resetCache();
@@ -140,13 +140,16 @@ describe("A1: Protected Directory Deny", () => {
     let tmpDir;
     try {
       tmpDir = createTmpDir();
-      createSessionFile(tmpDir, makeActiveSession({ include: ["src/"], exclude: [] }));
+      createSessionFile(
+        tmpDir,
+        makeActiveSession({ include: ["src/"], exclude: [] }),
+      );
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
       tobariSession._resetCache();
 
       const result = gate.checkProtectedDirectory(
         path.join(tmpDir, ".claude", "rules", "new-rule.md"),
-        "Write"
+        "Write",
       );
       assert.notEqual(result, null, "Should deny .claude/rules/ writes");
     } finally {
@@ -160,13 +163,16 @@ describe("A1: Protected Directory Deny", () => {
     let tmpDir;
     try {
       tmpDir = createTmpDir();
-      createSessionFile(tmpDir, makeActiveSession({ include: ["src/"], exclude: [] }));
+      createSessionFile(
+        tmpDir,
+        makeActiveSession({ include: ["src/"], exclude: [] }),
+      );
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
       tobariSession._resetCache();
 
       const result = gate.checkProtectedDirectory(
         path.join(tmpDir, ".claude", "tobari-session.json"),
-        "Edit"
+        "Edit",
       );
       assert.equal(result, null, "tobari-session.json should be allowed");
     } finally {
@@ -180,13 +186,16 @@ describe("A1: Protected Directory Deny", () => {
     let tmpDir;
     try {
       tmpDir = createTmpDir();
-      createSessionFile(tmpDir, makeActiveSession({ include: ["src/"], exclude: [] }));
+      createSessionFile(
+        tmpDir,
+        makeActiveSession({ include: ["src/"], exclude: [] }),
+      );
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
       tobariSession._resetCache();
 
       const result = gate.checkProtectedDirectory(
         path.join(tmpDir, ".claude", "logs", "evidence-ledger.jsonl"),
-        "Write"
+        "Write",
       );
       assert.equal(result, null, ".claude/logs/ should be allowed");
     } finally {
@@ -203,14 +212,14 @@ describe("A1: Protected Directory Deny", () => {
       // Scope explicitly includes .claude/hooks/
       createSessionFile(
         tmpDir,
-        makeActiveSession({ include: [".claude/hooks/"], exclude: [] })
+        makeActiveSession({ include: [".claude/hooks/"], exclude: [] }),
       );
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
       tobariSession._resetCache();
 
       const result = gate.checkProtectedDirectory(
         path.join(tmpDir, ".claude", "hooks", "tobari-gate.js"),
-        "Edit"
+        "Edit",
       );
       assert.equal(result, null, "Should allow when explicitly in scope");
     } finally {
@@ -224,13 +233,16 @@ describe("A1: Protected Directory Deny", () => {
     let tmpDir;
     try {
       tmpDir = createTmpDir();
-      createSessionFile(tmpDir, makeActiveSession({ include: ["src/"], exclude: [] }));
+      createSessionFile(
+        tmpDir,
+        makeActiveSession({ include: ["src/"], exclude: [] }),
+      );
       process.env.CLAUDE_PROJECT_DIR = tmpDir;
       tobariSession._resetCache();
 
       const result = gate.checkProtectedDirectory(
         path.join(tmpDir, "src", "app.js"),
-        "Edit"
+        "Edit",
       );
       assert.equal(result, null, "Unprotected paths should pass");
     } finally {
@@ -270,7 +282,9 @@ describe("A3: World-Writable Audit", () => {
     assert.ok(output !== undefined);
     if (output) {
       assert.ok(output.hookSpecificOutput);
-      assert.ok(typeof output.hookSpecificOutput.additionalContext === "string");
+      assert.ok(
+        typeof output.hookSpecificOutput.additionalContext === "string",
+      );
     }
   });
 });
@@ -297,7 +311,12 @@ describe("A5: Evidence Rotation", () => {
       const evidencePath = path.join(logsDir, "evidence-ledger.jsonl");
 
       // Create a file just over 10MB with repeated dummy data
-      const line = JSON.stringify({ event: "test", _chain_index: 0, _prev_hash: "0".repeat(64) }) + "\n";
+      const line =
+        JSON.stringify({
+          event: "test",
+          _chain_index: 0,
+          _prev_hash: "0".repeat(64),
+        }) + "\n";
       const linesNeeded = Math.ceil((10 * 1024 * 1024 + 1) / line.length);
       const fd = fs.openSync(evidencePath, "w");
       for (let i = 0; i < linesNeeded; i++) {
@@ -312,17 +331,19 @@ describe("A5: Evidence Rotation", () => {
       tobariSession.writeEvidence({ event: "rotation_test" });
 
       // Check that the original file was rotated
-      const filesAfter = fs.readdirSync(logsDir).filter(f => f.startsWith("evidence-ledger."));
+      const filesAfter = fs
+        .readdirSync(logsDir)
+        .filter((f) => f.startsWith("evidence-ledger."));
       assert.ok(
         filesAfter.length >= 2,
-        `Expected at least 2 evidence files after rotation, got ${filesAfter.length}: ${filesAfter.join(", ")}`
+        `Expected at least 2 evidence files after rotation, got ${filesAfter.length}: ${filesAfter.join(", ")}`,
       );
 
       // New evidence-ledger.jsonl should be small (just the new entry)
       const newSize = fs.statSync(evidencePath).size;
       assert.ok(
         newSize < 10 * 1024 * 1024,
-        `New evidence file should be < 10MB, got ${newSize}`
+        `New evidence file should be < 10MB, got ${newSize}`,
       );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = PROJECT_DIR;
@@ -345,7 +366,9 @@ describe("A5: Evidence Rotation", () => {
       tobariSession.writeEvidence({ event: "small_test_1" });
       tobariSession.writeEvidence({ event: "small_test_2" });
 
-      const filesAfter = fs.readdirSync(logsDir).filter(f => f.startsWith("evidence-ledger."));
+      const filesAfter = fs
+        .readdirSync(logsDir)
+        .filter((f) => f.startsWith("evidence-ledger."));
       assert.equal(filesAfter.length, 1, "Should only have 1 evidence file");
     } finally {
       process.env.CLAUDE_PROJECT_DIR = PROJECT_DIR;
@@ -379,7 +402,7 @@ describe("A6: InstructionsLoaded Hook", () => {
       assert.equal(hash.length, 64); // SHA-256 hex
       assert.equal(
         hash,
-        crypto.createHash("sha256").update("hello world", "utf8").digest("hex")
+        crypto.createHash("sha256").update("hello world", "utf8").digest("hex"),
       );
     } finally {
       if (tmpDir) cleanupTmpDir(tmpDir);
@@ -471,8 +494,10 @@ describe("A6: InstructionsLoaded Hook", () => {
       const result = instructionsHook.handler({});
       assert.notEqual(result, null);
       assert.ok(
-        result.hookSpecificOutput.additionalContext.includes("RULE FILE CHANGE"),
-        "Should warn about rule file change"
+        result.hookSpecificOutput.additionalContext.includes(
+          "RULE FILE CHANGE",
+        ),
+        "Should warn about rule file change",
       );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = PROJECT_DIR;
@@ -540,7 +565,7 @@ describe("A7: ConfigChange Hook", () => {
       fs.writeFileSync(
         path.join(settingsDir, "settings.json"),
         JSON.stringify({ hooks: {}, permissions: {} }),
-        "utf8"
+        "utf8",
       );
 
       const result = configChangeHook.handler({});
@@ -566,7 +591,7 @@ describe("A7: ConfigChange Hook", () => {
       fs.writeFileSync(
         settingsPath,
         JSON.stringify({ hooks: {}, permissions: {} }),
-        "utf8"
+        "utf8",
       );
 
       // First run (baseline)
@@ -576,7 +601,7 @@ describe("A7: ConfigChange Hook", () => {
       fs.writeFileSync(
         settingsPath,
         JSON.stringify({ hooks: {}, permissions: {}, env: {} }),
-        "utf8"
+        "utf8",
       );
 
       // Second run — should detect change
@@ -584,7 +609,7 @@ describe("A7: ConfigChange Hook", () => {
       assert.notEqual(result, null);
       assert.ok(
         result.hookSpecificOutput.additionalContext.includes("CONFIG CHANGE"),
-        "Should warn about config change"
+        "Should warn about config change",
       );
     } finally {
       process.env.CLAUDE_PROJECT_DIR = PROJECT_DIR;

@@ -85,7 +85,7 @@ describe("_detectLang — env var priority", () => {
     const lang = i18n._detectLang();
     assert.ok(
       i18n.SUPPORTED_LANGS.includes(lang),
-      `Expected supported lang, got '${lang}'`
+      `Expected supported lang, got '${lang}'`,
     );
   });
 
@@ -94,7 +94,7 @@ describe("_detectLang — env var priority", () => {
     const lang = i18n._detectLang();
     assert.ok(
       i18n.SUPPORTED_LANGS.includes(lang),
-      `Expected supported lang, got '${lang}'`
+      `Expected supported lang, got '${lang}'`,
     );
   });
 });
@@ -132,7 +132,7 @@ describe("_detectLang — session file fallback", () => {
     fs.writeFileSync(
       sessionPath,
       JSON.stringify({ active: true, lang: "ja" }),
-      "utf8"
+      "utf8",
     );
     assert.equal(i18n._detectLang(), "ja");
   });
@@ -142,7 +142,7 @@ describe("_detectLang — session file fallback", () => {
     fs.writeFileSync(
       sessionPath,
       JSON.stringify({ active: true, lang: "en" }),
-      "utf8"
+      "utf8",
     );
     assert.equal(i18n._detectLang(), "en");
   });
@@ -152,18 +152,14 @@ describe("_detectLang — session file fallback", () => {
     fs.writeFileSync(
       sessionPath,
       JSON.stringify({ active: true, lang: "de" }),
-      "utf8"
+      "utf8",
     );
     assert.equal(i18n._detectLang(), "en"); // default
   });
 
   it("returns DEFAULT_LANG when session file has no lang field", () => {
     const sessionPath = path.join(tmpDir, ".claude", "tobari-session.json");
-    fs.writeFileSync(
-      sessionPath,
-      JSON.stringify({ active: true }),
-      "utf8"
-    );
+    fs.writeFileSync(sessionPath, JSON.stringify({ active: true }), "utf8");
     assert.equal(i18n._detectLang(), i18n.DEFAULT_LANG);
   });
 
@@ -203,7 +199,7 @@ describe("t() — translation and interpolation", () => {
     const result = i18n.t("gate.validate.empty_path");
     assert.ok(
       result.includes("\u30d5\u30a1\u30a4\u30eb\u30d1\u30b9"),
-      `Expected Japanese text, got '${result}'`
+      `Expected Japanese text, got '${result}'`,
     );
   });
 
@@ -219,8 +215,14 @@ describe("t() — translation and interpolation", () => {
       actual: 5000,
       max: 4096,
     });
-    assert.ok(result.includes("5000"), `Should contain '5000', got '${result}'`);
-    assert.ok(result.includes("4096"), `Should contain '4096', got '${result}'`);
+    assert.ok(
+      result.includes("5000"),
+      `Should contain '5000', got '${result}'`,
+    );
+    assert.ok(
+      result.includes("4096"),
+      `Should contain '4096', got '${result}'`,
+    );
   });
 
   it("handles multiple parameters in a single key", () => {
@@ -242,11 +244,11 @@ describe("t() — translation and interpolation", () => {
     // Without params, {actual} and {max} remain
     assert.ok(
       result.includes("{actual}"),
-      `Should contain unreplaced '{actual}', got '${result}'`
+      `Should contain unreplaced '{actual}', got '${result}'`,
     );
     assert.ok(
       result.includes("{max}"),
-      `Should contain unreplaced '{max}', got '${result}'`
+      `Should contain unreplaced '{max}', got '${result}'`,
     );
   });
 
@@ -271,10 +273,7 @@ describe("t() — translation and interpolation", () => {
     process.env.TOBARI_LANG = "en";
     const result = i18n.t("stop.circuit.header", { task: "test", max: 3 });
     // Should contain "3/3"
-    assert.ok(
-      result.includes("3/3"),
-      `Should contain '3/3', got '${result}'`
-    );
+    assert.ok(result.includes("3/3"), `Should contain '3/3', got '${result}'`);
   });
 });
 
@@ -346,7 +345,11 @@ describe("_reset()", () => {
     i18n._reset();
     process.env.TOBARI_LANG = "ja";
     const jaMsg = i18n.t("gate.validate.empty_path");
-    assert.notEqual(jaMsg, enMsg, "Should return different text after reset + lang change");
+    assert.notEqual(
+      jaMsg,
+      enMsg,
+      "Should return different text after reset + lang change",
+    );
     assert.ok(jaMsg.includes("\u30d5\u30a1\u30a4\u30eb\u30d1\u30b9"));
   });
 
@@ -371,7 +374,11 @@ describe("_reset()", () => {
     // Change env WITHOUT reset — cached messages should persist
     process.env.TOBARI_LANG = "ja";
     const stillEn = i18n.t("gate.validate.empty_path");
-    assert.equal(stillEn, "File path is empty", "Cached English should persist without _reset()");
+    assert.equal(
+      stillEn,
+      "File path is empty",
+      "Cached English should persist without _reset()",
+    );
 
     i18n._reset(); // cleanup
   });
@@ -387,8 +394,12 @@ describe("locale file validation", () => {
 
   beforeEach(() => {
     const localeDir = path.join(__dirname, "..", ".claude", "hooks", "locales");
-    enMessages = JSON.parse(fs.readFileSync(path.join(localeDir, "en.json"), "utf8"));
-    jaMessages = JSON.parse(fs.readFileSync(path.join(localeDir, "ja.json"), "utf8"));
+    enMessages = JSON.parse(
+      fs.readFileSync(path.join(localeDir, "en.json"), "utf8"),
+    );
+    jaMessages = JSON.parse(
+      fs.readFileSync(path.join(localeDir, "ja.json"), "utf8"),
+    );
   });
 
   it("en.json and ja.json have the same keys", () => {
@@ -409,14 +420,22 @@ describe("locale file validation", () => {
 
   it("all en.json values are non-empty strings", () => {
     for (const [key, value] of Object.entries(enMessages)) {
-      assert.equal(typeof value, "string", `en.json[${key}] should be a string`);
+      assert.equal(
+        typeof value,
+        "string",
+        `en.json[${key}] should be a string`,
+      );
       assert.ok(value.length > 0, `en.json[${key}] should not be empty`);
     }
   });
 
   it("all ja.json values are non-empty strings", () => {
     for (const [key, value] of Object.entries(jaMessages)) {
-      assert.equal(typeof value, "string", `ja.json[${key}] should be a string`);
+      assert.equal(
+        typeof value,
+        "string",
+        `ja.json[${key}] should be a string`,
+      );
       assert.ok(value.length > 0, `ja.json[${key}] should not be empty`);
     }
   });
@@ -425,14 +444,22 @@ describe("locale file validation", () => {
     const enKeys = Object.keys(enMessages);
     const jaKeys = new Set(Object.keys(jaMessages));
     const missing = enKeys.filter((k) => !jaKeys.has(k));
-    assert.deepEqual(missing, [], `Keys in en.json but missing from ja.json: ${missing.join(", ")}`);
+    assert.deepEqual(
+      missing,
+      [],
+      `Keys in en.json but missing from ja.json: ${missing.join(", ")}`,
+    );
   });
 
   it("no keys in ja.json are missing from en.json", () => {
     const jaKeys = Object.keys(jaMessages);
     const enKeys = new Set(Object.keys(enMessages));
     const missing = jaKeys.filter((k) => !enKeys.has(k));
-    assert.deepEqual(missing, [], `Keys in ja.json but missing from en.json: ${missing.join(", ")}`);
+    assert.deepEqual(
+      missing,
+      [],
+      `Keys in ja.json but missing from en.json: ${missing.join(", ")}`,
+    );
   });
 });
 
@@ -466,7 +493,11 @@ describe("integration — gate pattern keys", () => {
     ];
     for (const key of patternKeys) {
       const result = i18n.t(key);
-      assert.notEqual(result, key, `${key} should be translated, not returned as-is`);
+      assert.notEqual(
+        result,
+        key,
+        `${key} should be translated, not returned as-is`,
+      );
       assert.ok(result.length > 0, `${key} should return non-empty string`);
     }
   });
@@ -524,7 +555,12 @@ describe("integration — stop repair keys", () => {
       "stop.repair.step3",
     ];
     for (const key of repairKeys) {
-      const result = i18n.t(key, { task: "T1", attempt: 1, max: 3, summary: "err" });
+      const result = i18n.t(key, {
+        task: "T1",
+        attempt: 1,
+        max: 3,
+        summary: "err",
+      });
       assert.notEqual(result, key, `${key} should be translated`);
       assert.ok(result.length > 0, `${key} should return non-empty string`);
     }
@@ -617,13 +653,24 @@ describe("module exports completeness", () => {
       "_reset",
     ];
     for (const fn of expectedFunctions) {
-      assert.equal(typeof i18n[fn], "function", `Missing function export: ${fn}`);
+      assert.equal(
+        typeof i18n[fn],
+        "function",
+        `Missing function export: ${fn}`,
+      );
     }
   });
 
   it("exports all expected constants", () => {
-    assert.ok(Array.isArray(i18n.SUPPORTED_LANGS), "SUPPORTED_LANGS should be an array");
-    assert.equal(typeof i18n.DEFAULT_LANG, "string", "DEFAULT_LANG should be a string");
+    assert.ok(
+      Array.isArray(i18n.SUPPORTED_LANGS),
+      "SUPPORTED_LANGS should be an array",
+    );
+    assert.equal(
+      typeof i18n.DEFAULT_LANG,
+      "string",
+      "DEFAULT_LANG should be a string",
+    );
   });
 
   it("exports exactly the expected set of keys", () => {

@@ -28,7 +28,7 @@ module.exports = function sync(options) {
   if (!fs.existsSync(templateClaudeDir)) {
     console.error(
       "Error: tobari templates not found.\n" +
-        "The npm package may be corrupted. Try: npm install tobari"
+        "The npm package may be corrupted. Try: npm install tobari",
     );
     process.exit(1);
   }
@@ -63,7 +63,9 @@ module.exports = function sync(options) {
   // --- Write version file ---
   writeVersionFile(versionFilePath, currentVersion);
 
-  console.log(`\n  Sync complete. ${VERSION_FILE} updated to ${currentVersion}`);
+  console.log(
+    `\n  Sync complete. ${VERSION_FILE} updated to ${currentVersion}`,
+  );
 };
 
 /**
@@ -101,7 +103,7 @@ function runCheck(cwd) {
   if (!fs.existsSync(templateClaudeDir)) {
     console.error(
       "Error: tobari templates not found.\n" +
-        "The npm package may be corrupted. Try: npm install tobari"
+        "The npm package may be corrupted. Try: npm install tobari",
     );
     process.exit(1);
   }
@@ -112,7 +114,9 @@ function runCheck(cwd) {
   const claudeDir = path.join(cwd, ".claude");
   if (!fs.existsSync(claudeDir)) {
     printCheckResult("drift", ".claude/", "directory not found");
-    console.log("\nDrift detected. Run 'tobari sync' or 'tobari init' to set up.");
+    console.log(
+      "\nDrift detected. Run 'tobari sync' or 'tobari init' to set up.",
+    );
     process.exit(1);
   }
 

@@ -61,10 +61,11 @@ Step 5: lower_veil         帳をおろす（tobari-session.json + 詠唱 + 登�
 
 `$ARGUMENTS` を受け取り、以下の順で分岐する:
 
-| 値 | 分岐先 |
-| --- | --- |
-| `init` | [Init フロー](#init-flow-tobari-init) へ |
-| 空 | fail-close（以下参照） |
+| 値             | 分岐先                                               |
+| -------------- | ---------------------------------------------------- |
+| `init`         | [Init フロー](#init-flow-tobari-init) へ             |
+| `amend`        | [Amend フロー](#amend-flow-tobari-amend) へ          |
+| 空             | fail-close（以下参照）                               |
 | その他の文字列 | [通常フロー（STG0 儀式）](#workflow-stg0-5-steps) へ |
 
 ---
@@ -186,6 +187,7 @@ Claude Code が直接ツールを使い、コードベースを分析する。
 ```
 
 **フォーマットルール:**
+
 - 絵文字・ボックスドローイング文字（`┌─┐`）を使わない
 - マークダウンの `###` 見出し・`-` リスト・`- [ ]` チェックボックスを使う
 - パスは `` ` `` で囲みインラインコードとして表示
@@ -290,11 +292,11 @@ backlog.yaml が存在しない場合は fail-close:
 
 **帳 -- ACTIVE**
 
-| 項目 | 値 |
-|------|-----|
+| 項目    | 値                         |
+| ------- | -------------------------- |
 | Profile | {Lite / Standard / Strict} |
-| Task | {feature 名} |
-| Gates | STG0 -> STG6 |
+| Task    | {feature 名}               |
+| Gates   | STG0 -> STG6               |
 
 - [x] 破壊的操作ブロック
 - [x] 秘密情報スキャン
@@ -339,12 +341,12 @@ Init Step 6: 完了メッセージ    使い方ガイドを表示
 
 以下を**ツールで確認**する:
 
-| チェック項目 | ツール | 確認方法 |
-| --- | --- | --- |
-| Node.js 18+ | Bash | `node --version` |
-| hooks ディレクトリ | Glob | `.claude/hooks/*.js` の存在確認 |
-| settings.json の hooks 設定 | Read | `.claude/settings.json` の `hooks` キーを確認 |
-| `.gitignore` への tobari-session.json 除外 | Grep | `tobari-session.json` が `.gitignore` に含まれるか |
+| チェック項目                               | ツール | 確認方法                                           |
+| ------------------------------------------ | ------ | -------------------------------------------------- |
+| Node.js 18+                                | Bash   | `node --version`                                   |
+| hooks ディレクトリ                         | Glob   | `.claude/hooks/*.js` の存在確認                    |
+| settings.json の hooks 設定                | Read   | `.claude/settings.json` の `hooks` キーを確認      |
+| `.gitignore` への tobari-session.json 除外 | Grep   | `tobari-session.json` が `.gitignore` に含まれるか |
 
 ---
 
@@ -355,19 +357,19 @@ Init Step 6: 完了メッセージ    使い方ガイドを表示
 ```markdown
 ### 帳のセットアップ状況
 
-| 項目 | 状態 |
-|------|------|
-| Node.js 18+ | OK / NG |
-| hooks ディレクトリ | OK / NG |
+| 項目                        | 状態      |
+| --------------------------- | --------- |
+| Node.js 18+                 | OK / NG   |
+| hooks ディレクトリ          | OK / NG   |
 | settings.json の hooks 設定 | OK / WARN |
-| .gitignore への除外登録 | OK / WARN |
+| .gitignore への除外登録     | OK / WARN |
 ```
 
 全て OK の場合:
 
 > 帳のセットアップは完了しています。
 > `/tobari <機能名>` で帳をおろして作業を開始できます。
-→ Init Step 5（Webhook 設定）へスキップ
+> → Init Step 5（Webhook 設定）へスキップ
 
 問題がある場合は Init Step 3 へ進む。
 
@@ -390,6 +392,7 @@ AskUserQuestion ツールで確認を求める:
 #### 4a. hooks ディレクトリが存在しない場合
 
 Bash で作成:
+
 ```bash
 mkdir -p .claude/hooks
 ```
@@ -398,20 +401,20 @@ mkdir -p .claude/hooks
 
 以下の hooks ファイルが `.claude/hooks/` に存在するか確認し、存在しないものを Write ツールで作成する:
 
-| ファイル | 役割 |
-| --- | --- |
-| `tobari-session.js` | セッション共有ライブラリ |
-| `tobari-stage.js` | STG ステージコントローラ |
-| `tobari-gate.js` | PreToolUse: Gate (止める) |
-| `tobari-evidence.js` | PostToolUse: Evidence (残す) |
-| `tobari-evidence-failure.js` | PostToolUseFailure: Evidence (失敗記録) |
-| `tobari-stop.js` | Stop: Self-Repair (自己修復) |
-| `tobari-cost.js` | PostToolUse: Cost Monitor (コスト監視) |
-| `tobari-permission.js` | PermissionRequest: Permission (口) |
-| `tobari-precompact.js` | PreCompact: Memory (記憶) |
-| `tobari-injection-guard.js` | PostToolUse: Injection Guard (境界防御) |
-| `tobari-session-start.js` | SessionStart: Session Init (セッション開始) |
-| `lint-on-save.js` | PostToolUse: コード品質 |
+| ファイル                     | 役割                                        |
+| ---------------------------- | ------------------------------------------- |
+| `tobari-session.js`          | セッション共有ライブラリ                    |
+| `tobari-stage.js`            | STG ステージコントローラ                    |
+| `tobari-gate.js`             | PreToolUse: Gate (止める)                   |
+| `tobari-evidence.js`         | PostToolUse: Evidence (残す)                |
+| `tobari-evidence-failure.js` | PostToolUseFailure: Evidence (失敗記録)     |
+| `tobari-stop.js`             | Stop: Self-Repair (自己修復)                |
+| `tobari-cost.js`             | PostToolUse: Cost Monitor (コスト監視)      |
+| `tobari-permission.js`       | PermissionRequest: Permission (口)          |
+| `tobari-precompact.js`       | PreCompact: Memory (記憶)                   |
+| `tobari-injection-guard.js`  | PostToolUse: Injection Guard (境界防御)     |
+| `tobari-session-start.js`    | SessionStart: Session Init (セッション開始) |
+| `lint-on-save.js`            | PostToolUse: コード品質                     |
 
 #### 4c. settings.json の hooks 設定が不足している場合
 
@@ -424,58 +427,70 @@ mkdir -p .claude/hooks
     "PreToolUse": [
       {
         "matcher": "Edit|Write|NotebookEdit|Bash",
-        "hooks": [{
-          "type": "command",
-          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-gate.js\"",
-          "timeout": 10
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-gate.js\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Bash|Edit|Write|NotebookEdit|Read|Grep|Glob|WebFetch|WebSearch|Task",
-        "hooks": [{
-          "type": "command",
-          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence.js\"",
-          "timeout": 5
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-evidence.js\"",
+            "timeout": 5
+          }
+        ]
       },
       {
         "matcher": "Bash|Edit|Write|NotebookEdit|Read|Grep|Glob|WebFetch|WebSearch|Task",
-        "hooks": [{
-          "type": "command",
-          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-cost.js\"",
-          "timeout": 5
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-cost.js\"",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "hooks": [{
-          "type": "command",
-          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-stop.js\"",
-          "timeout": 30
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-stop.js\"",
+            "timeout": 30
+          }
+        ]
       }
     ],
     "PermissionRequest": [
       {
         "matcher": ".*",
-        "hooks": [{
-          "type": "command",
-          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-permission.js\"",
-          "timeout": 10
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-permission.js\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreCompact": [
       {
         "matcher": "auto",
-        "hooks": [{
-          "type": "command",
-          "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-precompact.js\"",
-          "timeout": 5
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tobari-precompact.js\"",
+            "timeout": 5
+          }
+        ]
       }
     ]
   }
@@ -485,6 +500,7 @@ mkdir -p .claude/hooks
 #### 4d. `.gitignore` に tobari-session.json が未登録の場合
 
 `.gitignore` に以下を追記（Edit ツール使用）:
+
 ```
 # tobari — session state (contains task secrets, do not commit)
 .claude/tobari-session.json
@@ -534,4 +550,117 @@ Webhook URL が入力された場合:
 - `/tobari APIのエラーハンドリングを改善`
 
 帳はあなたの代わりに安全を守ります。安心して作業に集中してください。
+```
+
+---
+
+## Amend Flow: /tobari amend
+
+**帳をおろしたまま契約スコープを修正する軽量フロー。**
+
+`$ARGUMENTS` が `amend` の場合にこのフローを実行する。
+完全な `/tobari` の再実行なしに、スコープの追加・除外を変更できる。
+
+```
+/tobari amend
+  │
+  ▼
+Amend Step 1: verify_session    セッションの存在確認
+  │
+  ▼
+Amend Step 2: show_current      現在のスコープ表示
+  │
+  ▼
+Amend Step 3: collect_changes   変更内容を収集
+  │
+  ▼
+Amend Step 4: user_confirm      修正内容を確認
+  │
+  ▼
+Amend Step 5: apply_amendment   tobari-session.json 更新 + 証跡記録
+```
+
+---
+
+### Amend Step 1: verify_session
+
+`tobari-session.json` が存在し `active: true` であることを確認する。
+
+**fail-close 条件**:
+
+- セッションファイルが存在しない場合
+- `active: false` の場合
+
+→ 「帳が下りていません。先に `/tobari <機能名>` で帳をおろしてください。」と表示して終了。
+
+---
+
+### Amend Step 2: show_current
+
+現在の契約スコープをマークダウンで表示する:
+
+```markdown
+### 現在の契約スコープ
+
+**含む（include）:**
+
+- `{scope.include[0]}`
+- `{scope.include[1]}`
+
+**除外（exclude）:**
+
+- `{scope.exclude[0]}` （空の場合は「なし」）
+```
+
+---
+
+### Amend Step 3: collect_changes
+
+AskUserQuestion で変更内容を収集する:
+
+- 「追加したいパス、または除外したいパスを教えてください。」
+- 例: 「`.claude/skills/` を追加」「`src/legacy/` を除外」
+
+---
+
+### Amend Step 4: user_confirm
+
+修正後のスコープを表示し、AskUserQuestion で確認する:
+
+```markdown
+### 修正後のスコープ
+
+**含む（include）:**
+
+- `{新しい include リスト}`
+
+**除外（exclude）:**
+
+- `{新しい exclude リスト}`
+```
+
+- **はい** → Amend Step 5 へ
+- **やめる** → 「スコープの変更を中止しました。」と表示して終了
+
+---
+
+### Amend Step 5: apply_amendment
+
+Bash で CLI エントリポイントを呼び出してスコープを更新する:
+
+```bash
+node .claude/hooks/tobari-session.js amend-scope '{"include":[...],"exclude":[...]}' '変更理由'
+```
+
+成功時、以下を表示する:
+
+```markdown
+**スコープを更新しました。**
+
+| 項目 | 値                   |
+| ---- | -------------------- |
+| 理由 | {変更理由}           |
+| 証跡 | Evidence Ledger 記録 |
+
+帳の内側で作業を続けてください。
 ```

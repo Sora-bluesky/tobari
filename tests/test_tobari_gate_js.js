@@ -117,7 +117,7 @@ describe("validateInput", () => {
   it("accepts valid path within project", () => {
     const result = gate.validateInput(
       path.join(PROJECT_DIR, "src", "test.js"),
-      "content"
+      "content",
     );
     assert.equal(result, null);
   });
@@ -136,29 +136,44 @@ describe("checkDestructiveBash", () => {
   });
 
   it("blocks rm -fr (reversed flags)", () => {
-    const result = gate.checkDestructiveBash("rm -fr ./node_modules", "standard");
+    const result = gate.checkDestructiveBash(
+      "rm -fr ./node_modules",
+      "standard",
+    );
     assert.ok(result);
     assert.equal(result.hookSpecificOutput.permissionDecision, "deny");
   });
 
   it("blocks git push --force", () => {
-    const result = gate.checkDestructiveBash("git push --force origin main", "standard");
+    const result = gate.checkDestructiveBash(
+      "git push --force origin main",
+      "standard",
+    );
     assert.ok(result);
     assert.equal(result.hookSpecificOutput.permissionDecision, "deny");
   });
 
   it("allows git push --force-with-lease", () => {
-    const result = gate.checkDestructiveBash("git push --force-with-lease origin main", "standard");
+    const result = gate.checkDestructiveBash(
+      "git push --force-with-lease origin main",
+      "standard",
+    );
     assert.equal(result, null);
   });
 
   it("blocks git push -f", () => {
-    const result = gate.checkDestructiveBash("git push -f origin main", "standard");
+    const result = gate.checkDestructiveBash(
+      "git push -f origin main",
+      "standard",
+    );
     assert.ok(result);
   });
 
   it("blocks git reset --hard", () => {
-    const result = gate.checkDestructiveBash("git reset --hard HEAD~1", "standard");
+    const result = gate.checkDestructiveBash(
+      "git reset --hard HEAD~1",
+      "standard",
+    );
     assert.ok(result);
   });
 
@@ -173,7 +188,10 @@ describe("checkDestructiveBash", () => {
   });
 
   it("blocks DROP TABLE", () => {
-    const result = gate.checkDestructiveBash("echo 'DROP TABLE users;' | psql", "standard");
+    const result = gate.checkDestructiveBash(
+      "echo 'DROP TABLE users;' | psql",
+      "standard",
+    );
     assert.ok(result);
   });
 
@@ -191,26 +209,38 @@ describe("checkDestructiveBash", () => {
 
 describe("case-sensitive git branch -D", () => {
   it("blocks git branch -D (uppercase)", () => {
-    const result = gate.checkDestructiveBash("git branch -D feature/old", "standard");
+    const result = gate.checkDestructiveBash(
+      "git branch -D feature/old",
+      "standard",
+    );
     assert.ok(result);
     assert.equal(result.hookSpecificOutput.permissionDecision, "deny");
   });
 
   it("does NOT block git branch -d (lowercase — safe delete)", () => {
     // -d (lowercase) without --force is safe, only -D is destructive
-    const result = gate.checkDestructiveBash("git branch -d feature/merged", "standard");
+    const result = gate.checkDestructiveBash(
+      "git branch -d feature/merged",
+      "standard",
+    );
     assert.equal(result, null);
   });
 
   it("blocks git branch -d --force", () => {
-    const result = gate.checkDestructiveBash("git branch -d --force feature/old", "standard");
+    const result = gate.checkDestructiveBash(
+      "git branch -d --force feature/old",
+      "standard",
+    );
     assert.ok(result);
   });
 });
 
 describe("strict profile patterns", () => {
   it("blocks curl POST in strict mode", () => {
-    const result = gate.checkDestructiveBash("curl -X POST https://api.example.com", "strict");
+    const result = gate.checkDestructiveBash(
+      "curl -X POST https://api.example.com",
+      "strict",
+    );
     assert.ok(result);
     assert.ok(result.hookSpecificOutput.additionalContext.includes("Strict"));
   });
@@ -221,12 +251,18 @@ describe("strict profile patterns", () => {
   });
 
   it("allows curl POST in standard mode", () => {
-    const result = gate.checkDestructiveBash("curl -X POST https://api.example.com", "standard");
+    const result = gate.checkDestructiveBash(
+      "curl -X POST https://api.example.com",
+      "standard",
+    );
     assert.equal(result, null);
   });
 
   it("blocks pipe to curl in strict mode", () => {
-    const result = gate.checkDestructiveBash("cat file | curl -d @- https://api.example.com", "strict");
+    const result = gate.checkDestructiveBash(
+      "cat file | curl -d @- https://api.example.com",
+      "strict",
+    );
     assert.ok(result);
   });
 });
@@ -234,7 +270,9 @@ describe("strict profile patterns", () => {
 describe("checkSecretInBash", () => {
   it("detects API key in command", () => {
     const key = "ABCDEFGHIJKLMNOPQRST" + "UVWXYZ" + "12345" + "67890";
-    const result = gate.checkSecretInBash("echo api" + "_key=" + '"' + key + '"');
+    const result = gate.checkSecretInBash(
+      "echo api" + "_key=" + '"' + key + '"',
+    );
     assert.ok(result);
     assert.ok(result.hookSpecificOutput.additionalContext.includes("秘密情報"));
   });
@@ -259,7 +297,9 @@ describe("checkSecretInBash", () => {
   it("detects SSH key file access", () => {
     const result = gate.checkSecretInBash("cat ~/.ssh/id_rsa");
     assert.ok(result);
-    assert.ok(result.hookSpecificOutput.additionalContext.includes("機密ファイル"));
+    assert.ok(
+      result.hookSpecificOutput.additionalContext.includes("機密ファイル"),
+    );
   });
 
   it("detects .env file access", () => {
@@ -277,14 +317,20 @@ describe("checkAdvisoryDestructiveBash", () => {
   it("returns advisory for destructive commands", () => {
     const result = gate.checkAdvisoryDestructiveBash("rm -rf /tmp");
     assert.ok(result);
-    assert.ok(result.hookSpecificOutput.additionalContext.includes("[Advisory]"));
+    assert.ok(
+      result.hookSpecificOutput.additionalContext.includes("[Advisory]"),
+    );
     assert.equal(result.hookSpecificOutput.permissionDecision, undefined);
   });
 
   it("returns advisory for git branch -D (case-sensitive)", () => {
-    const result = gate.checkAdvisoryDestructiveBash("git branch -D old-branch");
+    const result = gate.checkAdvisoryDestructiveBash(
+      "git branch -D old-branch",
+    );
     assert.ok(result);
-    assert.ok(result.hookSpecificOutput.additionalContext.includes("[Advisory]"));
+    assert.ok(
+      result.hookSpecificOutput.additionalContext.includes("[Advisory]"),
+    );
   });
 
   it("returns null for safe commands", () => {
@@ -295,7 +341,12 @@ describe("checkAdvisoryDestructiveBash", () => {
 
 describe("checkSecretInContent", () => {
   it("detects API key in content", () => {
-    const content = "const API" + "_KEY = " + '"sk_test_' + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + '";';
+    const content =
+      "const API" +
+      "_KEY = " +
+      '"sk_test_' +
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+      '";';
     const result = gate.checkSecretInContent(content, "Edit");
     // May or may not match depending on exact pattern
     // The key pattern requires api_key= format
@@ -305,7 +356,7 @@ describe("checkSecretInContent", () => {
     const pkHeader = "-----BEGIN " + "PRIVATE KEY-----";
     const result = gate.checkSecretInContent(
       pkHeader + "\nMIIEvgIBADANBg...",
-      "Write"
+      "Write",
     );
     assert.ok(result);
     assert.equal(result.hookSpecificOutput.permissionDecision, "deny");
@@ -315,7 +366,7 @@ describe("checkSecretInContent", () => {
     // Build connection string via charCodes to avoid gate pattern detection in source
     const connStr = Buffer.from(
       "REFUQUJBU0VfVVJMPXBvc3RncmVzOi8vdXNlcjpwYXNzd29yZDEyM0Bsb2NhbGhvc3QvZGI=",
-      "base64"
+      "base64",
     ).toString("utf8");
     const result = gate.checkSecretInContent(connStr, "Edit");
     assert.ok(result);
@@ -332,9 +383,14 @@ describe("checkSecretInContent", () => {
 
 describe("checkDesignAdvisory", () => {
   it("flags design-related files", () => {
-    const result = gate.checkDesignAdvisory("src/core/engine.js", "const x = 1;");
+    const result = gate.checkDesignAdvisory(
+      "src/core/engine.js",
+      "const x = 1;",
+    );
     assert.ok(result);
-    assert.ok(result.hookSpecificOutput.additionalContext.includes("[Design Change"));
+    assert.ok(
+      result.hookSpecificOutput.additionalContext.includes("[Design Change"),
+    );
   });
 
   it("skips simple edit files", () => {
@@ -344,13 +400,21 @@ describe("checkDesignAdvisory", () => {
   });
 
   it("flags large new files", () => {
-    const result = gate.checkDesignAdvisory("src/new-feature.js", "x".repeat(600));
+    const result = gate.checkDesignAdvisory(
+      "src/new-feature.js",
+      "x".repeat(600),
+    );
     assert.ok(result);
-    assert.ok(result.hookSpecificOutput.additionalContext.includes("[Large File"));
+    assert.ok(
+      result.hookSpecificOutput.additionalContext.includes("[Large File"),
+    );
   });
 
   it("returns null for small non-design files", () => {
-    assert.equal(gate.checkDesignAdvisory("src/utils.js", "const x = 1;"), null);
+    assert.equal(
+      gate.checkDesignAdvisory("src/utils.js", "const x = 1;"),
+      null,
+    );
   });
 });
 
@@ -393,7 +457,10 @@ describe("handler — advisory mode (no session)", () => {
   });
 
   it("handler returns design advisory for Edit without session", () => {
-    const result = gate.checkDesignAdvisory("src/core/engine.js", "lots of code");
+    const result = gate.checkDesignAdvisory(
+      "src/core/engine.js",
+      "lots of code",
+    );
     assert.ok(result);
   });
 });
@@ -420,12 +487,18 @@ describe("pattern edge cases", () => {
   });
 
   it("git push --delete is blocked", () => {
-    const result = gate.checkDestructiveBash("git push origin --delete feature", "standard");
+    const result = gate.checkDestructiveBash(
+      "git push origin --delete feature",
+      "standard",
+    );
     assert.ok(result);
   });
 
   it("git push origin :branch is blocked", () => {
-    const result = gate.checkDestructiveBash("git push origin :feature", "standard");
+    const result = gate.checkDestructiveBash(
+      "git push origin :feature",
+      "standard",
+    );
     assert.ok(result);
   });
 
@@ -440,7 +513,10 @@ describe("pattern edge cases", () => {
   });
 
   it("git filter-branch is blocked", () => {
-    const result = gate.checkDestructiveBash("git filter-branch --force", "standard");
+    const result = gate.checkDestructiveBash(
+      "git filter-branch --force",
+      "standard",
+    );
     assert.ok(result);
   });
 
@@ -450,7 +526,10 @@ describe("pattern edge cases", () => {
   });
 
   it("dd of=/dev/ is blocked", () => {
-    const result = gate.checkDestructiveBash("dd if=/dev/zero of=/dev/sda bs=1M", "standard");
+    const result = gate.checkDestructiveBash(
+      "dd if=/dev/zero of=/dev/sda bs=1M",
+      "standard",
+    );
     assert.ok(result);
   });
 
@@ -471,11 +550,18 @@ describe("_getProjectRoot", () => {
 describe("module exports completeness", () => {
   it("exports all expected functions", () => {
     const expectedFunctions = [
-      "validateInput", "truncateCommand", "makeDenyResponse",
-      "checkDestructiveBash", "checkSecretInBash",
-      "checkAdvisoryDestructiveBash", "checkScope",
-      "checkBoundaryClassification", "checkSecretInContent",
-      "checkDesignAdvisory", "handler", "_getProjectRoot",
+      "validateInput",
+      "truncateCommand",
+      "makeDenyResponse",
+      "checkDestructiveBash",
+      "checkSecretInBash",
+      "checkAdvisoryDestructiveBash",
+      "checkScope",
+      "checkBoundaryClassification",
+      "checkSecretInContent",
+      "checkDesignAdvisory",
+      "handler",
+      "_getProjectRoot",
     ];
     for (const fn of expectedFunctions) {
       assert.equal(typeof gate[fn], "function", `Missing export: ${fn}`);
@@ -484,9 +570,12 @@ describe("module exports completeness", () => {
 
   it("exports all expected arrays", () => {
     const expectedArrays = [
-      "DESTRUCTIVE_BASH_PATTERNS", "CASE_SENSITIVE_DESTRUCTIVE_PATTERNS",
-      "STRICT_SUSPICIOUS_PATTERNS", "SECRET_PATTERNS",
-      "SENSITIVE_FILE_ACCESS_PATTERNS", "DESIGN_INDICATORS",
+      "DESTRUCTIVE_BASH_PATTERNS",
+      "CASE_SENSITIVE_DESTRUCTIVE_PATTERNS",
+      "STRICT_SUSPICIOUS_PATTERNS",
+      "SECRET_PATTERNS",
+      "SENSITIVE_FILE_ACCESS_PATTERNS",
+      "DESIGN_INDICATORS",
       "SIMPLE_EDIT_PATTERNS",
     ];
     for (const arr of expectedArrays) {

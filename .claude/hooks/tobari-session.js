@@ -80,7 +80,10 @@ function withFileLock(filePath, fn, timeout) {
     // Acquire lock
     while (true) {
       try {
-        fd = fs.openSync(lockFile, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY);
+        fd = fs.openSync(
+          lockFile,
+          fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY,
+        );
         // Lock acquired — write PID for diagnostics
         fs.writeSync(fd, String(process.pid));
         fs.closeSync(fd);
@@ -197,7 +200,11 @@ function readModifyWriteSession(modifier) {
 
       modifier(data);
 
-      fs.writeFileSync(sessionPath, JSON.stringify(data, null, 2) + "\n", "utf8");
+      fs.writeFileSync(
+        sessionPath,
+        JSON.stringify(data, null, 2) + "\n",
+        "utf8",
+      );
 
       // Invalidate cache (outside lock is fine since we're still in the same call)
       _sessionCache = null;
@@ -266,7 +273,7 @@ function loadSession() {
     // File exists but is corrupted — log warning to stderr and evidence.
     // Returns null (veil treated as inactive) but records the anomaly.
     process.stderr.write(
-      `[tobari] WARNING: Session file exists but is corrupted: ${e.message}\n`
+      `[tobari] WARNING: Session file exists but is corrupted: ${e.message}\n`,
     );
     writeEvidence({
       event: "session_load_error",
@@ -292,7 +299,7 @@ function isVeilActive() {
  */
 function getProfile() {
   const session = loadSession();
-  return session ? (session.profile || null) : null;
+  return session ? session.profile || null : null;
 }
 
 /**
@@ -307,11 +314,13 @@ function getProfile() {
  */
 function getAgentPolicy(agentType) {
   const session = loadSession();
-  if (!session) return { allowed_tools: ["*"], denied_tools: [], scope_override: null };
+  if (!session)
+    return { allowed_tools: ["*"], denied_tools: [], scope_override: null };
 
   const policies = session.agent_policies || {};
   const policy = policies[agentType] || policies["default"] || null;
-  if (!policy) return { allowed_tools: ["*"], denied_tools: [], scope_override: null };
+  if (!policy)
+    return { allowed_tools: ["*"], denied_tools: [], scope_override: null };
 
   return {
     allowed_tools: policy.allowed_tools || ["*"],
@@ -331,7 +340,10 @@ function checkAgentToolPermission(agentType, toolName) {
   const policy = getAgentPolicy(agentType);
 
   // denied_tools takes precedence over allowed_tools
-  if (policy.denied_tools.length > 0 && policy.denied_tools.includes(toolName)) {
+  if (
+    policy.denied_tools.length > 0 &&
+    policy.denied_tools.includes(toolName)
+  ) {
     return {
       allowed: false,
       reason: `Agent type "${agentType}" is denied tool "${toolName}" by policy`,
@@ -365,6 +377,49 @@ function getScope() {
 }
 
 /**
+ * Amend the contract scope without full re-initialization.
+ * Records amendment history and writes evidence.
+ * @param {Object} newScope - New scope object { include: [...], exclude: [...] }
+ * @param {string} reason - Reason for the amendment
+ * @returns {boolean} true if successful
+ */
+function amendScope(newScope, reason) {
+  const result = readModifyWriteSession((data) => {
+    const contract = data.contract || {};
+    const previousScope = contract.scope
+      ? {
+          include: [...(contract.scope.include || [])],
+          exclude: [...(contract.scope.exclude || [])],
+        }
+      : { include: [], exclude: [] };
+
+    contract.scope = newScope;
+
+    // Record amendment history
+    if (!contract.amendments) contract.amendments = [];
+    contract.amendments.push({
+      amended_at: new Date().toISOString(),
+      previous_scope: previousScope,
+      new_scope: newScope,
+      reason: reason || "scope amendment",
+    });
+
+    data.contract = contract;
+  });
+
+  if (result) {
+    // Record in Evidence Ledger
+    writeEvidence({
+      event: "scope_amended",
+      reason: reason || "scope amendment",
+      new_scope: newScope,
+    });
+  }
+
+  return result;
+}
+
+/**
  * Get the full contract.
  * @returns {Object|null}
  */
@@ -380,7 +435,7 @@ function getContract() {
  */
 function getTask() {
   const session = loadSession();
-  return session ? (session.task || null) : null;
+  return session ? session.task || null : null;
 }
 
 /**
@@ -453,7 +508,9 @@ function canonicalPathKey(filePath) {
   // Resolve projectDir symlinks once for consistent path comparison
   // (macOS: /var/folders → /private/var/folders)
   let resolvedBase = projectDir || process.cwd();
-  try { resolvedBase = fs.realpathSync(resolvedBase); } catch (_) {}
+  try {
+    resolvedBase = fs.realpathSync(resolvedBase);
+  } catch (_) {}
 
   // Resolve to absolute path
   let result;
@@ -499,10 +556,7 @@ function canonicalPathKey(filePath) {
  */
 // Infrastructure files that are always writable when the veil is active.
 // These are part of tobari's operating system, not task deliverables.
-const INFRA_WHITELIST = [
-  "handoff.md",
-  "tasks/todo.md",
-];
+const INFRA_WHITELIST = ["handoff.md", "tasks/todo.md"];
 
 function isPathInScope(filePath) {
   const scope = getScope();
@@ -611,7 +665,7 @@ function loadBoundaryClassification() {
   } catch (e) {
     // File exists but is corrupted — log warning and evidence
     process.stderr.write(
-      `[tobari] WARNING: Boundary file exists but is corrupted: ${e.message}\n`
+      `[tobari] WARNING: Boundary file exists but is corrupted: ${e.message}\n`,
     );
     writeEvidence({
       event: "boundary_load_error",
@@ -793,7 +847,10 @@ function getLastChainState(evidencePath) {
   try {
     const entry = JSON.parse(lastLine);
     const idx = entry._chain_index !== undefined ? entry._chain_index : -1;
-    const entryHash = crypto.createHash("sha256").update(lastLine, "utf8").digest("hex");
+    const entryHash = crypto
+      .createHash("sha256")
+      .update(lastLine, "utf8")
+      .digest("hex");
     return [idx, entryHash];
   } catch (_) {
     return [-1, CHAIN_GENESIS_HASH];
@@ -852,10 +909,7 @@ function writeEvidence(entry) {
         const stat = fs.statSync(evidencePath);
         if (stat.size >= EVIDENCE_MAX_SIZE) {
           const ts = new Date().toISOString().replace(/[:.]/g, "-");
-          const rotatedName = evidencePath.replace(
-            /\.jsonl$/,
-            `.${ts}.jsonl`,
-          );
+          const rotatedName = evidencePath.replace(/\.jsonl$/, `.${ts}.jsonl`);
           fs.renameSync(evidencePath, rotatedName);
         }
       } catch (_) {
@@ -884,7 +938,9 @@ function writeEvidence(entry) {
 
     return true;
   } catch (e) {
-    process.stderr.write(`[tobari] WARNING: Evidence write failed: ${e.message}\n`);
+    process.stderr.write(
+      `[tobari] WARNING: Evidence write failed: ${e.message}\n`,
+    );
     return false;
   }
 }
@@ -1048,7 +1104,8 @@ function updateTokenUsage(deltaInput, deltaOutput) {
   if (!session) return null;
 
   const costPath = getCostStatePath();
-  const budget = (session.token_usage && parseInt(session.token_usage.budget, 10)) || 500000;
+  const budget =
+    (session.token_usage && parseInt(session.token_usage.budget, 10)) || 500000;
 
   try {
     return withFileLock(costPath, () => {
@@ -1073,7 +1130,11 @@ function updateTokenUsage(deltaInput, deltaOutput) {
         budget: budget,
       };
 
-      fs.writeFileSync(costPath, JSON.stringify(newUsage, null, 2) + "\n", "utf8");
+      fs.writeFileSync(
+        costPath,
+        JSON.stringify(newUsage, null, 2) + "\n",
+        "utf8",
+      );
       return newUsage;
     });
   } catch (e) {
@@ -1142,7 +1203,8 @@ function getWebhookConfig(session) {
 function sendWebhook(url, payload) {
   try {
     const parsedUrl = new URL(url);
-    const httpModule = parsedUrl.protocol === "https:" ? require("https") : require("http");
+    const httpModule =
+      parsedUrl.protocol === "https:" ? require("https") : require("http");
     const body = JSON.stringify(payload);
 
     const options = {
@@ -1380,7 +1442,11 @@ function finalizeSession(reason) {
         data.evidence_summary = evidenceSummary;
         data.retry_count = 0;
 
-        fs.writeFileSync(sessionPath, JSON.stringify(data, null, 2) + "\n", "utf8");
+        fs.writeFileSync(
+          sessionPath,
+          JSON.stringify(data, null, 2) + "\n",
+          "utf8",
+        );
       }
     });
 
@@ -1389,7 +1455,7 @@ function finalizeSession(reason) {
     _sessionCacheMtime = 0;
   } catch (e) {
     process.stderr.write(
-      `[tobari] WARNING: finalize_session pre-update failed: ${e.message}\n`
+      `[tobari] WARNING: finalize_session pre-update failed: ${e.message}\n`,
     );
   }
 
@@ -1427,7 +1493,11 @@ function raiseVeil(reason) {
       data.raised_at = new Date().toISOString();
       data.raised_reason = reason;
 
-      fs.writeFileSync(sessionPath, JSON.stringify(data, null, 2) + "\n", "utf8");
+      fs.writeFileSync(
+        sessionPath,
+        JSON.stringify(data, null, 2) + "\n",
+        "utf8",
+      );
     });
 
     // Invalidate cache
@@ -1444,7 +1514,9 @@ function raiseVeil(reason) {
 
     return true;
   } catch (e) {
-    process.stderr.write(`[tobari] WARNING: Failed to raise veil: ${e.message}\n`);
+    process.stderr.write(
+      `[tobari] WARNING: Failed to raise veil: ${e.message}\n`,
+    );
     return false;
   }
 }
@@ -1510,6 +1582,51 @@ function runHook(handler) {
 }
 
 // ---------------------------------------------------------------------------
+// CLI Entry Points
+// ---------------------------------------------------------------------------
+
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const subcommand = args[0];
+
+  if (subcommand === "amend-scope") {
+    // Usage: node tobari-session.js amend-scope '<JSON scope>' '<reason>'
+    // Example: node tobari-session.js amend-scope '{"include":["src/","tests/"],"exclude":[]}' 'Add src/'
+    const scopeJson = args[1];
+    const reason = args[2] || "scope amendment via CLI";
+
+    if (!scopeJson) {
+      process.stderr.write(
+        "Usage: node tobari-session.js amend-scope '<JSON scope>' '[reason]'\n",
+      );
+      process.exit(1);
+    }
+
+    try {
+      const newScope = JSON.parse(scopeJson);
+      const ok = amendScope(newScope, reason);
+      if (ok) {
+        const scopeStr = JSON.stringify(newScope);
+        process.stdout.write(`Scope amended successfully: ${scopeStr}\n`);
+        process.exit(0);
+      } else {
+        process.stderr.write(
+          "Failed to amend scope (session not active or not found)\n",
+        );
+        process.exit(1);
+      }
+    } catch (e) {
+      process.stderr.write(`Invalid JSON: ${e.message}\n`);
+      process.exit(1);
+    }
+  } else if (subcommand) {
+    process.stderr.write(`Unknown subcommand: ${subcommand}\n`);
+    process.stderr.write("Available: amend-scope\n");
+    process.exit(1);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
 
@@ -1537,6 +1654,7 @@ module.exports = {
   isVeilActive,
   getProfile,
   getScope,
+  amendScope,
   getContract,
   getTask,
   getGatesPassed,

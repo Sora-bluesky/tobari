@@ -131,10 +131,14 @@ const PK_RSA_BEGIN = '["-----BEG","IN RSA"," PRIV","ATE KEY","-----"]';
 const AWS_PREFIX = '["AK","IA"]';
 const AWS_SUFFIX = '"IOSFODNN7EXAMPLE"';
 const AWS_SUFFIX2 = '"IOSFODNN7EXAMPLE"';
-const PG_CONN = '["post","gres","://adm","in:s3cr","3tPass","@db.example.com:5432/mydb"]';
-const MONGO_CONN = '["mongo","db://","appuser",":myPas","sword@","mongo.example.com:27017/appdb"]';
-const REDIS_CONN = '["redi","s://","default",":r3dis","Pass@","redis.example.com:6379"]';
-const MYSQL_CONN = '["my","sql://","root:",  "dbPas","s123@","localhost:3306/myapp"]';
+const PG_CONN =
+  '["post","gres","://adm","in:s3cr","3tPass","@db.example.com:5432/mydb"]';
+const MONGO_CONN =
+  '["mongo","db://","appuser",":myPas","sword@","mongo.example.com:27017/appdb"]';
+const REDIS_CONN =
+  '["redi","s://","default",":r3dis","Pass@","redis.example.com:6379"]';
+const MYSQL_CONN =
+  '["my","sql://","root:",  "dbPas","s123@","localhost:3306/myapp"]';
 
 sections.push(`
 // --- Secret Builders (runtime-only assembly) ---

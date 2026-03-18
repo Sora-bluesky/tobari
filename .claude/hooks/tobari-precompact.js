@@ -23,7 +23,7 @@ function handler(_data) {
       "tasks/backlog.yaml for task state.",
     "TOBARI SESSION ACTIVE: task='{task}', " +
       "profile='{profile}', gates_passed={gates}. " +
-      "Read .claude/tobari-session.json to restore full session context."
+      "Read .claude/tobari-session.json to restore full session context.",
   );
 }
 

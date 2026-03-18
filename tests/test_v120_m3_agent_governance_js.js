@@ -39,7 +39,9 @@ function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
   } else {
-    try { fs.unlinkSync(SESSION_PATH); } catch {}
+    try {
+      fs.unlinkSync(SESSION_PATH);
+    } catch {}
   }
   tobariSession._resetCache();
 }
@@ -76,7 +78,11 @@ function makeBaseSession(overrides = {}) {
 
 describe("getAgentPolicy", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -96,7 +102,11 @@ describe("getAgentPolicy", () => {
   it("returns specific policy for matching agent type", () => {
     const session = makeBaseSession({
       agent_policies: {
-        default: { allowed_tools: ["*"], denied_tools: [], scope_override: null },
+        default: {
+          allowed_tools: ["*"],
+          denied_tools: [],
+          scope_override: null,
+        },
         Explore: {
           allowed_tools: ["Read", "Grep", "Glob"],
           denied_tools: ["Edit", "Write", "Bash"],
@@ -114,7 +124,11 @@ describe("getAgentPolicy", () => {
   it("falls back to default policy for unknown agent type", () => {
     const session = makeBaseSession({
       agent_policies: {
-        default: { allowed_tools: ["Read"], denied_tools: ["Bash"], scope_override: null },
+        default: {
+          allowed_tools: ["Read"],
+          denied_tools: ["Bash"],
+          scope_override: null,
+        },
       },
     });
     saveSession(session);
@@ -140,7 +154,11 @@ describe("getAgentPolicy", () => {
 
 describe("checkAgentToolPermission", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -244,7 +262,11 @@ describe("checkAgentToolPermission", () => {
 
 describe("gate handler agent policy enforcement", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -277,7 +299,9 @@ describe("gate handler agent policy enforcement", () => {
     // May be denied by other checks (scope, etc.) but NOT by agent policy
     if (result) {
       assert.ok(
-        !result.hookSpecificOutput.additionalContext.includes("エージェントポリシー違反"),
+        !result.hookSpecificOutput.additionalContext.includes(
+          "エージェントポリシー違反",
+        ),
         "Main thread should not be blocked by agent policy",
       );
     }
@@ -308,7 +332,11 @@ describe("gate handler agent policy enforcement", () => {
 
     assert.ok(result !== null, "Should be blocked");
     assert.strictEqual(result.hookSpecificOutput.permissionDecision, "deny");
-    assert.ok(result.hookSpecificOutput.additionalContext.includes("エージェントポリシー違反"));
+    assert.ok(
+      result.hookSpecificOutput.additionalContext.includes(
+        "エージェントポリシー違反",
+      ),
+    );
   });
 
   it("allows subagent when tool is permitted", () => {
@@ -384,7 +412,11 @@ describe("gate handler agent policy enforcement", () => {
 
 describe("evidence handler agent info recording", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -435,7 +467,11 @@ describe("evidence handler agent info recording", () => {
 
 describe("A8 integration: full agent governance flow", () => {
   beforeEach(() => {
-    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
+    try {
+      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
+    } catch {
+      originalContent = null;
+    }
   });
 
   afterEach(() => {
@@ -445,7 +481,11 @@ describe("A8 integration: full agent governance flow", () => {
   it("Explore agent restricted to read-only tools", () => {
     const session = makeBaseSession({
       agent_policies: {
-        default: { allowed_tools: ["*"], denied_tools: [], scope_override: null },
+        default: {
+          allowed_tools: ["*"],
+          denied_tools: [],
+          scope_override: null,
+        },
         Explore: {
           allowed_tools: ["Read", "Grep", "Glob"],
           denied_tools: ["Edit", "Write", "Bash", "NotebookEdit"],
@@ -489,7 +529,10 @@ describe("A8 integration: full agent governance flow", () => {
       agent_type: "Explore",
     });
     assert.ok(editResult !== null);
-    assert.strictEqual(editResult.hookSpecificOutput.permissionDecision, "deny");
+    assert.strictEqual(
+      editResult.hookSpecificOutput.permissionDecision,
+      "deny",
+    );
 
     // Bash: denied
     const bashResult = gate.handler({
@@ -499,13 +542,20 @@ describe("A8 integration: full agent governance flow", () => {
       agent_type: "Explore",
     });
     assert.ok(bashResult !== null);
-    assert.strictEqual(bashResult.hookSpecificOutput.permissionDecision, "deny");
+    assert.strictEqual(
+      bashResult.hookSpecificOutput.permissionDecision,
+      "deny",
+    );
   });
 
   it("general-purpose agent with full access", () => {
     const session = makeBaseSession({
       agent_policies: {
-        default: { allowed_tools: ["*"], denied_tools: [], scope_override: null },
+        default: {
+          allowed_tools: ["*"],
+          denied_tools: [],
+          scope_override: null,
+        },
         Explore: {
           allowed_tools: ["Read", "Grep", "Glob"],
           denied_tools: ["Edit", "Write", "Bash"],
@@ -526,7 +576,9 @@ describe("A8 integration: full agent governance flow", () => {
     // Not blocked by agent policy (may pass or be caught by other checks)
     if (result) {
       assert.ok(
-        !result.hookSpecificOutput.additionalContext.includes("エージェントポリシー違反"),
+        !result.hookSpecificOutput.additionalContext.includes(
+          "エージェントポリシー違反",
+        ),
         "general-purpose should not be blocked by agent policy",
       );
     }
@@ -555,7 +607,10 @@ describe("A8 integration: full agent governance flow", () => {
       agent_type: "Plan",
     });
     assert.ok(writeResult !== null);
-    assert.strictEqual(writeResult.hookSpecificOutput.permissionDecision, "deny");
+    assert.strictEqual(
+      writeResult.hookSpecificOutput.permissionDecision,
+      "deny",
+    );
 
     // Read: allowed
     assert.strictEqual(

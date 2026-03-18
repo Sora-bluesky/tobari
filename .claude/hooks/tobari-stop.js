@@ -365,11 +365,16 @@ function _getLastAssistantMessage(transcript) {
 function _makeRepairInstruction(retryCount, failureSummary, task) {
   const attempt = retryCount + 1;
   return (
-    t("stop.repair.header", { task, attempt, max: MAX_RETRIES }) + "\n\n" +
-    t("stop.repair.errors", { summary: failureSummary }) + "\n\n" +
-    t("stop.repair.instruction") + "\n" +
-    t("stop.repair.step1") + "\n" +
-    t("stop.repair.step2") + "\n" +
+    t("stop.repair.header", { task, attempt, max: MAX_RETRIES }) +
+    "\n\n" +
+    t("stop.repair.errors", { summary: failureSummary }) +
+    "\n\n" +
+    t("stop.repair.instruction") +
+    "\n" +
+    t("stop.repair.step1") +
+    "\n" +
+    t("stop.repair.step2") +
+    "\n" +
     t("stop.repair.step3")
   );
   // 🦿 帳 [{task}] — テスト失敗を検出（試行 {attempt}/{MAX_RETRIES}）
@@ -391,11 +396,16 @@ function _makeRepairInstruction(retryCount, failureSummary, task) {
  */
 function _makeCircuitBreakerMessage(failureSummary, task) {
   return (
-    t("stop.circuit.header", { task, max: MAX_RETRIES }) + "\n\n" +
-    t("stop.circuit.last_error", { summary: failureSummary }) + "\n\n" +
-    t("stop.circuit.manual") + "\n" +
-    t("stop.circuit.step1") + "\n" +
-    t("stop.circuit.step2") + "\n" +
+    t("stop.circuit.header", { task, max: MAX_RETRIES }) +
+    "\n\n" +
+    t("stop.circuit.last_error", { summary: failureSummary }) +
+    "\n\n" +
+    t("stop.circuit.manual") +
+    "\n" +
+    t("stop.circuit.step1") +
+    "\n" +
+    t("stop.circuit.step2") +
+    "\n" +
     t("stop.circuit.step3")
   );
   // ⚠️ 帳 [{task}] — 自己修復の限界に達しました（{MAX_RETRIES}/{MAX_RETRIES}回失敗）
@@ -493,7 +503,7 @@ function handler(data) {
 
     // Surface Circuit Breaker message to user via stderr
     process.stderr.write(
-      _makeCircuitBreakerMessage(failureSummary, task) + "\n"
+      _makeCircuitBreakerMessage(failureSummary, task) + "\n",
     );
     return null; // allow stop
   }

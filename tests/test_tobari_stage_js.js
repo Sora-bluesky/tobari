@@ -77,9 +77,7 @@ function createBacklog(tmpDir, taskOverrides) {
     task.evidence.length > 0
       ? "\n" + task.evidence.map((e) => `      - "${e}"`).join("\n")
       : "[]";
-  const acceptanceStr = task.acceptance
-    .map((a) => `      - "${a}"`)
-    .join("\n");
+  const acceptanceStr = task.acceptance.map((a) => `      - "${a}"`).join("\n");
 
   const content = `meta:
   last_updated: "2026-03-06"
@@ -173,7 +171,13 @@ describe("Utility functions", () => {
 
   it("U2: GATE_ORDER has 7 gates in correct order", () => {
     assert.deepEqual(stage.GATE_ORDER, [
-      "STG0", "STG1", "STG2", "STG3", "STG4", "STG5", "STG6",
+      "STG0",
+      "STG1",
+      "STG2",
+      "STG3",
+      "STG4",
+      "STG5",
+      "STG6",
     ]);
   });
 });
@@ -243,7 +247,12 @@ describe("DoD checkers", () => {
   });
 
   it("D2b: STG1 fails without evidence for standard profile", () => {
-    const result = stage._checkStg1("TASK-TEST", { evidence: [] }, null, "standard");
+    const result = stage._checkStg1(
+      "TASK-TEST",
+      { evidence: [] },
+      null,
+      "standard",
+    );
     assert.equal(result.satisfied, false);
   });
 
@@ -252,7 +261,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: ["design doc created"] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, true);
   });
@@ -262,7 +271,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: ["code written"] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, true);
   });
@@ -272,7 +281,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: [] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, false);
   });
@@ -282,7 +291,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: ["test PASS 46/46"] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, true);
   });
@@ -292,7 +301,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: ["code written"] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, false);
   });
@@ -307,7 +316,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: [], stage_status: { STG3: "done" } },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, true);
     assert.equal(result.conditions[0].name, "ci_substitute_stg3");
@@ -318,7 +327,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: [], stage_status: { STG3: "pending" } },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, false);
   });
@@ -328,7 +337,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: ["git commit abc123"] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, true);
   });
@@ -338,7 +347,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: [] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, false);
   });
@@ -348,7 +357,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: ["PR #42 merged"] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, true);
   });
@@ -358,7 +367,7 @@ describe("DoD checkers", () => {
       "TASK-TEST",
       { evidence: [] },
       null,
-      "standard"
+      "standard",
     );
     assert.equal(result.satisfied, false);
   });
@@ -520,7 +529,7 @@ describe("advanceGate", () => {
     // Verify backlog.yaml was updated
     const backlogContent = fs.readFileSync(
       path.join(tmpDir, "tasks", "backlog.yaml"),
-      "utf8"
+      "utf8",
     );
     assert.ok(backlogContent.includes('STG1: "done"'));
 
@@ -672,7 +681,7 @@ describe("_updateStageStatusLine", () => {
 
     const content = fs.readFileSync(
       path.join(tmpDir, "tasks", "backlog.yaml"),
-      "utf8"
+      "utf8",
     );
     assert.ok(content.includes('STG1: "done"'));
     // Other gates should be unchanged

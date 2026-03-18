@@ -47,7 +47,8 @@ switch (command) {
 
 function printHelp() {
   const pkg = require("../package.json");
-  console.log(`
+  console.log(
+    `
 tobari v${pkg.version}
 ${pkg.description}
 
@@ -85,5 +86,6 @@ Examples:
   tobari verify --test Check setup + run all tests
 
 Documentation: ${pkg.homepage}
-`.trim());
+`.trim(),
+  );
 }
