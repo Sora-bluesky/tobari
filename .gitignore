@@ -6,6 +6,7 @@
 .claude/tobari-session.json.lock
 .claude/tobari-cost-state.json
 .claude/tobari-cost-state.json.lock
+.claude/tobari-hmac-key
 .claude/hooks/tobari-hmac-key
 
 # Evidence ledger (runtime logs)
