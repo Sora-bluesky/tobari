@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.0](https://github.com/Sora-bluesky/tobari/compare/v2.1.0...v2.2.0) (2026-03-18)
+
+
+### Features
+
+* adaptive security system (v2.2.0) ([4836d16](https://github.com/Sora-bluesky/tobari/commit/4836d1602f93e8452ad8c31d3b3e3a6765bd7d17))
+* add adaptive security system (/tobari-immune, /tobari-evolve) and 4 new hooks ([5d78205](https://github.com/Sora-bluesky/tobari/commit/5d782056ff06aec739dfe33cf1be0f8ae0a055be))
+
 ## [2.1.0](https://github.com/Sora-bluesky/tobari/compare/v2.0.0...v2.1.0) (2026-03-18)
 
 
