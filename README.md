@@ -174,33 +174,63 @@ When safety conditions are NOT met, Binding **stops execution immediately**. It 
 
 ## Skills
 
-| Skill                   | Command           | Description                              |
-| ----------------------- | ----------------- | ---------------------------------------- |
-| Lower the Veil          | `/tobari`         | Lower the veil and start a project       |
-| Parallel Implementation | `/team-implement` | Parallel implementation with Agent Teams |
-| Parallel Review         | `/team-review`    | Parallel review with Agent Teams         |
-| Design Planning         | `/plan`           | Create an implementation plan            |
-| Test-Driven Development | `/tdd`            | RED-GREEN-REFACTOR cycle                 |
-| Code Simplification     | `/simplify`       | Reduce code complexity                   |
-| Session Handoff         | `/handoff`        | Save and hand off session state          |
+| Skill                   | Command           | Description                                           |
+| ----------------------- | ----------------- | ----------------------------------------------------- |
+| Lower the Veil          | `/tobari`         | Lower the veil and start a project                    |
+| Immune System           | `/tobari-immune`  | Detect bypass patterns and auto-patch vulnerabilities |
+| Self-Evolution          | `/tobari-evolve`  | Track official API changes and keep tobari up-to-date |
+| Parallel Implementation | `/team-implement` | Parallel implementation with Agent Teams              |
+| Parallel Review         | `/team-review`    | Parallel review with Agent Teams                      |
+| Design Planning         | `/plan`           | Create an implementation plan                         |
+| Test-Driven Development | `/tdd`            | RED-GREEN-REFACTOR cycle                              |
+| Code Simplification     | `/simplify`       | Reduce code complexity                                |
+| Session Handoff         | `/handoff`        | Save and hand off session state                       |
 
 ## Hooks
 
-The veil is composed of 9 "organs" that work together to provide autonomous, safe operation:
+The veil is composed of 13 "organs" that work together to provide autonomous, safe operation:
 
-| Organ     | Name              | Hook                                                | Role                                                   |
-| --------- | ----------------- | --------------------------------------------------- | ------------------------------------------------------ |
-| 🫀 Heart  | Permission Engine | `tobari-gate.js`                                    | Auto-approves safe ops, auto-blocks dangerous ops      |
-| 👁️ Eye    | Observer          | `tobari-evidence.js` / `tobari-evidence-failure.js` | Records all operations as evidence (success + failure) |
-| 👄 Mouth  | Communicator      | `tobari-permission.js`                              | Contextual permission dialogs, GitHub PR notifications |
-| 🛡️ Shield | Boundary Guard    | `tobari-injection-guard.js`                         | Detects secret leaks, blocks boundary violations       |
-| ✋ Hand   | Git Automation    | `tobari-stop.js`                                    | Automates commit, push, PR, merge                      |
-| 🦿 Leg    | Self-Healer       | `tobari-stop.js`                                    | Auto-fixes test failures (up to 3 retries)             |
-| 🧠 Memory | State Keeper      | `tobari-session-start.js` / `tobari-precompact.js`  | Preserves context across sessions                      |
-| 👛 Wallet | Cost Controller   | `tobari-cost.js`                                    | Monitors token usage, warns on budget limits           |
-| 🦠 Immune | Dependency Guard  | `tobari-injection-guard.js`                         | Detects unauthorized packages, scope violations        |
+| Organ      | Name              | Hook                                                | Role                                                   |
+| ---------- | ----------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| 🫀 Heart   | Permission Engine | `tobari-gate.js`                                    | Auto-approves safe ops, auto-blocks dangerous ops      |
+| 👁️ Eye     | Observer          | `tobari-evidence.js` / `tobari-evidence-failure.js` | Records all operations as evidence (success + failure) |
+| 👄 Mouth   | Communicator      | `tobari-permission.js`                              | Contextual permission dialogs, GitHub PR notifications |
+| 🛡️ Shield  | Boundary Guard    | `tobari-injection-guard.js`                         | Detects secret leaks, blocks boundary violations       |
+| ✋ Hand    | Git Automation    | `tobari-stop.js`                                    | Automates commit, push, PR, merge                      |
+| 🦿 Leg     | Self-Healer       | `tobari-stop.js`                                    | Auto-fixes test failures (up to 3 retries)             |
+| 🧠 Memory  | State Keeper      | `tobari-session-start.js` / `tobari-precompact.js`  | Preserves context across sessions                      |
+| 👛 Wallet  | Cost Controller   | `tobari-cost.js`                                    | Monitors token usage, warns on budget limits           |
+| 🦠 Immune  | Input Guard       | `tobari-user-prompt.js`                             | Detects prompt injection at input level                |
+| 🧬 DNA     | Subagent Guard    | `tobari-subagent-start.js`                          | Injects security context into subagents                |
+| 🔄 Restore | Context Restorer  | `tobari-postcompact.js`                             | Restores contract state after compaction               |
+| 📊 Stats   | Session Closer    | `tobari-session-end.js`                             | Records session statistics at exit                     |
+| 🧪 Evolve  | Self-Evolution    | `/tobari-evolve` skill                              | Tracks official API changes, auto-upgrades             |
 
 In addition, **git-guard** (pre-commit/pre-push hooks) provides secret scanning as a final boundary defense.
+
+## Adaptive Security
+
+tobari doesn't just defend -- it **learns and evolves**.
+
+Traditional security tools rely on static rules. When a new attack pattern appears, a human must identify the vulnerability, write a patch, and deploy it. tobari breaks this cycle with two self-improving mechanisms:
+
+### Immune System (`/tobari-immune`)
+
+Like a biological immune system, tobari remembers every attack it encounters and creates "antibodies" to prevent the same attack from succeeding again.
+
+1. **Detection**: Analyzes the evidence ledger for bypass patterns (e.g., Edit blocked, then Bash attempted on the same file)
+2. **Diagnosis**: Classifies the attack vector (tool bypass, scope probing, evasion, injection)
+3. **Antibody Generation**: Proposes patches to close the vulnerability (new detection rules + tests)
+4. **Memory**: Records learned patterns in `immune-memory.jsonl` so they are never forgotten
+
+### Self-Evolution (`/tobari-evolve`)
+
+tobari automatically tracks changes to the Claude Code API and keeps itself current.
+
+1. **Monitor**: Fetches the latest official documentation (hooks, permissions, security)
+2. **Compare**: Diffs current implementation against the official spec
+3. **Report**: Categorizes findings as Required (deprecated/breaking), Recommended (security), or Info (new features)
+4. **Auto-fix**: Safe changes (like deprecated syntax migration) are applied automatically; larger changes require user approval
 
 ## Disclaimer
 
