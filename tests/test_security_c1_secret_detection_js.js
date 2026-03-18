@@ -43,9 +43,7 @@ function restoreSession() {
   if (originalContent !== null) {
     fs.writeFileSync(SESSION_PATH, originalContent, "utf8");
   } else {
-    try {
-      fs.unlinkSync(SESSION_PATH);
-    } catch {}
+    try { fs.unlinkSync(SESSION_PATH); } catch {}
   }
   tobariSession._resetCache();
 }
@@ -94,97 +92,71 @@ function assertAllow(result, context) {
   );
 }
 
+
 // --- Secret Builders (runtime-only assembly) ---
 
 function buildApiKeyAssignment() {
-  var kw = ["ap", "i_", "ke", "y"].join("");
-  var val = ["abcdefghij", "klmnopqrst", "uvwx"].join("");
+  var kw = ["ap","i_","ke","y"].join("");
+  var val = ["abcdefghij","klmnopqrst","uvwx"].join("");
   return kw + ' = "' + val + '"';
 }
 
 function buildApiKeyDashColon() {
-  var kw = ["ap", "i-", "ke", "y"].join("");
-  var val = ["abcdefghij", "klmnopqrst", "uvwx"].join("");
+  var kw = ["ap","i-","ke","y"].join("");
+  var val = ["abcdefghij","klmnopqrst","uvwx"].join("");
   return kw + ': "' + val + '"';
 }
 
 function buildAwsKey() {
-  return ["AK", "IA"].join("") + "IOSFODNN7EXAMPLE";
+  return ["AK","IA"].join("") + "IOSFODNN7EXAMPLE";
 }
 
 function buildAwsKey2() {
-  return ["AK", "IA"].join("") + "IOSFODNN7EXAMPLE";
+  return ["AK","IA"].join("") + "IOSFODNN7EXAMPLE";
 }
 
 function buildPasswordAssignment() {
-  var kw = ["pas", "swo", "rd"].join("");
-  var val = ["SuperS", "ecretP", "ass123!"].join("");
+  var kw = ["pas","swo","rd"].join("");
+  var val = ["SuperS","ecretP","ass123!"].join("");
   return kw + ' = "' + val + '"';
 }
 
 function buildPasswordUpper() {
-  var kw = ["PAS", "SWO", "RD"].join("");
-  var val = ["SomeP", "assV", "alue!xx"].join("");
+  var kw = ["PAS","SWO","RD"].join("");
+  var val = ["SomeP","assV","alue!xx"].join("");
   return kw + ' = "' + val + '"';
 }
 
 function buildSecretAssignment() {
-  var kw = ["sec", "re", "t"].join("");
-  var val = ["MyTop", "Secr", "etValue123"].join("");
+  var kw = ["sec","re","t"].join("");
+  var val = ["MyTop","Secr","etValue123"].join("");
   return kw + '="' + val + '"';
 }
 
 function buildPrivateKeyHeader() {
-  return ["-----BEG", "IN PRIV", "ATE KEY", "-----"].join("");
+  return ["-----BEG","IN PRIV","ATE KEY","-----"].join("");
 }
 
 function buildRsaPrivateKeyHeader() {
-  return ["-----BEG", "IN RSA", " PRIV", "ATE KEY", "-----"].join("");
+  return ["-----BEG","IN RSA"," PRIV","ATE KEY","-----"].join("");
 }
 
 function buildPostgresConn() {
-  return [
-    "post",
-    "gres",
-    "://adm",
-    "in:s3cr",
-    "3tPass",
-    "@db.example.com:5432/mydb",
-  ].join("");
+  return ["post","gres","://adm","in:s3cr","3tPass","@db.example.com:5432/mydb"].join("");
 }
 
 function buildMongoConn() {
-  return [
-    "mongo",
-    "db://",
-    "appuser",
-    ":myPas",
-    "sword@",
-    "mongo.example.com:27017/appdb",
-  ].join("");
+  return ["mongo","db://","appuser",":myPas","sword@","mongo.example.com:27017/appdb"].join("");
 }
 
 function buildRedisConn() {
-  return [
-    "redi",
-    "s://",
-    "default",
-    ":r3dis",
-    "Pass@",
-    "redis.example.com:6379",
-  ].join("");
+  return ["redi","s://","default",":r3dis","Pass@","redis.example.com:6379"].join("");
 }
 
 function buildMysqlConn() {
-  return [
-    "my",
-    "sql://",
-    "root:",
-    "dbPas",
-    "s123@",
-    "localhost:3306/myapp",
-  ].join("");
+  return ["my","sql://","root:",  "dbPas","s123@","localhost:3306/myapp"].join("");
 }
+
 
 // ========================================================================
 // Category 1: Direct Detection -- secrets that MUST be caught
@@ -192,11 +164,7 @@ function buildMysqlConn() {
 
 describe("C1-1: Direct secret detection", () => {
   beforeEach(() => {
-    try {
-      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
-    } catch {
-      originalContent = null;
-    }
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
     saveSession(makeBaseSession());
   });
 
@@ -380,17 +348,14 @@ describe("C1-1: Direct secret detection", () => {
   });
 });
 
+
 // ========================================================================
 // Category 2: Bypass Attempts -- test resistance to evasion techniques
 // ========================================================================
 
 describe("C1-2: Bypass attempt resistance", () => {
   beforeEach(() => {
-    try {
-      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
-    } catch {
-      originalContent = null;
-    }
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
     saveSession(makeBaseSession());
   });
 
@@ -417,7 +382,7 @@ describe("C1-2: Bypass attempt resistance", () => {
   it("detects API key with extra whitespace around separator", () => {
     var kw = ["ap", "i_", "ke", "y"].join("");
     var val = ["abcdefghij", "klmnopqrst", "uvwx"].join("");
-    var content = kw + ' =  "' + val + '"';
+    var content = kw + " =  \"" + val + "\"";
 
     var result = gate.handler({
       tool_name: "Write",
@@ -521,7 +486,7 @@ describe("C1-2: Bypass attempt resistance", () => {
 
   it("detects AWS key embedded in larger text", () => {
     var awsKey = buildAwsKey2();
-    var content = 'config.aws_id = "' + awsKey + '"';
+    var content = "config.aws_id = \"" + awsKey + "\"";
 
     var result = gate.handler({
       tool_name: "Edit",
@@ -557,17 +522,14 @@ describe("C1-2: Bypass attempt resistance", () => {
   });
 });
 
+
 // ========================================================================
 // Category 3: False Positive Avoidance -- should NOT be caught
 // ========================================================================
 
 describe("C1-3: False positive avoidance", () => {
   beforeEach(() => {
-    try {
-      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
-    } catch {
-      originalContent = null;
-    }
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
     saveSession(makeBaseSession());
   });
 
@@ -704,17 +666,14 @@ describe("C1-3: False positive avoidance", () => {
   });
 });
 
+
 // ========================================================================
 // Category 4: Veil-off behavior (advisory only, no blocking)
 // ========================================================================
 
 describe("C1-4: Veil-off behavior (advisory only, no blocking)", () => {
   beforeEach(() => {
-    try {
-      originalContent = fs.readFileSync(SESSION_PATH, "utf8");
-    } catch {
-      originalContent = null;
-    }
+    try { originalContent = fs.readFileSync(SESSION_PATH, "utf8"); } catch { originalContent = null; }
     saveSession(makeBaseSession({ active: false }));
   });
 
