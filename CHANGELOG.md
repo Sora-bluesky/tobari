@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/Sora-bluesky/tobari/compare/v2.2.0...v2.3.0) (2026-03-18)
+
+
+### Features
+
+* add skill auto-trigger system, gh scope exclusion, and CLAUDE.md optimization ([e738da5](https://github.com/Sora-bluesky/tobari/commit/e738da53cd0d9c0602aeeb76587b26ae58f9bf93))
+
 ## [2.2.0](https://github.com/Sora-bluesky/tobari/compare/v2.1.0...v2.2.0) (2026-03-18)
 
 
