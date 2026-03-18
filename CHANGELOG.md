@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/Sora-bluesky/tobari/compare/v2.3.0...v2.3.1) (2026-03-18)
+
+
+### Maintenance
+
+* update backlog TASK-004 status to done (v2.3.0 released) ([#38](https://github.com/Sora-bluesky/tobari/issues/38)) ([40cdd09](https://github.com/Sora-bluesky/tobari/commit/40cdd0966fe5bcd2bb6bcb66336158fcf7a062e3))
+
 ## [2.3.0](https://github.com/Sora-bluesky/tobari/compare/v2.2.0...v2.3.0) (2026-03-18)
 
 
