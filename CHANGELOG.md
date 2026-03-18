@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.1.0](https://github.com/Sora-bluesky/tobari/compare/v2.0.0...v2.1.0) (2026-03-18)
+
+
+### Features
+
+* add Bash scope enforcement and /tobari amend flow ([991a961](https://github.com/Sora-bluesky/tobari/commit/991a96143cd4a9886c2d607efd6f0afbb2158364))
+* add Bash scope enforcement, /tobari amend, and code formatting ([2f202aa](https://github.com/Sora-bluesky/tobari/commit/2f202aa3366fe122785092a313f45a96289f1f7b))
+
+
+### Bug Fixes
+
+* correct tobari-hmac-key paths in .gitignore ([cd57081](https://github.com/Sora-bluesky/tobari/commit/cd57081daa0255a044c5761ddcc57ce5ce796573))
+* enforce project root boundary on Bash scope check and amendScope ([a66ba35](https://github.com/Sora-bluesky/tobari/commit/a66ba3585bd5312c3817548d79e3ac124688fc11))
+* remove Python references from SKILL.md init flow ([8783e11](https://github.com/Sora-bluesky/tobari/commit/8783e118fb997c7ad79aa7ad8409bf999345d371))
+* remove Python references from SKILL.md init flow ([9c3fba7](https://github.com/Sora-bluesky/tobari/commit/9c3fba75e0ddd1162d8f68f5c9abd684a0b1bff7))
+
 ## [2.0.0](https://github.com/Sora-bluesky/tobari/compare/v1.5.0...v2.0.0) (2026-03-11)
 
 
