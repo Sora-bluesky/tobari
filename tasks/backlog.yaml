@@ -71,6 +71,30 @@
   next_action: "完了"
   updated_at: "2026-03-18"
 
+- id: "TASK-007"
+  phase: "P5"
+  title: ".gitignore 拡張 + uninstall コマンド + README 更新"
+  priority: "P1"
+  status: "in-progress"
+  owner: "Claude Code"
+  acceptance:
+    - "tobari init 後の .gitignore に hooks/ rules/ agents/ commands/ 管理スキルが含まれる"
+    - "tobari uninstall で tobari ファイルが除去されユーザー独自ファイルは保持される"
+    - "tobari uninstall --yes で確認プロンプトがスキップされる"
+    - "README EN/JA に Uninstall セクションがある"
+    - "全テストがパスする"
+  evidence: []
+  stage_status:
+    STG0: "done"
+    STG1: "pending"
+    STG2: "pending"
+    STG3: "pending"
+    STG4: "pending"
+    STG5: "pending"
+    STG6: "pending"
+  next_action: "実装開始"
+  updated_at: "2026-03-21"
+
 - id: "TASK-004"
   phase: "P5"
   title: "v2.3.0 スキル自動トリガー + gh スコープ除外 + CLAUDE.md最適化"

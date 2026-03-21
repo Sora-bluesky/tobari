@@ -13,6 +13,7 @@ const { values, positionals } = parseArgs({
     update: { type: "boolean", default: false },
     check: { type: "boolean", short: "c", default: false },
     test: { type: "boolean", short: "t", default: false },
+    yes: { type: "boolean", short: "y", default: false },
   },
 });
 
@@ -39,6 +40,9 @@ switch (command) {
   case "verify":
     require("./commands/verify")(values);
     break;
+  case "uninstall":
+    require("./commands/uninstall")(values);
+    break;
   default:
     console.error(`Unknown command: ${command}`);
     console.error('Run "tobari --help" for usage information.');
@@ -56,9 +60,10 @@ Usage:
   tobari <command> [options]
 
 Commands:
-  init     Deploy tobari governance framework to the current project
-  sync     Sync tobari-managed files to the latest version
-  verify   Check if tobari is properly configured
+  init        Deploy tobari governance framework to the current project
+  sync        Sync tobari-managed files to the latest version
+  verify      Check if tobari is properly configured
+  uninstall   Remove all tobari files from the current project
 
 Options:
   -v, --version  Show version
@@ -75,6 +80,9 @@ Sync Options:
 Verify Options:
   -t, --test     Run Python tests (pytest) after setup checks
 
+Uninstall Options:
+  -y, --yes      Skip confirmation prompt
+
 Examples:
   tobari init          Set up tobari in the current project
   tobari init --force  Overwrite existing configuration
@@ -84,6 +92,8 @@ Examples:
   tobari sync --check  Check if files are up to date (exit 1 if drift)
   tobari verify        Check setup status
   tobari verify --test Check setup + run all tests
+  tobari uninstall     Remove tobari (with confirmation)
+  tobari uninstall -y  Remove tobari (skip confirmation)
 
 Documentation: ${pkg.homepage}
 `.trim(),
