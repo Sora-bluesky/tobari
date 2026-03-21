@@ -58,6 +58,18 @@ npx tobari init --force
 npx tobari init --update
 ```
 
+## アンインストール
+
+```bash
+# 確認プロンプトあり
+tobari uninstall
+
+# 確認をスキップ
+tobari uninstall --yes
+```
+
+tobari が管理するファイル（hooks, rules, skills, agents, commands）をすべて削除し、settings.json と CLAUDE.md をクリーンアップし、ランタイム状態を削除します。`.claude/` 内のユーザー独自ファイルは保持されます。
+
 ## 帳をおろすとは
 
 「帳（とばり）」は、もともと寝殿造の部屋を仕切る垂れ布のこと。

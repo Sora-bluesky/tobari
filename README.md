@@ -62,6 +62,18 @@ npx tobari init --force
 npx tobari init --update
 ```
 
+## Uninstall
+
+```bash
+# With confirmation prompt
+tobari uninstall
+
+# Skip confirmation
+tobari uninstall --yes
+```
+
+Removes all tobari-managed files (hooks, rules, skills, agents, commands), cleans settings.json and CLAUDE.md, and deletes runtime state. User-created files in `.claude/` are preserved.
+
 ## What Does "Lower the Veil" Mean?
 
 "Tobari" is a Japanese word for the curtains that hung in ancient palace chambers, separating the safe interior from the chaos outside.
