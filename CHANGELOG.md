@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0](https://github.com/Sora-bluesky/tobari/compare/v2.3.0...v2.4.0) (2026-03-21)
+
+
+### Features
+
+* add uninstall command, expand .gitignore, fix TOBARI_SKILLS ([#40](https://github.com/Sora-bluesky/tobari/issues/40)) ([02a0eba](https://github.com/Sora-bluesky/tobari/commit/02a0eba27a0f8103511a91e8911b0c04bd9cef20))
+
+
+### Maintenance
+
+* update backlog TASK-004 status to done (v2.3.0 released) ([#38](https://github.com/Sora-bluesky/tobari/issues/38)) ([40cdd09](https://github.com/Sora-bluesky/tobari/commit/40cdd0966fe5bcd2bb6bcb66336158fcf7a062e3))
+
 ## [2.3.0](https://github.com/Sora-bluesky/tobari/compare/v2.2.0...v2.3.0) (2026-03-18)
 
 
