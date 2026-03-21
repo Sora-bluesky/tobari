@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.1](https://github.com/Sora-bluesky/tobari/compare/v2.4.0...v2.4.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* scope evidence summary to current session to prevent false immune triggers ([#42](https://github.com/Sora-bluesky/tobari/issues/42)) ([2405b69](https://github.com/Sora-bluesky/tobari/commit/2405b69d5360d7213669f8fe53b45b258c32e478))
+
 ## [2.4.0](https://github.com/Sora-bluesky/tobari/compare/v2.3.0...v2.4.0) (2026-03-21)
 
 
