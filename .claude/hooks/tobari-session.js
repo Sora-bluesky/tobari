@@ -1006,10 +1006,21 @@ function readEvidence() {
  * Returns counts by event type, tool usage breakdown,
  * and quality_gate_counts (blocking = denied operations).
  *
+ * @param {Object} [options]
+ * @param {string} [options.since] - ISO-8601 timestamp. Only count entries at or after this time.
  * @returns {Object}
  */
-function summarizeEvidence() {
-  const entries = readEvidence();
+function summarizeEvidence(options = {}) {
+  let entries = readEvidence();
+
+  // Filter by session boundary when since is provided
+  if (options.since) {
+    const sinceTime = new Date(options.since).getTime();
+    entries = entries.filter(
+      (e) => e.timestamp && new Date(e.timestamp).getTime() >= sinceTime,
+    );
+  }
+
   if (entries.length === 0) {
     return {
       total: 0,
