@@ -95,7 +95,10 @@ function _buildEvidenceItems(summary) {
  */
 function _updateSessionEvidence() {
   try {
-    const summary = tobariSession.summarizeEvidence();
+    const session = tobariSession.loadSession();
+    const summary = tobariSession.summarizeEvidence({
+      since: session?.started_at,
+    });
     const evidenceItems = _buildEvidenceItems(summary);
 
     const sessionPath = tobariSession.getSessionPath();
@@ -464,7 +467,10 @@ function handler(data) {
   if (!isFailure) {
     // Auto-trigger: suggest /tobari-immune if deny count exceeds threshold
     try {
-      const summary = tobariSession.summarizeEvidence();
+      const currentSession = tobariSession.loadSession();
+      const summary = tobariSession.summarizeEvidence({
+        since: currentSession?.started_at,
+      });
       const denyCount =
         (summary && summary.events && summary.events.tool_denied) || 0;
       const IMMUNE_THRESHOLD = 3;

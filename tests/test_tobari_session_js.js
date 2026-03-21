@@ -759,3 +759,142 @@ describe("getRetryCount", () => {
     assert.equal(mod.getRetryCount(), 2);
   });
 });
+
+// ============================================================
+// SE1-SE5: summarizeEvidence session scoping
+// ============================================================
+
+describe("summarizeEvidence session scoping", () => {
+  let tmpDir;
+  const origEnv = process.env.CLAUDE_PROJECT_DIR;
+
+  // Timestamps for two sessions
+  const SESSION_A_TIME = "2026-03-21T01:00:00.000Z";
+  const SESSION_B_TIME = "2026-03-21T02:00:00.000Z";
+
+  function writeLedgerLines(tmpDir, lines) {
+    const logDir = path.join(tmpDir, ".claude", "logs");
+    fs.mkdirSync(logDir, { recursive: true });
+    const ledgerPath = path.join(logDir, "evidence-ledger.jsonl");
+    fs.writeFileSync(
+      ledgerPath,
+      lines.map((l) => JSON.stringify(l)).join("\n") + "\n",
+      "utf8",
+    );
+  }
+
+  function buildFixture() {
+    // Session A: 2 tool_denied + 1 tool_complete (3 entries)
+    const sessionA = [
+      {
+        event: "tool_denied",
+        tool_name: "Edit",
+        timestamp: "2026-03-21T01:00:00.000Z",
+      },
+      {
+        event: "tool_denied",
+        tool_name: "Write",
+        timestamp: "2026-03-21T01:05:00.000Z",
+      },
+      {
+        event: "tool_complete",
+        tool_name: "Bash",
+        timestamp: "2026-03-21T01:10:00.000Z",
+      },
+    ];
+    // Session B: 1 tool_denied + 3 tool_complete (4 entries)
+    const sessionB = [
+      {
+        event: "tool_denied",
+        tool_name: "Edit",
+        timestamp: "2026-03-21T02:00:00.000Z",
+      },
+      {
+        event: "tool_complete",
+        tool_name: "Bash",
+        timestamp: "2026-03-21T02:05:00.000Z",
+      },
+      {
+        event: "tool_complete",
+        tool_name: "Read",
+        timestamp: "2026-03-21T02:10:00.000Z",
+      },
+      {
+        event: "tool_complete",
+        tool_name: "Grep",
+        timestamp: "2026-03-21T02:15:00.000Z",
+      },
+    ];
+    return [...sessionA, ...sessionB];
+  }
+
+  beforeEach(() => {
+    tmpDir = createTmpDir();
+    process.env.CLAUDE_PROJECT_DIR = tmpDir;
+    mod._resetCache();
+  });
+
+  afterEach(() => {
+    process.env.CLAUDE_PROJECT_DIR = origEnv || "";
+    mod._resetCache();
+    cleanupTmpDir(tmpDir);
+  });
+
+  it("SE1: returns all entries when no since option", () => {
+    writeLedgerLines(tmpDir, buildFixture());
+
+    const summary = mod.summarizeEvidence();
+    assert.equal(summary.total, 7);
+    assert.equal(summary.events.tool_denied, 3);
+    assert.equal(summary.events.tool_complete, 4);
+  });
+
+  it("SE2: filters entries by since timestamp", () => {
+    writeLedgerLines(tmpDir, buildFixture());
+
+    const summary = mod.summarizeEvidence({ since: SESSION_B_TIME });
+    assert.equal(summary.total, 4);
+    assert.equal(summary.events.tool_denied, 1);
+    assert.equal(summary.events.tool_complete, 3);
+  });
+
+  it("SE3: returns zero when since is in the future", () => {
+    writeLedgerLines(tmpDir, buildFixture());
+
+    const summary = mod.summarizeEvidence({
+      since: "2099-01-01T00:00:00.000Z",
+    });
+    assert.equal(summary.total, 0);
+    assert.equal(summary.quality_gate_counts.blocking, 0);
+    assert.equal(summary.quality_gate_counts.high, 0);
+  });
+
+  it("SE4: handles entries without timestamp gracefully", () => {
+    const entries = [
+      ...buildFixture(),
+      { event: "tool_denied", tool_name: "Bash" }, // no timestamp
+      { event: "tool_complete", tool_name: "Edit" }, // no timestamp
+    ];
+    writeLedgerLines(tmpDir, entries);
+
+    // Without since: all 9 entries counted (timestamps not required)
+    const allSummary = mod.summarizeEvidence();
+    assert.equal(allSummary.total, 9);
+
+    // With since: entries without timestamp are excluded by filter
+    const filtered = mod.summarizeEvidence({ since: SESSION_A_TIME });
+    assert.equal(
+      filtered.total,
+      7,
+      "entries without timestamp excluded when since is provided",
+    );
+  });
+
+  it("SE5: deny count reflects only current session", () => {
+    writeLedgerLines(tmpDir, buildFixture());
+
+    const summary = mod.summarizeEvidence({ since: SESSION_B_TIME });
+    // Session B has only 1 tool_denied, not the 2 from session A
+    assert.equal(summary.quality_gate_counts.blocking, 1);
+  });
+});

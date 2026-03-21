@@ -18,6 +18,7 @@ const {
   buildContextOutput,
   getRaisedInfo,
   loadSession,
+  resetAutoTriggers,
   writeEvidence,
   runHook,
 } = require("./tobari-session.js");
@@ -63,6 +64,11 @@ function handler(_data) {
   // Record session_start event to evidence ledger when veil is active
   const sess = loadSession();
   if (sess && sess.active) {
+    // Reset auto_triggers so suggestions can fire fresh in this Claude Code session.
+    // The since-filter on summarizeEvidence() ensures only current-session deny
+    // counts are used, so immune suggestions only fire when genuinely warranted.
+    resetAutoTriggers();
+
     writeEvidence({
       event: "session_start",
       task: sess.task || "",
